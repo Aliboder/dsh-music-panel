@@ -104,7 +104,7 @@ function __mpStylesBundle() {
         );
       };
     }
-    var starPath, Star, Disc3, Aperture, Cone, Layers, Columns3, Wind, Square, ImagePlus, Trash2, Pencil, Plus, Upload, Smile, SeparatorVertical, Hourglass, EyeOff, RotateCcw, RotateCw, AlignLeft, AudioWaveform, Move, Spline, Frame, Sparkles, WandSparkles, Scan, Ghost, Highlighter, Camera, Orbit, X;
+    var starPath, Star, Disc3, Aperture, Cone, Layers, Columns3, Wind, Square, ImagePlus, Trash2, Pencil, Plus, Upload, Smile, SeparatorVertical, Hourglass, EyeOff, RotateCcw, RotateCw, AlignLeft, AudioWaveform, Move, Spline, Frame, Sparkles, WandSparkles, Scan, Ghost, Highlighter, Camera, Orbit, X, Contrast, Scissors;
     var init_lucide_react = __esm({
       "src/folia-adapters/shims/lucide-react.js"() {
         init_react_shim();
@@ -141,27 +141,92 @@ function __mpStylesBundle() {
         Camera = makeIcon("M4 7h3l2-3h6l2 3h3v12H4zM12 10a3 3 0 1 0 0 6 3 3 0 0 0 0-6z");
         Orbit = makeIcon("M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM3 12h18M12 3c4 4 4 14 0 18M12 3c-4 4-4 14 0 18");
         X = makeIcon("M6 6l12 12M18 6L6 18");
+        Contrast = makeIcon("M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM12 2v20a10 10 0 0 0 0-20z");
+        Scissors = makeIcon("M6 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM20 4L8.5 15.5M20 20L8.5 8.5");
       }
     });
   
     // src/folia-adapters/shims/settings-card.tsx
-    var Stub, ClassicSettingsPanel, CladdaghSettingsPanel, DioramaSettingsPanel, FumeSettingsPanel, MonetSettingsPanel, PartitaSettingsPanel, TiltSettingsPanel, Tooltip, SettingsKitThemeContext, NEBBIA_APPEAR_LABEL_KEYS, NEBBIA_FADE_LABEL_KEYS, Slider, Toggle, settings_card_default, passthrough, Button, Segmented, Tabs, settingsTokens, percent, times;
+    var settings_card_exports = {};
+    __export(settings_card_exports, {
+      Button: () => Button,
+      CadenzaSettingsPanel: () => CadenzaSettingsPanel,
+      CappellaSettingsPanel: () => CappellaSettingsPanel,
+      CladdaghSettingsPanel: () => CladdaghSettingsPanel,
+      ClassicSettingsPanel: () => ClassicSettingsPanel,
+      CommonBackgroundSettingsCard: () => CommonBackgroundSettingsCard,
+      DioramaSettingsPanel: () => DioramaSettingsPanel,
+      FumeSettingsPanel: () => FumeSettingsPanel,
+      Group: () => Group,
+      HanabiSettingsPanel: () => HanabiSettingsPanel,
+      LatentBackgroundSettingsCard: () => LatentBackgroundSettingsCard,
+      LumiereSettingsPanel: () => LumiereSettingsPanel,
+      MachiSettingsPanel: () => MachiSettingsPanel,
+      MonetBackgroundSettingsCard: () => MonetBackgroundSettingsCard,
+      MonetSettingsPanel: () => MonetSettingsPanel,
+      NEBBIA_APPEAR_LABEL_KEYS: () => NEBBIA_APPEAR_LABEL_KEYS,
+      NEBBIA_FADE_LABEL_KEYS: () => NEBBIA_FADE_LABEL_KEYS,
+      NebbiaSettingsPanel: () => NebbiaSettingsPanel,
+      NomandBackgroundSettingsCard: () => NomandBackgroundSettingsCard,
+      PartitaSettingsPanel: () => PartitaSettingsPanel,
+      PictureGrid: () => PictureGrid,
+      Row: () => Row,
+      Segmented: () => Segmented,
+      Select: () => Select,
+      SettingsKitThemeContext: () => SettingsKitThemeContext,
+      Slider: () => Slider,
+      SliderControl: () => SliderControl,
+      SonnetSettingsPanel: () => SonnetSettingsPanel,
+      SoraBackgroundSettingsCard: () => SoraBackgroundSettingsCard,
+      StillSettingsPanel: () => StillSettingsPanel,
+      Tabs: () => Tabs,
+      TemperaSettingsPanel: () => TemperaSettingsPanel,
+      TiltSettingsPanel: () => TiltSettingsPanel,
+      Toggle: () => Toggle,
+      ToggleControl: () => ToggleControl,
+      Tooltip: () => Tooltip,
+      UrlBackgroundSettingsCard: () => UrlBackgroundSettingsCard,
+      default: () => settings_card_default,
+      percent: () => percent,
+      settingsTokens: () => settingsTokens,
+      times: () => times
+    });
+    var Stub, CommonBackgroundSettingsCard, LatentBackgroundSettingsCard, MonetBackgroundSettingsCard, NomandBackgroundSettingsCard, SoraBackgroundSettingsCard, UrlBackgroundSettingsCard, CappellaSettingsPanel, ClassicSettingsPanel, CadenzaSettingsPanel, CladdaghSettingsPanel, DioramaSettingsPanel, FumeSettingsPanel, HanabiSettingsPanel, LumiereSettingsPanel, MachiSettingsPanel, MonetSettingsPanel, NebbiaSettingsPanel, PartitaSettingsPanel, SonnetSettingsPanel, StillSettingsPanel, TemperaSettingsPanel, TiltSettingsPanel, Tooltip, SettingsKitThemeContext, NEBBIA_APPEAR_LABEL_KEYS, NEBBIA_FADE_LABEL_KEYS, Group, Row, PictureGrid, Slider, Select, Toggle, settings_card_default, passthrough, Button, Segmented, Tabs, SliderControl, ToggleControl, settingsTokens, percent, times;
     var init_settings_card = __esm({
       "src/folia-adapters/shims/settings-card.tsx"() {
         init_react_shim();
         Stub = () => null;
+        CommonBackgroundSettingsCard = Stub;
+        LatentBackgroundSettingsCard = Stub;
+        MonetBackgroundSettingsCard = Stub;
+        NomandBackgroundSettingsCard = Stub;
+        SoraBackgroundSettingsCard = Stub;
+        UrlBackgroundSettingsCard = Stub;
+        CappellaSettingsPanel = Stub;
         ClassicSettingsPanel = Stub;
+        CadenzaSettingsPanel = Stub;
         CladdaghSettingsPanel = Stub;
         DioramaSettingsPanel = Stub;
         FumeSettingsPanel = Stub;
+        HanabiSettingsPanel = Stub;
+        LumiereSettingsPanel = Stub;
+        MachiSettingsPanel = Stub;
         MonetSettingsPanel = Stub;
+        NebbiaSettingsPanel = Stub;
         PartitaSettingsPanel = Stub;
+        SonnetSettingsPanel = Stub;
+        StillSettingsPanel = Stub;
+        TemperaSettingsPanel = Stub;
         TiltSettingsPanel = Stub;
         Tooltip = Stub;
         SettingsKitThemeContext = react_shim_default.createContext(null);
         NEBBIA_APPEAR_LABEL_KEYS = {};
         NEBBIA_FADE_LABEL_KEYS = {};
+        Group = Stub;
+        Row = Stub;
+        PictureGrid = Stub;
         Slider = Stub;
+        Select = Stub;
         Toggle = Stub;
         settings_card_default = Stub;
         passthrough = (name) => {
@@ -171,6 +236,8 @@ function __mpStylesBundle() {
         Button = passthrough("button");
         Segmented = passthrough("div");
         Tabs = passthrough("div");
+        SliderControl = () => null;
+        ToggleControl = () => null;
         settingsTokens = () => ({});
         percent = (value) => `${Math.round(value * 100)}%`;
         times = (value) => `${value}\xD7`;
@@ -894,18 +961,18 @@ function __mpStylesBundle() {
             return [];
           }
           const roles = mode === "both" ? ["romanization", "translation"] : [mode];
-          const tracks = [];
+          const tracks2 = [];
           for (const role of roles) {
             const text = resolveTrackText(source, role);
             if (!text || !isReadable(text)) {
               continue;
             }
-            if (tracks.some((track) => track.text === text)) {
+            if (tracks2.some((track) => track.text === text)) {
               continue;
             }
-            tracks.push({ role, text });
+            tracks2.push({ role, text });
           }
-          return tracks;
+          return tracks2;
         };
         resolveSubtitleContentMode = (mode, legacyShowTranslation = true) => mode ?? (legacyShowTranslation ? "translation" : "none");
       }
@@ -1058,7 +1125,7 @@ function __mpStylesBundle() {
         init_usePlayerBottomBarBottomPx();
         init_jsx_runtime_shim();
         hasReadableText = (text) => !!text && /[\p{L}\p{N}]/u.test(text);
-        getUpcomingLyricsClassName = (blur = true) => `truncate max-w-2xl mx-auto transition-all duration-500${blur ? " blur-[1px]" : ""}`;
+        getUpcomingLyricsClassName = (blur2 = true) => `truncate max-w-2xl mx-auto transition-all duration-500${blur2 ? " blur-[1px]" : ""}`;
         resolveVisualizerSubtitleOverlayContent = ({
           showText,
           activeLine: activeLine2,
@@ -1779,15 +1846,15 @@ function __mpStylesBundle() {
           if (!Number.isFinite(px2)) return 0;
           return glowBlurQuantized ? Math.max(0, Math.round(px2)) : px2;
         };
-        setCanvasTextGlow = (context, blur, color) => {
+        setCanvasTextGlow = (context, blur2, color) => {
           if (!glowBlurQuantized) {
-            context.shadowBlur = blur;
+            context.shadowBlur = blur2;
             context.shadowColor = color;
             return;
           }
           context.shadowBlur = 0;
           context.shadowColor = "transparent";
-          context.filter = blur > 0 ? `drop-shadow(0 0 ${blur / 2}px ${color})` : "none";
+          context.filter = blur2 > 0 ? `drop-shadow(0 0 ${blur2 / 2}px ${color})` : "none";
         };
         clearCanvasTextGlow = (context) => {
           context.shadowBlur = 0;
@@ -2519,8 +2586,8 @@ function __mpStylesBundle() {
               normal: { distance: 14, duration: 7 },
               chaotic: { distance: 18, duration: 5.8 }
             };
-            const { distance, duration } = configByIntensity[theme.animationIntensity];
-            const scaledDistance = distance * multiplier;
+            const { distance: distance2, duration } = configByIntensity[theme.animationIntensity];
+            const scaledDistance = distance2 * multiplier;
             return {
               animate: {
                 y: [0, -scaledDistance, 0, scaledDistance * 0.45, 0],
@@ -4470,28 +4537,28 @@ function __mpStylesBundle() {
       const isWordLike = [];
       const kinds = [];
       const starts = [];
-      let read = 0;
-      while (read < segmentation.len) {
-        const textParts = [segmentation.texts[read]];
-        let wordLike = segmentation.isWordLike[read];
-        let kind = segmentation.kinds[read];
-        let start = segmentation.starts[read];
+      let read2 = 0;
+      while (read2 < segmentation.len) {
+        const textParts = [segmentation.texts[read2]];
+        let wordLike = segmentation.isWordLike[read2];
+        let kind = segmentation.kinds[read2];
+        let start = segmentation.starts[read2];
         if (kind === "glue") {
           const glueParts = [textParts[0]];
           const glueStart = start;
-          read++;
-          while (read < segmentation.len && segmentation.kinds[read] === "glue") {
-            glueParts.push(segmentation.texts[read]);
-            read++;
+          read2++;
+          while (read2 < segmentation.len && segmentation.kinds[read2] === "glue") {
+            glueParts.push(segmentation.texts[read2]);
+            read2++;
           }
           const glueText = joinTextParts(glueParts);
-          if (read < segmentation.len && segmentation.kinds[read] === "text") {
+          if (read2 < segmentation.len && segmentation.kinds[read2] === "text") {
             textParts[0] = glueText;
-            textParts.push(segmentation.texts[read]);
-            wordLike = segmentation.isWordLike[read];
+            textParts.push(segmentation.texts[read2]);
+            wordLike = segmentation.isWordLike[read2];
             kind = "text";
             start = glueStart;
-            read++;
+            read2++;
           } else {
             texts.push(glueText);
             isWordLike.push(false);
@@ -4500,20 +4567,20 @@ function __mpStylesBundle() {
             continue;
           }
         } else {
-          read++;
+          read2++;
         }
         if (kind === "text") {
-          while (read < segmentation.len && segmentation.kinds[read] === "glue") {
+          while (read2 < segmentation.len && segmentation.kinds[read2] === "glue") {
             const glueParts = [];
-            while (read < segmentation.len && segmentation.kinds[read] === "glue") {
-              glueParts.push(segmentation.texts[read]);
-              read++;
+            while (read2 < segmentation.len && segmentation.kinds[read2] === "glue") {
+              glueParts.push(segmentation.texts[read2]);
+              read2++;
             }
             const glueText = joinTextParts(glueParts);
-            if (read < segmentation.len && segmentation.kinds[read] === "text") {
-              textParts.push(glueText, segmentation.texts[read]);
-              wordLike = wordLike || segmentation.isWordLike[read];
-              read++;
+            if (read2 < segmentation.len && segmentation.kinds[read2] === "text") {
+              textParts.push(glueText, segmentation.texts[read2]);
+              wordLike = wordLike || segmentation.isWordLike[read2];
+              read2++;
               continue;
             }
             textParts.push(glueText);
@@ -4663,15 +4730,15 @@ function __mpStylesBundle() {
         mergedTexts[nextLiveIndex] = joinReversedPrefixParts(forwardStickyPrefixParts, mergedTexts[nextLiveIndex]);
       }
       let compactLen = 0;
-      for (let read = 0; read < mergedLen; read++) {
-        const text = mergedTexts[read];
+      for (let read2 = 0; read2 < mergedLen; read2++) {
+        const text = mergedTexts[read2];
         if (text.length === 0)
           continue;
-        if (compactLen !== read) {
+        if (compactLen !== read2) {
           mergedTexts[compactLen] = text;
-          mergedWordLike[compactLen] = mergedWordLike[read];
-          mergedKinds[compactLen] = mergedKinds[read];
-          mergedStarts[compactLen] = mergedStarts[read];
+          mergedWordLike[compactLen] = mergedWordLike[read2];
+          mergedKinds[compactLen] = mergedKinds[read2];
+          mergedStarts[compactLen] = mergedStarts[read2];
         }
         compactLen++;
       }
@@ -5262,15 +5329,15 @@ function __mpStylesBundle() {
       const canvasW = ctx2.measureText("\u{1F600}").width;
       correction = 0;
       if (canvasW > fontSize + 0.5 && typeof document !== "undefined" && document.body !== null) {
-        const span = document.createElement("span");
-        span.style.font = font;
-        span.style.display = "inline-block";
-        span.style.visibility = "hidden";
-        span.style.position = "absolute";
-        span.textContent = "\u{1F600}";
-        document.body.appendChild(span);
-        const domW = span.getBoundingClientRect().width;
-        document.body.removeChild(span);
+        const span3 = document.createElement("span");
+        span3.style.font = font;
+        span3.style.display = "inline-block";
+        span3.style.visibility = "hidden";
+        span3.style.position = "absolute";
+        span3.textContent = "\u{1F600}";
+        document.body.appendChild(span3);
+        const domW = span3.getBoundingClientRect().width;
+        document.body.removeChild(span3);
         if (canvasW - domW > 0.5) {
           correction = canvasW - domW;
         }
@@ -5727,23 +5794,23 @@ function __mpStylesBundle() {
         lineEndGraphemeIndex = graphemeIndex + 1;
         lineW = width;
       }
-      function appendWholeSegment(segmentIndex, advance) {
+      function appendWholeSegment(segmentIndex, advance2) {
         if (!hasContent) {
-          startLineAtSegment(segmentIndex, advance);
+          startLineAtSegment(segmentIndex, advance2);
           return;
         }
-        lineW += advance;
+        lineW += advance2;
         lineEndSegmentIndex = segmentIndex + 1;
         lineEndGraphemeIndex = 0;
       }
-      function updatePendingBreakForWholeSegment(kind, breakAfter, segmentIndex, segmentWidth, leadingSpacing, advance) {
+      function updatePendingBreakForWholeSegment(kind, breakAfter, segmentIndex, segmentWidth, leadingSpacing, advance2) {
         if (!breakAfter)
           return;
         const fitAdvance = getBreakOpportunityFitContribution(prepared, kind, segmentIndex, leadingSpacing);
         const paintAdvance = getLineEndPaintContribution(prepared, kind, segmentIndex, leadingSpacing, segmentWidth);
         pendingBreakSegmentIndex = segmentIndex + 1;
-        pendingBreakFitWidth = lineW - advance + fitAdvance;
-        pendingBreakPaintWidth = lineW - advance + paintAdvance;
+        pendingBreakFitWidth = lineW - advance2 + fitAdvance;
+        pendingBreakPaintWidth = lineW - advance2 + paintAdvance;
         pendingBreakKind = kind;
       }
       function appendBreakableSegmentFrom(segmentIndex, startGraphemeIndex) {
@@ -5808,7 +5875,7 @@ function __mpStylesBundle() {
             const startGraphemeIndex = i4 === cursor.segmentIndex ? cursor.graphemeIndex : 0;
             const leadingSpacing = getLeadingLetterSpacing(prepared, hasContent, i4);
             const w4 = kind === "tab" ? getTabAdvance(lineW + leadingSpacing, prepared.tabStopAdvance) : widths[i4];
-            const advance = leadingSpacing + w4;
+            const advance2 = leadingSpacing + w4;
             const fitAdvance = getWholeSegmentFitContribution(prepared, kind, i4, leadingSpacing, w4);
             if (kind === "soft-hyphen" && startGraphemeIndex === 0) {
               if (hasContent) {
@@ -5839,7 +5906,7 @@ function __mpStylesBundle() {
               } else {
                 startLineAtSegment(i4, w4);
               }
-              updatePendingBreakForWholeSegment(kind, breakAfter, i4, w4, leadingSpacing, advance);
+              updatePendingBreakForWholeSegment(kind, breakAfter, i4, w4, leadingSpacing, advance2);
               continue;
             }
             const newFitW = lineW + fitAdvance;
@@ -5847,7 +5914,7 @@ function __mpStylesBundle() {
               const currentBreakFitWidth = lineW + getBreakOpportunityFitContribution(prepared, kind, i4, leadingSpacing);
               const currentBreakPaintWidth = lineW + getLineEndPaintContribution(prepared, kind, i4, leadingSpacing, w4);
               if (breakAfter && currentBreakFitWidth <= fitLimit) {
-                appendWholeSegment(i4, advance);
+                appendWholeSegment(i4, advance2);
                 lineWidth = finishLine(i4 + 1, 0, currentBreakPaintWidth);
                 break lineLoop;
               }
@@ -5862,8 +5929,8 @@ function __mpStylesBundle() {
               lineWidth = finishLine();
               break lineLoop;
             }
-            appendWholeSegment(i4, advance);
-            updatePendingBreakForWholeSegment(kind, breakAfter, i4, w4, leadingSpacing, advance);
+            appendWholeSegment(i4, advance2);
+            updatePendingBreakForWholeSegment(kind, breakAfter, i4, w4, leadingSpacing, advance2);
           }
           if (lineWidth === null) {
             lineWidth = pendingBreakSegmentIndex === chunk.consumedEndSegmentIndex && lineEndGraphemeIndex === 0 ? finishLine(chunk.consumedEndSegmentIndex, 0, pendingBreakPaintWidth) : finishLine(chunk.consumedEndSegmentIndex, 0, lineW);
@@ -7899,10 +7966,10 @@ function __mpStylesBundle() {
               normal: { distance: 14, duration: 7 },
               chaotic: { distance: 18, duration: 5.8 }
             };
-            const { distance, duration } = configByIntensity[theme.animationIntensity];
+            const { distance: distance2, duration } = configByIntensity[theme.animationIntensity];
             return {
               animate: {
-                y: [0, -distance, 0, distance * 0.45, 0],
+                y: [0, -distance2, 0, distance2 * 0.45, 0],
                 scale: [1, 1.01, 1, 0.995, 1]
               },
               transition: {
@@ -8515,10 +8582,10 @@ function __mpStylesBundle() {
                 const opacityText = finalOpacity.toFixed(3);
                 if (Number(opacityText) === 0 && Number(written.get(el3)?.opacity ?? 1) === 0) continue;
                 const scale = (0.22 + 0.98 * Math.pow(D4, 1.5)) * (1 + (focusScaleRatio ?? 0.65) * F4) * lengthScaleFactor * (item.scaleFactor ?? 1);
-                const blur = 8 * (1 - D4) * (1 - 0.5 * F4);
+                const blur2 = 8 * (1 - D4) * (1 - 0.5 * F4);
                 const tiltAngle = clamp4(tangentAngle * (0.4 + 0.6 * D4), -38, 38);
                 const transform = `translate3d(calc(-50% + ${x4.toFixed(1)}px), calc(-50% + ${y4.toFixed(1)}px), 0px) rotate(${tiltAngle.toFixed(2)}deg) scale(${scale.toFixed(3)})`;
-                const blurFilter = blur < 0.2 ? "" : `blur(${blur.toFixed(2)}px)`;
+                const blurFilter = blur2 < 0.2 ? "" : `blur(${blur2.toFixed(2)}px)`;
                 let glowFilter = "";
                 let charProgress = 0;
                 if (latestTime >= item.endTime) {
@@ -8617,7 +8684,7 @@ function __mpStylesBundle() {
                   const opacityText = opacity.toFixed(3);
                   if (Number(opacityText) === 0 && Number(written.get(el3)?.opacity ?? 1) === 0) continue;
                   const scale = depthScale * (1 + focusScale * 0.35 * F4) * lengthScaleFactor * item.scaleFactor;
-                  const blur = 8 * (1 - D4) * (1 - 0.5 * F4);
+                  const blur2 = 8 * (1 - D4) * (1 - 0.5 * F4);
                   const tiltAngle = clamp4(tangentAngle * (0.4 + 0.6 * D4), -38, 38);
                   const sung = clamp4(sungGlyphs - i4, 0, 1);
                   writeGlyph(el3, {
@@ -8625,7 +8692,7 @@ function __mpStylesBundle() {
                     opacity: opacityText,
                     color: sung > 0 ? mixColors(baseColor, highlightColor, sung, 0.55 + 0.3 * sung) : baseColor,
                     textShadow: "none",
-                    filter: blur < 0.2 ? "none" : `blur(${blur.toFixed(2)}px)`
+                    filter: blur2 < 0.2 ? "none" : `blur(${blur2.toFixed(2)}px)`
                   });
                 }
               }
@@ -9022,11 +9089,12 @@ function __mpStylesBundle() {
     });
   
     // src/folia/utils/lyricRenderQuality.ts
-    var LYRIC_RENDER_SCALES, DEFAULT_LYRIC_RENDER_QUALITY, MAX_LYRIC_PIXEL_RATIO, isLyricRenderScale, normalizeLyricRenderOverride, resolveLyricRenderQuality, resolveLyricPixelRatio, resolveLyricAntialias;
+    var LYRIC_RENDER_SCALES, DEFAULT_LYRIC_RENDER_QUALITY, DEFAULT_LYRIC_RENDER_OVERRIDE, MAX_LYRIC_PIXEL_RATIO, isLyricRenderScale, normalizeLyricRenderOverride, resolveLyricRenderQuality, resolveLyricPixelRatio, resolveLyricAntialias;
     var init_lyricRenderQuality = __esm({
       "src/folia/utils/lyricRenderQuality.ts"() {
         LYRIC_RENDER_SCALES = [0.5, 0.75, 1, 1.5, 2];
         DEFAULT_LYRIC_RENDER_QUALITY = { scale: 1, antialias: "auto" };
+        DEFAULT_LYRIC_RENDER_OVERRIDE = { scale: "global", antialias: "global" };
         MAX_LYRIC_PIXEL_RATIO = 3;
         isLyricRenderScale = (value) => LYRIC_RENDER_SCALES.includes(value);
         normalizeLyricRenderOverride = (raw) => {
@@ -9128,12 +9196,12 @@ function __mpStylesBundle() {
           }
           nodes.glow.replaceChildren();
           nodes.glyphSpans = texts.map((text) => {
-            const span = document.createElement("span");
-            span.textContent = text;
-            span.style.color = "transparent";
-            span.style.lineHeight = "1";
-            nodes.glow.appendChild(span);
-            return span;
+            const span3 = document.createElement("span");
+            span3.textContent = text;
+            span3.style.color = "transparent";
+            span3.style.lineHeight = "1";
+            nodes.glow.appendChild(span3);
+            return span3;
           });
           nodes.glyphShadows = [];
           nodes.glyphSignature = glyphSignature;
@@ -9298,17 +9366,17 @@ function __mpStylesBundle() {
             const enterProgress2 = easeOutCubic(clamp5((time - line2.startTime) / enterDuration2, 0, 1));
             let opacity2 = mix2(0.65, 1, enterProgress2);
             let scale2 = mix2(0.97, 1, enterProgress2);
-            let blur2 = mix2(4, 0, enterProgress2);
+            let blur3 = mix2(4, 0, enterProgress2);
             const exitProgress2 = easeOutCubic(clamp5((time - exitStart2) / exitDuration2, 0, 1));
             if (exitProgress2 > 0) {
               opacity2 = mix2(opacity2, 0, exitProgress2);
               scale2 = mix2(scale2, 1.03, exitProgress2);
-              blur2 = Math.max(blur2, mix2(0, 6, exitProgress2));
+              blur3 = Math.max(blur3, mix2(0, 6, exitProgress2));
             }
             return {
               opacity: clamp5(opacity2, 0, 1),
               scale: scale2,
-              blur: blur2
+              blur: blur3
             };
           }
           const enterDuration = lineTiming.transitionTiming.enterDuration;
@@ -9317,18 +9385,18 @@ function __mpStylesBundle() {
           const enterProgress = easeOutCubic(clamp5((time - (line2.startTime - preEnter)) / (enterDuration + preEnter), 0, 1));
           let opacity = mix2(0, 1, enterProgress);
           let scale = mix2(0.9, 1, enterProgress);
-          let blur = mix2(10, 0, enterProgress);
+          let blur2 = mix2(10, 0, enterProgress);
           const exitStart = Math.max(linePassStart, lineEndTime - exitDuration);
           const exitProgress = easeOutCubic(clamp5((time - exitStart) / exitDuration, 0, 1));
           if (exitProgress > 0) {
             opacity *= 1 - exitProgress;
             scale = mix2(scale, 1.1, exitProgress);
-            blur = Math.max(blur, mix2(0, 20, exitProgress));
+            blur2 = Math.max(blur2, mix2(0, 20, exitProgress));
           }
           return {
             opacity: clamp5(opacity, 0, 1),
             scale,
-            blur
+            blur: blur2
           };
         };
         getClassicPassedDrift = (time, word) => {
@@ -9696,17 +9764,17 @@ function __mpStylesBundle() {
               const wordCenterY = preferredY - height * 0.46;
               let dx2 = wordCenterX - heroMetrics.centerX;
               let dy2 = wordCenterY - heroMetrics.centerY;
-              const distance = Math.hypot(dx2, dy2);
-              if (distance < 1) {
+              const distance2 = Math.hypot(dx2, dy2);
+              if (distance2 < 1) {
                 dx2 = preferredX >= 0 ? 1 : -1;
                 dy2 = lineIndex % 2 === 0 ? -0.65 : 0.65;
               }
               const minHeroSeparation = heroMetrics.width * 0.34 + width * 0.52 + padding * 2;
-              if (distance < minHeroSeparation) {
+              if (distance2 < minHeroSeparation) {
                 const normalizedDistance = Math.max(Math.hypot(dx2, dy2), 1);
                 const ux2 = dx2 / normalizedDistance;
                 const uy2 = dy2 / normalizedDistance;
-                const push2 = minHeroSeparation - distance;
+                const push2 = minHeroSeparation - distance2;
                 preferredX += ux2 * push2;
                 preferredY += uy2 * push2 * 0.92;
               }
@@ -13486,10 +13554,14 @@ function __mpStylesBundle() {
           pendoloGearBeats: "pendolo.gearBeats",
           latentPulse: "latent.pulse",
           hanabiBeatBursts: "hanabi.beatBursts",
-          hanabiPush: "hanabi.push",
+          hanabiBeatPulse: "hanabi.beatPulse",
           temperaInkFlash: "tempera.inkFlash",
           machiNeonPulse: "machi.neonPulse",
-          machiDrumRipple: "machi.drumRipple"
+          machiDrumRipple: "machi.drumRipple",
+          machiScreenFlash: "machi.screenFlash",
+          nebbiaDrizzleRide: "nebbia.drizzleRide",
+          nebbiaAquaBeat: "nebbia.aquaBeat",
+          metaphorAnnihilation: "metaphor.annihilation"
         };
         smartBeatActive = (settings) => settings !== null && settings !== void 0 && settings.mode !== "off";
         beatEffectPartId = (id4, part) => `${id4}:${part}`;
@@ -13598,8 +13670,8 @@ function __mpStylesBundle() {
         };
         signedReadout = (unit2, digits = 0) => (value) => {
           const text = Math.abs(value).toFixed(digits);
-          const sign = Number(text) === 0 ? "" : value > 0 ? "+" : "\u2212";
-          return `${sign}${text}${unit2}`;
+          const sign2 = Number(text) === 0 ? "" : value > 0 ? "+" : "\u2212";
+          return `${sign2}${text}${unit2}`;
         };
         MACHI_VIEW_SLIDERS = [
           { key: "azimuth", labelKey: "options.machiViewAzimuth", step: 1, format: signedReadout("\xB0") },
@@ -13682,13 +13754,13 @@ function __mpStylesBundle() {
         normalizeMachiQuality = (raw) => {
           const input = raw && typeof raw === "object" ? raw : {};
           const d4 = DEFAULT_MACHI_QUALITY;
-          const pick2 = (choices, value, fallback) => choices.includes(value) ? value : fallback;
+          const pick3 = (choices, value, fallback) => choices.includes(value) ? value : fallback;
           const legacy = input.revision !== MACHI_QUALITY_REVISION;
           return {
-            renderScale: legacy && input.renderScale === 1 ? MACHI_FOLLOW_GLOBAL : pick2([MACHI_FOLLOW_GLOBAL, ...MACHI_RENDER_SCALES], input.renderScale, d4.renderScale),
-            antialias: legacy && input.antialias === "smaa" ? MACHI_FOLLOW_GLOBAL : pick2([MACHI_FOLLOW_GLOBAL, ...MACHI_ANTIALIAS_MODES], input.antialias, d4.antialias),
-            shadows: pick2(MACHI_DETAIL_LEVELS, input.shadows, d4.shadows),
-            reflections: pick2(MACHI_DETAIL_LEVELS, input.reflections, d4.reflections),
+            renderScale: legacy && input.renderScale === 1 ? MACHI_FOLLOW_GLOBAL : pick3([MACHI_FOLLOW_GLOBAL, ...MACHI_RENDER_SCALES], input.renderScale, d4.renderScale),
+            antialias: legacy && input.antialias === "smaa" ? MACHI_FOLLOW_GLOBAL : pick3([MACHI_FOLLOW_GLOBAL, ...MACHI_ANTIALIAS_MODES], input.antialias, d4.antialias),
+            shadows: pick3(MACHI_DETAIL_LEVELS, input.shadows, d4.shadows),
+            reflections: pick3(MACHI_DETAIL_LEVELS, input.reflections, d4.reflections),
             glow: typeof input.glow === "boolean" ? input.glow : d4.glow,
             adaptive: typeof input.adaptive === "boolean" ? input.adaptive : d4.adaptive,
             revision: MACHI_QUALITY_REVISION
@@ -13869,7 +13941,7 @@ function __mpStylesBundle() {
         DEFAULT_READY_GRACE_MS = 8e3;
         hashWordSegments = (lines) => {
           let hash2 = 2166136261;
-          const mix6 = (value) => {
+          const mix7 = (value) => {
             hash2 = Math.imul(hash2 ^ value, 16777619);
           };
           lines.forEach((line2, index) => {
@@ -13877,9 +13949,9 @@ function __mpStylesBundle() {
             if (!segments) {
               return;
             }
-            mix6(index);
-            mix6(line2.wordSegments ? 1 : 2);
-            segments.forEach((segment2) => mix6(segment2.length));
+            mix7(index);
+            mix7(line2.wordSegments ? 1 : 2);
+            segments.forEach((segment2) => mix7(segment2.length));
           });
           return hash2 >>> 0;
         };
@@ -28942,19 +29014,19 @@ function __mpStylesBundle() {
           _rotateUp(angle) {
             this._sphericalDelta.phi -= angle;
           }
-          _panLeft(distance, objectMatrix) {
+          _panLeft(distance2, objectMatrix) {
             _v.setFromMatrixColumn(objectMatrix, 0);
-            _v.multiplyScalar(-distance);
+            _v.multiplyScalar(-distance2);
             this._panOffset.add(_v);
           }
-          _panUp(distance, objectMatrix) {
+          _panUp(distance2, objectMatrix) {
             if (this.screenSpacePanning === true) {
               _v.setFromMatrixColumn(objectMatrix, 1);
             } else {
               _v.setFromMatrixColumn(objectMatrix, 0);
               _v.crossVectors(this.object.up, _v);
             }
-            _v.multiplyScalar(distance);
+            _v.multiplyScalar(distance2);
             this._panOffset.add(_v);
           }
           // deltaX and deltaY are in pixels; right and down are positive
@@ -29122,8 +29194,8 @@ function __mpStylesBundle() {
             const position = this._getSecondPointerPosition(event);
             const dx2 = event.pageX - position.x;
             const dy2 = event.pageY - position.y;
-            const distance = Math.sqrt(dx2 * dx2 + dy2 * dy2);
-            this._dollyStart.set(0, distance);
+            const distance2 = Math.sqrt(dx2 * dx2 + dy2 * dy2);
+            this._dollyStart.set(0, distance2);
           }
           _handleTouchStartDollyPan(event) {
             if (this.enableZoom) this._handleTouchStartDolly(event);
@@ -29165,8 +29237,8 @@ function __mpStylesBundle() {
             const position = this._getSecondPointerPosition(event);
             const dx2 = event.pageX - position.x;
             const dy2 = event.pageY - position.y;
-            const distance = Math.sqrt(dx2 * dx2 + dy2 * dy2);
-            this._dollyEnd.set(0, distance);
+            const distance2 = Math.sqrt(dx2 * dx2 + dy2 * dy2);
+            this._dollyEnd.set(0, distance2);
             this._dollyDelta.set(0, Math.pow(this._dollyEnd.y / this._dollyStart.y, this.zoomSpeed));
             this._dollyOut(this._dollyDelta.y);
             this._dollyStart.copy(this._dollyEnd);
@@ -33605,25 +33677,25 @@ function __mpStylesBundle() {
             this.snowMaterial.uniforms.uColor.value.set(16054268).lerp(this.blend.get("hemiSky"), 0.18);
             this.snowMaterial.uniforms.uGlintColor.value.copy(this.blend.get("streetLight"));
           }
-          update(frame2) {
-            const rain = Math.min(1, frame2.rain);
+          update(frame3) {
+            const rain = Math.min(1, frame3.rain);
             const density2 = Math.max(0.15, rain);
             this.rain.visible = rain > 0.01;
             this.splashes.visible = rain > 0.01;
-            this.rainMaterial.uniforms.uTime.value = frame2.time;
+            this.rainMaterial.uniforms.uTime.value = frame3.time;
             this.rainMaterial.uniforms.uDensity.value = Math.min(1, rain * 4) * (0.35 + 0.65 * density2);
-            this.splashMaterial.uniforms.uTime.value = frame2.time;
+            this.splashMaterial.uniforms.uTime.value = frame3.time;
             this.splashMaterial.uniforms.uDensity.value = Math.min(1, rain * 4) * (0.3 + 0.7 * density2);
-            this.drips.visible = frame2.wetness > 0.05;
-            this.dripMaterial.uniforms.uTime.value = frame2.time;
-            this.dripMaterial.uniforms.uAmount.value = Math.min(1, frame2.wetness * 1.2);
-            const snow = Math.min(1, frame2.snow);
+            this.drips.visible = frame3.wetness > 0.05;
+            this.dripMaterial.uniforms.uTime.value = frame3.time;
+            this.dripMaterial.uniforms.uAmount.value = Math.min(1, frame3.wetness * 1.2);
+            const snow = Math.min(1, frame3.snow);
             this.snow.visible = snow > 0.01;
-            this.snowMaterial.uniforms.uTime.value = frame2.time;
+            this.snowMaterial.uniforms.uTime.value = frame3.time;
             this.snowMaterial.uniforms.uDensity.value = snow * 0.85;
-            this.snowMaterial.uniforms.uPixelsPerUnit.value = frame2.pixelsPerUnit;
+            this.snowMaterial.uniforms.uPixelsPerUnit.value = frame3.pixelsPerUnit;
             this.rainMaterial.uniforms.uGlints.value.forEach((glint, index) => {
-              glint.w = Math.max(1e-3, this.glintRadii[index] * frame2.glint);
+              glint.w = Math.max(1e-3, this.glintRadii[index] * frame3.glint);
             });
           }
           dispose() {
@@ -33910,8 +33982,8 @@ function __mpStylesBundle() {
           return (lighter + 0.05) / (darker + 0.05);
         };
         getHueDistance = (a4, b4) => {
-          const distance = Math.abs(normalizeHue(a4) - normalizeHue(b4));
-          return Math.min(distance, 360 - distance);
+          const distance2 = Math.abs(normalizeHue(a4) - normalizeHue(b4));
+          return Math.min(distance2, 360 - distance2);
         };
         adjustLightnessForContrast = (color, background, minRatio, step = 0.02, maxSteps = 50) => {
           const hsl = hexToHsl(color);
@@ -34014,9 +34086,9 @@ function __mpStylesBundle() {
           const from = hexToHsl(base);
           const to3 = hexToHsl(toward);
           if (!to3 || amount <= 0) return base;
-          const distance = getHueDistance(from.h, to3.h);
-          const forward = normalizeHue(from.h + distance) === normalizeHue(to3.h) ? 1 : -1;
-          return hslToHex({ h: normalizeHue(from.h + forward * distance * amount), s: from.s, l: from.l });
+          const distance2 = getHueDistance(from.h, to3.h);
+          const forward = normalizeHue(from.h + distance2) === normalizeHue(to3.h) ? 1 : -1;
+          return hslToHex({ h: normalizeHue(from.h + forward * distance2 * amount), s: from.s, l: from.l });
         };
         tintDark = (base, themeBackground) => {
           const background = hexToHsl(themeBackground);
@@ -34207,8 +34279,8 @@ function __mpStylesBundle() {
             this.moon.color.copy(this.blend.get("moon"));
           }
           /** 每帧：方向在夜、黄昏、白天之间插值，强度乘上闪电。太阳转过了一点就重画阴影图。 */
-          update(frame2) {
-            const d4 = frame2.daylight;
+          update(frame3) {
+            const d4 = frame3.daylight;
             if (d4 <= MACHI_DAYLIGHT.dusk) this.direction.lerpVectors(DIRECTIONS.night, DIRECTIONS.dusk, d4 / MACHI_DAYLIGHT.dusk);
             else this.direction.lerpVectors(DIRECTIONS.dusk, DIRECTIONS.day, (d4 - MACHI_DAYLIGHT.dusk) / (1 - MACHI_DAYLIGHT.dusk));
             this.direction.normalize();
@@ -34217,8 +34289,8 @@ function __mpStylesBundle() {
               this.shadowDirection.copy(this.direction);
               this.invalidateShadows();
             }
-            this.hemi.intensity = frame2.hemiIntensity * (1 + 1.5 * frame2.flash);
-            this.moon.intensity = frame2.sunIntensity * (1 + 1.2 * frame2.flash);
+            this.hemi.intensity = frame3.hemiIntensity * (1 + 1.5 * frame3.flash);
+            this.moon.intensity = frame3.sunIntensity * (1 + 1.2 * frame3.flash);
           }
           /** 下一帧重画阴影图。 */
           invalidateShadows() {
@@ -35662,7 +35734,7 @@ function __mpStylesBundle() {
         };
         buildFridge = (materials) => {
           const body = materials.toon("fridgeBody");
-          const frame2 = materials.toon("frame");
+          const frame3 = materials.toon("frame");
           const { x0: x03, x1: x13, z0: z03, z1: z13, height } = FRIDGE;
           const y4 = LEVEL.floor;
           const parts = [
@@ -35682,9 +35754,9 @@ function __mpStylesBundle() {
           const doorWidth = (x13 - x03) / FRIDGE.doors;
           for (let index = 0; index <= FRIDGE.doors; index += 1) {
             const x4 = x03 + doorWidth * index;
-            parts.push(boxSpan(frame2, x4 - 0.025, x4 + 0.025, y4 + 0.16, y4 + height - 0.22, z13 - 0.03, z13 + 0.01, { radius: 8e-3, name: "Mullion" }));
+            parts.push(boxSpan(frame3, x4 - 0.025, x4 + 0.025, y4 + 0.16, y4 + height - 0.22, z13 - 0.03, z13 + 0.01, { radius: 8e-3, name: "Mullion" }));
             if (index < FRIDGE.doors) {
-              parts.push(boxSpan(frame2, x4 + doorWidth - 0.1, x4 + doorWidth - 0.08, y4 + 0.8, y4 + 1.3, z13 + 0.01, z13 + 0.04, { radius: 6e-3, name: "Handle" }));
+              parts.push(boxSpan(frame3, x4 + doorWidth - 0.1, x4 + doorWidth - 0.08, y4 + 0.8, y4 + 1.3, z13 + 0.01, z13 + 0.04, { radius: 6e-3, name: "Handle" }));
             }
           }
           const pane = mesh(new ha(x13 - x03 - 0.08, height - 0.4), materials.glass, { name: "Glass", castShadow: false, receiveShadow: false });
@@ -35990,8 +36062,8 @@ function __mpStylesBundle() {
           constructor(blend, materials, streetLampHead) {
             this.blend = blend;
             this.group.name = "KonbiniLights";
-            const point = (intensity, distance, position, name) => {
-              const light = new dp(16777215, intensity, distance, 2);
+            const point = (intensity, distance2, position, name) => {
+              const light = new dp(16777215, intensity, distance2, 2);
               light.position.set(...position);
               light.name = name;
               return light;
@@ -36091,21 +36163,21 @@ function __mpStylesBundle() {
         init_visualizerSeedHash();
         resolveKonbiniVariation = (seed) => {
           const random = createVisualizerRng(`machi:${seed}`);
-          const pick2 = (min, max) => min + (max - min) * random();
+          const pick3 = (min, max) => min + (max - min) * random();
           return {
             bikeSlot: random() < 0.5 ? 0 : 1,
             secondBike: random() < 0.45,
-            bikeYaw: pick2(-0.12, 0.12),
+            bikeYaw: pick3(-0.12, 0.12),
             umbrellaInStand: random() < 0.75,
             openUmbrella: random() < 0.35,
             posterLayout: Math.floor(random() * 3),
-            windYaw: pick2(-0.6, 0.6),
-            windSlant: pick2(0.06, 0.2),
-            puddleOffset: [pick2(-40, 40), pick2(-40, 40)],
-            puddleAmount: pick2(0.45, 0.75),
-            doorPhase: pick2(0, 1),
-            doorInterval: pick2(22, 40),
-            fanSpeed: pick2(1.6, 3.2),
+            windYaw: pick3(-0.6, 0.6),
+            windSlant: pick3(0.06, 0.2),
+            puddleOffset: [pick3(-40, 40), pick3(-40, 40)],
+            puddleAmount: pick3(0.45, 0.75),
+            doorPhase: pick3(0, 1),
+            doorInterval: pick3(22, 40),
+            fanSpeed: pick3(1.6, 3.2),
             shelfSeed: Math.floor(random() * 4294967295)
           };
         };
@@ -36218,13 +36290,13 @@ function __mpStylesBundle() {
           get hasText() {
             return this.text !== "";
           }
-          update(frame2) {
-            const speed = (frame2.staticMode ? 0 : 70) * frame2.speed;
+          update(frame3) {
+            const speed = (frame3.staticMode ? 0 : 70) * frame3.speed;
             const used = this.material.uniforms.uUsed.value * TEXTURE.width;
-            this.scroll = (this.scroll + frame2.delta * speed / Math.max(1, used)) % 1;
+            this.scroll = (this.scroll + frame3.delta * speed / Math.max(1, used)) % 1;
             this.material.uniforms.uScroll.value = this.scroll;
             this.material.uniforms.uLed.value.copy(this.blend.get(this.colorKey));
-            this.material.uniforms.uBright.value = 0.9 + 0.2 * frame2.audio;
+            this.material.uniforms.uBright.value = 0.9 + 0.2 * frame3.audio;
           }
           dispose() {
             this.texture.dispose();
@@ -36381,8 +36453,8 @@ function __mpStylesBundle() {
               continue;
             }
             if (time > glyph.startTime) {
-              const span = Math.max(1e-3, glyph.endTime - glyph.startTime);
-              lit = glyph.x0 + (glyph.x1 - glyph.x0) * Math.min(1, (time - glyph.startTime) / span);
+              const span3 = Math.max(1e-3, glyph.endTime - glyph.startTime);
+              lit = glyph.x0 + (glyph.x1 - glyph.x0) * Math.min(1, (time - glyph.startTime) / span3);
             }
             break;
           }
@@ -36618,13 +36690,13 @@ function __mpStylesBundle() {
             this.material.uniforms.uRowBottom.value.set(bottoms[0], bottoms[1], bottoms[2]);
           }
           /** 每帧：点亮位置、换行的信号切换、亮度（副歌、音频）。 */
-          update(frame2) {
+          update(frame3) {
             const content = this.content;
             if (!content) return;
             const palette = content.palette;
             let glitch = 0;
             if (this.switchElapsed < SWITCH_SECONDS) {
-              this.switchElapsed += frame2.staticMode ? SWITCH_SECONDS : Math.max(frame2.delta, 1 / 120);
+              this.switchElapsed += frame3.staticMode ? SWITCH_SECONDS : Math.max(frame3.delta, 1 / 120);
               const t4 = Math.min(1, this.switchElapsed / SWITCH_SECONDS);
               if (t4 >= 0.45 && this.pendingSlot) {
                 this.apply(this.pendingSlot);
@@ -36632,9 +36704,9 @@ function __mpStylesBundle() {
               }
               glitch = t4 >= 1 ? 0 : Math.sin(Math.PI * t4) ** 0.7;
             }
-            this.chorusGlow += (frame2.chorus - this.chorusGlow) * (1 - Math.exp(-frame2.delta * 3));
+            this.chorusGlow += (frame3.chorus - this.chorusGlow) * (1 - Math.exp(-frame3.delta * 3));
             const layout = this.slot?.layout;
-            const reveal = layout ? resolveMachiBoardReveal(layout, frame2.songTime) : [];
+            const reveal = layout ? resolveMachiBoardReveal(layout, frame3.songTime) : [];
             this.material.uniforms.uReveal.value.set(
               (reveal[0] ?? 0) / this.box.width,
               (reveal[1] ?? 0) / this.box.width,
@@ -36644,13 +36716,13 @@ function __mpStylesBundle() {
             uniforms.uBase.value.copy(this.blend.get("boardBase")).multiplyScalar(palette.boardIsLight ? 0.98 : 1);
             uniforms.uLitGain.value = palette.boardIsLight ? 1 : 1.25 + 0.2 * this.chorusGlow;
             uniforms.uUnlitGain.value = palette.boardIsLight ? 1 : 0.9;
-            uniforms.uBright.value = 1 + 0.05 * frame2.audio + 0.06 * this.chorusGlow;
+            uniforms.uBright.value = 1 + 0.05 * frame3.audio + 0.06 * this.chorusGlow;
             uniforms.uPeak.value = palette.boardIsLight ? PEAK.light : PEAK.dark;
             uniforms.uGlitch.value = glitch;
-            uniforms.uTime.value = frame2.ambientTime;
+            uniforms.uTime.value = frame3.ambientTime;
             uniforms.uSheen.value.copy(this.blend.get("moon")).multiplyScalar(0.35);
-            uniforms.uSwellAt.value.fromArray(frame2.beat.swellAt);
-            uniforms.uSwellAmp.value.fromArray(frame2.beat.swellAmp);
+            uniforms.uSwellAt.value.fromArray(frame3.beat.swellAt);
+            uniforms.uSwellAmp.value.fromArray(frame3.beat.swellAmp);
           }
           /** 副歌的平滑权重（招牌跟着它加亮、不闪）。 */
           get chorus() {
@@ -36892,10 +36964,10 @@ function __mpStylesBundle() {
               this.group.add(placedPlane(this.pylon.material, face.width, face.height, face.position, face.rotationY, `Pylon/face${index}`));
             });
             this.posters = [0, 1].map((index) => {
-              const sign = this.staticSign(materials, 256, 364, 0.95, "basic");
+              const sign2 = this.staticSign(materials, 256, 364, 0.95, "basic");
               const position = new Ci(-4.05 + index * 0.72, 1.62, STORE.z1 - 0.075);
-              this.group.add(placedPlane(sign.material, 0.56, 0.8, position, 0, `Poster${index}`));
-              return sign;
+              this.group.add(placedPlane(sign2.material, 0.56, 0.8, position, 0, `Poster${index}`));
+              return sign2;
             });
             this.neon = this.staticSign(materials, 256, 256, 1.6, "additive");
             this.group.add(placedPlane(this.neon.material, 0.86, 0.86, new Ci(STORE.x1 - 0.1, 1.55, -1.95), Math.PI / 2, "Neon"));
@@ -36931,9 +37003,9 @@ function __mpStylesBundle() {
               depthWrite: kind !== "additive"
             }));
             if (material instanceof es) material.color.setScalar(level);
-            const sign = { canvas: canvas3, texture, material, level };
-            this.statics.push(sign);
-            return sign;
+            const sign2 = { canvas: canvas3, texture, material, level };
+            this.statics.push(sign2);
+            return sign2;
           }
           /** 换歌 / 换主题：重画所有静态招牌，牌面按新颜色重画。 */
           setContent(content) {
@@ -36978,8 +37050,8 @@ function __mpStylesBundle() {
               chalk: "#eef1ea",
               accent: palette.brand[0]
             });
-            this.statics.forEach((sign) => {
-              sign.texture.needsUpdate = true;
+            this.statics.forEach((sign2) => {
+              sign2.texture.needsUpdate = true;
             });
             this.screen.setContent({
               palette,
@@ -37003,25 +37075,25 @@ function __mpStylesBundle() {
             this.screen.preheat(target, lines, showText);
           }
           /** 每帧：屏幕、LED 滚动、招牌亮度（闪烁、副歌、音频）。 */
-          update(frame2) {
+          update(frame3) {
             const content = this.content;
             if (!content) return;
-            this.screen.update(frame2);
+            this.screen.update(frame3);
             const chorus = this.screen.chorus;
             if (!this.led.hasText && this.boardTarget) {
               this.led.setText(resolveMachiTickerText(this.boardTarget, this.lines, content.song, "KONBINI"), content.font);
             }
-            this.led.update({ delta: frame2.delta, staticMode: frame2.staticMode, speed: 1 + 0.5 * chorus, audio: frame2.audio });
-            const flicker = chorus > 0.5 ? 1 : frame2.flicker;
-            const lift = 1 + 0.08 * chorus + 0.05 * frame2.audio;
-            const { beat } = frame2;
+            this.led.update({ delta: frame3.delta, staticMode: frame3.staticMode, speed: 1 + 0.5 * chorus, audio: frame3.audio });
+            const flicker = chorus > 0.5 ? 1 : frame3.flicker;
+            const lift = 1 + 0.08 * chorus + 0.05 * frame3.audio;
+            const { beat } = frame3;
             this.setLevel(this.fascia, this.fascia.level * lift * machiLightboxGroup(beat, 2));
             this.setLevel(this.pylon, this.pylon.level * flicker * lift * machiLightboxGroup(beat, 0));
-            const neonPulse = frame2.staticMode ? 1 : 0.85 + 0.15 * Math.sin(frame2.ambientTime * 2.2) + 0.4 * chorus;
+            const neonPulse = frame3.staticMode ? 1 : 0.85 + 0.15 * Math.sin(frame3.ambientTime * 2.2) + 0.4 * chorus;
             this.setLevel(this.neon, this.neon.level * neonPulse * machiNeonGroup(beat, 0));
           }
-          setLevel(sign, level) {
-            if (sign.material instanceof es) sign.material.color.setScalar(level);
+          setLevel(sign2, level) {
+            if (sign2.material instanceof es) sign2.material.color.setScalar(level);
           }
           /** 屏幕上有招牌在动画：暂停时也要继续出帧。 */
           get busy() {
@@ -37030,7 +37102,7 @@ function __mpStylesBundle() {
           dispose() {
             this.screen.dispose();
             this.led.dispose();
-            this.statics.forEach((sign) => sign.texture.dispose());
+            this.statics.forEach((sign2) => sign2.texture.dispose());
             this.group.traverse((object) => {
               if (object instanceof Bs && object.material !== this.screen.material && object.material !== this.led.material) object.geometry.dispose();
             });
@@ -37082,7 +37154,7 @@ function __mpStylesBundle() {
           return group(name, ...parts);
         };
         buildBicycle = (materials, name) => {
-          const frame2 = materials.toon("bike");
+          const frame3 = materials.toon("bike");
           const metal = materials.toon("metal");
           const rubber = materials.toon("rubber");
           const wheelRadius = 0.33;
@@ -37113,17 +37185,17 @@ function __mpStylesBundle() {
           const headTop = v2(0.42, 0.95, 0);
           const headLow = v2(0.48, 0.66, 0);
           parts.push(
-            tubeBetween(frame2, bottomBracket, seatTop, 0.022, { name: "SeatTube" }),
-            tubeBetween(frame2, bottomBracket, headLow, 0.026, { name: "DownTube" }),
-            tubeBetween(frame2, headLow, headTop, 0.024, { name: "HeadTube" }),
-            tubeBetween(frame2, bottomBracket, v2(rearX, axleY, 0.05), 0.014, { name: "ChainStay" }),
-            tubeBetween(frame2, v2(-0.22, 0.78, 0), v2(rearX, axleY, 0.05), 0.014, { name: "SeatStay" }),
+            tubeBetween(frame3, bottomBracket, seatTop, 0.022, { name: "SeatTube" }),
+            tubeBetween(frame3, bottomBracket, headLow, 0.026, { name: "DownTube" }),
+            tubeBetween(frame3, headLow, headTop, 0.024, { name: "HeadTube" }),
+            tubeBetween(frame3, bottomBracket, v2(rearX, axleY, 0.05), 0.014, { name: "ChainStay" }),
+            tubeBetween(frame3, v2(-0.22, 0.78, 0), v2(rearX, axleY, 0.05), 0.014, { name: "SeatStay" }),
             tubeBetween(metal, headLow, v2(frontX, axleY, 0), 0.016, { name: "Fork" })
           );
           parts.push(boxAt(rubber, [0.24, 0.06, 0.13], [seatTop.x - 0.02, seatTop.y, 0], { radius: 0.025, name: "Saddle" }));
           parts.push(tubeBetween(metal, v2(headTop.x - 0.12, headTop.y + 0.08, -0.26), v2(headTop.x - 0.12, headTop.y + 0.08, 0.26), 0.014, { name: "Handlebar" }));
           parts.push(tubeBetween(metal, headTop, v2(headTop.x - 0.1, headTop.y + 0.08, 0), 0.016, { name: "Stem" }));
-          parts.push(boxAt(frame2, [0.42, 0.09, 0.025], [-0.28, 0.28, 0.07], { radius: 0.02, name: "ChainGuard" }));
+          parts.push(boxAt(frame3, [0.42, 0.09, 0.025], [-0.28, 0.28, 0.07], { radius: 0.02, name: "ChainGuard" }));
           parts.push(boxAt(metal, [0.38, 0.02, 0.2], [rearX - 0.02, axleY + 0.36, 0], { radius: 6e-3, name: "Carrier" }));
           parts.push(boxAt(metal, [0.32, 0.22, 0.3], [frontX + 0.04, 0.82, 0], { radius: 0.02, name: "Basket" }));
           parts.push(tubeBetween(metal, v2(rearX + 0.1, axleY - 0.05, 0.04), v2(rearX + 0.25, 0.01, 0.14), 0.01, { name: "Kickstand" }));
@@ -37187,9 +37259,9 @@ function __mpStylesBundle() {
           const insulators = [];
           const wireEnds = [];
           [top - 0.7, top - 0.25].forEach((y4, level) => {
-            const span = level === 0 ? 0.9 : 1.2;
-            parts.push(boxSpan(materials.toon("darkMetal"), x4 - span / 2, x4 + span / 2, y4 - 0.05, y4 + 0.05, z4 - 0.06, z4 + 0.06, { radius: 0.015, name: "Crossarm" }));
-            [-span / 2 + 0.08, 0, span / 2 - 0.08].forEach((offset) => {
+            const span3 = level === 0 ? 0.9 : 1.2;
+            parts.push(boxSpan(materials.toon("darkMetal"), x4 - span3 / 2, x4 + span3 / 2, y4 - 0.05, y4 + 0.05, z4 - 0.06, z4 + 0.06, { radius: 0.015, name: "Crossarm" }));
+            [-span3 / 2 + 0.08, 0, span3 / 2 - 0.08].forEach((offset) => {
               if (offset === 0 && level === 1) return;
               insulators.push(v2(x4 + offset, y4 + 0.05, z4));
             });
@@ -37275,10 +37347,10 @@ function __mpStylesBundle() {
           face.scale.setScalar(0.86);
           face.position.set(0, LEVEL.lot + height - 0.15 - 0.012, 0.08);
           parts.push(back, face);
-          const sign = group("StopSign", ...parts);
-          sign.position.set(x4, 0, z4);
-          sign.rotation.y = 60 * DEG2;
-          return sign;
+          const sign2 = group("StopSign", ...parts);
+          sign2.position.set(x4, 0, z4);
+          sign2.rotation.y = 60 * DEG2;
+          return sign2;
         };
         buildTrash = (materials) => {
           const { x: x4, z: z4 } = PROPS.trash;
@@ -37332,13 +37404,13 @@ function __mpStylesBundle() {
             panel.rotation.x = side * -lean;
             parts.push(panel);
           });
-          const frame2 = group("AFrame", ...parts);
-          frame2.position.set(x4, 0, z4);
-          frame2.rotation.y = rotationY;
+          const frame3 = group("AFrame", ...parts);
+          frame3.position.set(x4, 0, z4);
+          frame3.rotation.y = rotationY;
           const normal = v2(Math.sin(rotationY), 0, Math.cos(rotationY));
           const faceCenter = v2(x4, LEVEL.lot + Math.cos(lean) * board.h / 2, z4).addScaledVector(normal, Math.sin(lean) * board.h / 2 + 0.02);
           return {
-            group: frame2,
+            group: frame3,
             faces: [{ position: faceCenter, rotationY, width: board.w - 0.06, height: board.h - 0.08, lean }]
           };
         };
@@ -37449,7 +37521,7 @@ function __mpStylesBundle() {
           const outer = materials.toon("wall");
           const lining = materials.toon("interiorWall");
           const floor = materials.toon("interiorFloor");
-          const frame2 = materials.toon("frame");
+          const frame3 = materials.toon("frame");
           const h4 = STORE.wallHeight;
           const parts = [
             boxSpan(floor, x0, x1, LEVEL.lot - 0.02, LEVEL.floor, z0, z1, { radius: 0.01, name: "Floor" }),
@@ -37466,17 +37538,17 @@ function __mpStylesBundle() {
             boxSpan(lining, x0 + wall, x0 + wall + 0.02, LEVEL.floor, h4 - 0.05, z0 + wall, z1 - wall, { radius: 5e-3, name: "Lining/left" }),
             boxSpan(lining, x1 - wall - 0.02, x1 - wall, LEVEL.floor, h4 - 0.05, z0 + wall, STORE.rightGlassEnd, { radius: 5e-3, name: "Lining/right" }),
             // 转角立柱与玻璃下沿的踢脚。
-            boxSpan(frame2, x1 - 0.12, x1, LEVEL.floor, STORE.glassTop, z1 - 0.12, z1, { radius: 0.015, name: "CornerPost" }),
-            boxSpan(frame2, STORE.frontPillarEnd, x1, LEVEL.floor, STORE.glassBottom, z1 - 0.1, z1, { radius: 0.01, name: "Kick/front" }),
-            boxSpan(frame2, x1 - 0.1, x1, LEVEL.floor, STORE.glassBottom, STORE.rightGlassEnd, z1, { radius: 0.01, name: "Kick/right" }),
-            boxSpan(frame2, STORE.frontPillarEnd, x1, STORE.glassTop - 0.05, STORE.glassTop + 0.02, z1 - 0.1, z1, { radius: 0.01, name: "Head/front" }),
-            boxSpan(frame2, x1 - 0.1, x1, STORE.glassTop - 0.05, STORE.glassTop + 0.02, STORE.rightGlassEnd, z1, { radius: 0.01, name: "Head/right" })
+            boxSpan(frame3, x1 - 0.12, x1, LEVEL.floor, STORE.glassTop, z1 - 0.12, z1, { radius: 0.015, name: "CornerPost" }),
+            boxSpan(frame3, STORE.frontPillarEnd, x1, LEVEL.floor, STORE.glassBottom, z1 - 0.1, z1, { radius: 0.01, name: "Kick/front" }),
+            boxSpan(frame3, x1 - 0.1, x1, LEVEL.floor, STORE.glassBottom, STORE.rightGlassEnd, z1, { radius: 0.01, name: "Kick/right" }),
+            boxSpan(frame3, STORE.frontPillarEnd, x1, STORE.glassTop - 0.05, STORE.glassTop + 0.02, z1 - 0.1, z1, { radius: 0.01, name: "Head/front" }),
+            boxSpan(frame3, x1 - 0.1, x1, STORE.glassTop - 0.05, STORE.glassTop + 0.02, STORE.rightGlassEnd, z1, { radius: 0.01, name: "Head/right" })
           ];
           return group("Store/Shell", ...parts);
         };
         buildGlazing = (materials) => {
           const glass = materials.glass;
-          const frame2 = materials.toon("frame");
+          const frame3 = materials.toon("frame");
           const bottom = STORE.glassBottom;
           const top = STORE.glassTop - 0.05;
           const height = top - bottom;
@@ -37495,7 +37567,7 @@ function __mpStylesBundle() {
             const count = Math.max(1, Math.round((b4 - a4) / 1.25));
             for (let i4 = 0; i4 <= count; i4 += 1) {
               const x4 = a4 + (b4 - a4) * i4 / count;
-              parts.push(boxSpan(frame2, x4 - 0.03, x4 + 0.03, bottom, top, z1 - 0.09, z1 - 0.01, { radius: 0.01, name: "Mullion" }));
+              parts.push(boxSpan(frame3, x4 - 0.03, x4 + 0.03, bottom, top, z1 - 0.09, z1 - 0.01, { radius: 0.01, name: "Mullion" }));
             }
           });
           const windowGlow = materials.glow("warmWindow");
@@ -37513,21 +37585,21 @@ function __mpStylesBundle() {
           const rightCount = Math.max(1, Math.round((rightSpan[1] - rightSpan[0]) / 1.25));
           for (let i4 = 0; i4 <= rightCount; i4 += 1) {
             const z4 = rightSpan[0] + (rightSpan[1] - rightSpan[0]) * i4 / rightCount;
-            parts.push(boxSpan(frame2, x1 - 0.09, x1 - 0.01, bottom, top, z4 - 0.03, z4 + 0.03, { radius: 0.01, name: "Mullion" }));
+            parts.push(boxSpan(frame3, x1 - 0.09, x1 - 0.01, bottom, top, z4 - 0.03, z4 + 0.03, { radius: 0.01, name: "Mullion" }));
           }
           return group("Store/Glazing", ...parts);
         };
         buildDoor = (materials) => {
-          const frame2 = materials.toon("frame");
+          const frame3 = materials.toon("frame");
           const darkMetal = materials.toon("darkMetal");
           const glass = materials.glass;
           const panelHeight = DOOR.height - LEVEL.floor - 0.02;
           const mid = (DOOR.x0 + DOOR.x1) / 2;
           const z4 = z1 + 0.035;
           const parts = [
-            boxSpan(frame2, DOOR.x0 - 0.08, DOOR.x0, LEVEL.floor, STORE.glassTop, z1 - 0.1, z1 + 0.08, { radius: 0.01, name: "Jamb/left" }),
-            boxSpan(frame2, DOOR.x1, DOOR.x1 + 0.08, LEVEL.floor, STORE.glassTop, z1 - 0.1, z1 + 0.08, { radius: 0.01, name: "Jamb/right" }),
-            boxSpan(frame2, DOOR.x0 - 0.9, DOOR.x1 + 0.9, DOOR.height, DOOR.height + 0.16, z1 - 0.02, z1 + 0.1, { radius: 0.015, name: "Header" }),
+            boxSpan(frame3, DOOR.x0 - 0.08, DOOR.x0, LEVEL.floor, STORE.glassTop, z1 - 0.1, z1 + 0.08, { radius: 0.01, name: "Jamb/left" }),
+            boxSpan(frame3, DOOR.x1, DOOR.x1 + 0.08, LEVEL.floor, STORE.glassTop, z1 - 0.1, z1 + 0.08, { radius: 0.01, name: "Jamb/right" }),
+            boxSpan(frame3, DOOR.x0 - 0.9, DOOR.x1 + 0.9, DOOR.height, DOOR.height + 0.16, z1 - 0.02, z1 + 0.1, { radius: 0.015, name: "Header" }),
             boxSpan(darkMetal, mid - 0.18, mid + 0.18, DOOR.height - 0.07, DOOR.height, z1 + 0.04, z1 + 0.11, { radius: 0.012, name: "Sensor" }),
             // 门里门外的地垫。
             boxSpan(materials.toon("rubber"), DOOR.x0 - 0.1, DOOR.x1 + 0.1, LEVEL.lot, LEVEL.lot + 0.012, z1 + 0.12, z1 + 0.85, { radius: 6e-3, name: "Mat/out" }),
@@ -37544,10 +37616,10 @@ function __mpStylesBundle() {
             panelGlass.position.set(0, panelHeight / 2 + 0.02, 0);
             panelGlass.renderOrder = 2;
             const rails = [
-              boxSpan(frame2, -w4 / 2, -w4 / 2 + 0.05, 0, panelHeight, -0.025, 0.025, { radius: 0.01, name: "Stile" }),
-              boxSpan(frame2, w4 / 2 - 0.05, w4 / 2, 0, panelHeight, -0.025, 0.025, { radius: 0.01, name: "Stile" }),
-              boxSpan(frame2, -w4 / 2, w4 / 2, 0, 0.09, -0.025, 0.025, { radius: 0.01, name: "Rail" }),
-              boxSpan(frame2, -w4 / 2, w4 / 2, panelHeight - 0.05, panelHeight, -0.025, 0.025, { radius: 0.01, name: "Rail" }),
+              boxSpan(frame3, -w4 / 2, -w4 / 2 + 0.05, 0, panelHeight, -0.025, 0.025, { radius: 0.01, name: "Stile" }),
+              boxSpan(frame3, w4 / 2 - 0.05, w4 / 2, 0, panelHeight, -0.025, 0.025, { radius: 0.01, name: "Stile" }),
+              boxSpan(frame3, -w4 / 2, w4 / 2, 0, 0.09, -0.025, 0.025, { radius: 0.01, name: "Rail" }),
+              boxSpan(frame3, -w4 / 2, w4 / 2, panelHeight - 0.05, panelHeight, -0.025, 0.025, { radius: 0.01, name: "Rail" }),
               boxSpan(darkMetal, -0.02, 0.02, 0.9, 1.25, 0.025, 0.045, { radius: 8e-3, name: "Pull" })
             ];
             const panel = group(direction < 0 ? "Door/left" : "Door/right", ...rails, panelGlass);
@@ -37951,14 +38023,14 @@ function __mpStylesBundle() {
             this.songProps = next;
             this.context.invalidateShadows();
           }
-          direct(frame2) {
-            const { songTime, ambientTime, chorus, staticMode } = frame2;
-            if (frame2.targetChanged) this.signs.showBoard(frame2.target, frame2.lines, frame2.immediate, frame2.showText);
-            else if (frame2.preheat) this.signs.preheat(frame2.preheat, frame2.lines, frame2.showText);
-            const { environment, look } = frame2;
-            const streetFlicker = staticMode ? 1 : resolveMachiFlicker(ambientTime + 3.1, `${frame2.seed}:street`, 0.45);
+          direct(frame3) {
+            const { songTime, ambientTime, chorus, staticMode } = frame3;
+            if (frame3.targetChanged) this.signs.showBoard(frame3.target, frame3.lines, frame3.immediate, frame3.showText);
+            else if (frame3.preheat) this.signs.preheat(frame3.preheat, frame3.lines, frame3.showText);
+            const { environment, look } = frame3;
+            const streetFlicker = staticMode ? 1 : resolveMachiFlicker(ambientTime + 3.1, `${frame3.seed}:street`, 0.45);
             const street = look.streetLamps * (0.75 + 0.25 * streetFlicker);
-            const openness = resolveKonbiniDoorOpenness(this.doorEvents, songTime, this.variation, this.song.isInstrumental || frame2.lines.length === 0);
+            const openness = resolveKonbiniDoorOpenness(this.doorEvents, songTime, this.variation, this.song.isInstrumental || frame3.lines.length === 0);
             if (Math.abs(openness - this.doorOpenness) > 1e-4) {
               this.doorOpenness = openness;
               const settled = openness === 0 || openness === 1;
@@ -37967,17 +38039,17 @@ function __mpStylesBundle() {
                 this.context.invalidateShadows();
               }
             }
-            const { beat } = frame2;
+            const { beat } = frame3;
             const interiorLevel = (1 + 0.1 * chorus + 0.06 * this.doorOpenness) * look.artificial * beat.warm;
             this.lights.setLevels({ interior: interiorLevel, street, pools: (1 - 0.85 * environment.daylight) * (1 + beat.thump) });
-            this.context.materials.setGlowLevel("neonRim", (0.75 + 0.25 * frame2.flicker) * (1 + 0.4 * chorus) * look.artificial * machiNeonGroup(beat, 1));
+            this.context.materials.setGlowLevel("neonRim", (0.75 + 0.25 * frame3.flicker) * (1 + 0.4 * chorus) * look.artificial * machiNeonGroup(beat, 1));
             this.context.materials.setGlowLevel("lampHead", 0.15 + 0.85 * look.streetLamps);
             this.traffic.group.visible = !staticMode;
-            this.traffic.update(ambientTime, frame2.seed, frame2.trafficChance);
-            this.nobori.update(ambientTime, 0.35 + 0.65 * Math.min(1, frame2.rain));
+            this.traffic.update(ambientTime, frame3.seed, frame3.trafficChance);
+            this.nobori.update(ambientTime, 0.35 + 0.65 * Math.min(1, frame3.rain));
             this.lightCones.update(ambientTime, street * (1 - 0.6 * environment.daylight));
-            this.steam.update(ambientTime, frame2.atmosphere.wind);
-            const atmosphere = frame2.atmosphere;
+            this.steam.update(ambientTime, frame3.atmosphere.wind);
+            const atmosphere = frame3.atmosphere;
             atmosphere.glowA.copy(this.glowA);
             atmosphere.glowB.copy(this.glowB);
             const night = 1 - 0.85 * environment.daylight;
@@ -37986,11 +38058,11 @@ function __mpStylesBundle() {
             this.signs.update({
               songTime,
               ambientTime,
-              delta: frame2.delta,
+              delta: frame3.delta,
               staticMode,
               chorus,
-              audio: frame2.audio,
-              flicker: frame2.flicker,
+              audio: frame3.audio,
+              flicker: frame3.flicker,
               beat
             });
             this.fans.forEach((fan2, index) => {
@@ -38128,7 +38200,7 @@ function __mpStylesBundle() {
         buildKowloonBar = (materials, seed) => {
           const random = createVisualizerRng(`kowloon:bar:${seed}`);
           const { x0: x03, x1: x13, glass: glassZ, back, ceiling } = BAR;
-          const frame2 = materials.toon("barFrame");
+          const frame3 = materials.toon("barFrame");
           const parts = [
             // 地砖、天花、两侧内墙、后墙。
             boxSpan(materials.toon("barFloor"), x03, x13, 0, LEVEL2.floor, back, glassZ, { radius: 5e-3, name: "Floor" }),
@@ -38138,10 +38210,10 @@ function __mpStylesBundle() {
             boxSpan(materials.toon("barWall"), x03, x13, LEVEL2.floor, ceiling, back, back + 0.04, { radius: 0, name: "Wall" }),
             // 门面：两侧墙垛、玻璃下的踢脚、玻璃上沿的横梁。墙垛包住楼的墙角，前面和外侧都比楼面凸出一点，
             // 里侧伸进门洞一点：跟楼的墙面重合的话两种颜色会互相闪。
-            boxSpan(frame2, x03 - 0.22, x03 + 0.01, 0, ceiling, glassZ - 0.02, BAR.front + 0.03, { radius: 0.01, name: "Pier" }),
-            boxSpan(frame2, x13 - 0.01, x13 + 0.22, 0, ceiling, glassZ - 0.02, BAR.front + 0.03, { radius: 0.01, name: "Pier" }),
-            boxSpan(frame2, x03, BAR.door[0], 0, 0.36, glassZ - 0.06, glassZ + 0.04, { radius: 0.01, name: "Kick" }),
-            boxSpan(frame2, x03, x13, 2.32, 2.4, glassZ - 0.06, glassZ + 0.04, { radius: 0.01, name: "Head" }),
+            boxSpan(frame3, x03 - 0.22, x03 + 0.01, 0, ceiling, glassZ - 0.02, BAR.front + 0.03, { radius: 0.01, name: "Pier" }),
+            boxSpan(frame3, x13 - 0.01, x13 + 0.22, 0, ceiling, glassZ - 0.02, BAR.front + 0.03, { radius: 0.01, name: "Pier" }),
+            boxSpan(frame3, x03, BAR.door[0], 0, 0.36, glassZ - 0.06, glassZ + 0.04, { radius: 0.01, name: "Kick" }),
+            boxSpan(frame3, x03, x13, 2.32, 2.4, glassZ - 0.06, glassZ + 0.04, { radius: 0.01, name: "Head" }),
             // 门口一级台阶。
             boxSpan(materials.toon("slab"), BAR.door[0] - 0.1, BAR.door[1] + 0.1, 0, LEVEL2.floor, glassZ, BAR.front + 0.3, { radius: 0.01, name: "Step" })
           ];
@@ -38156,16 +38228,16 @@ function __mpStylesBundle() {
           const mullions = Math.max(1, Math.round((BAR.door[0] - x03) / 1.1));
           for (let index = 0; index <= mullions; index += 1) {
             const x4 = x03 + (BAR.door[0] - x03) * index / mullions;
-            parts.push(boxSpan(frame2, x4 - 0.03, x4 + 0.03, 0.36, 2.32, glassZ - 0.04, glassZ + 0.03, { radius: 0.01, name: "Mullion" }));
+            parts.push(boxSpan(frame3, x4 - 0.03, x4 + 0.03, 0.36, 2.32, glassZ - 0.04, glassZ + 0.03, { radius: 0.01, name: "Mullion" }));
           }
           const [d02, d12] = BAR.door;
           parts.push(
-            boxSpan(frame2, d02, d02 + 0.07, LEVEL2.floor, 2.32, glassZ - 0.04, glassZ + 0.04, { radius: 0.01, name: "Door" }),
-            boxSpan(frame2, d12 - 0.07, d12, LEVEL2.floor, 2.32, glassZ - 0.04, glassZ + 0.04, { radius: 0.01, name: "Door" }),
-            boxSpan(frame2, d02, d12, LEVEL2.floor, LEVEL2.floor + 0.12, glassZ - 0.04, glassZ + 0.04, { radius: 0.01, name: "Door" }),
+            boxSpan(frame3, d02, d02 + 0.07, LEVEL2.floor, 2.32, glassZ - 0.04, glassZ + 0.04, { radius: 0.01, name: "Door" }),
+            boxSpan(frame3, d12 - 0.07, d12, LEVEL2.floor, 2.32, glassZ - 0.04, glassZ + 0.04, { radius: 0.01, name: "Door" }),
+            boxSpan(frame3, d02, d12, LEVEL2.floor, LEVEL2.floor + 0.12, glassZ - 0.04, glassZ + 0.04, { radius: 0.01, name: "Door" }),
             boxSpan(materials.toon("chrome"), d12 - 0.2, d12 - 0.16, 0.9, 1.4, glassZ + 0.03, glassZ + 0.07, { radius: 0.01, name: "Door" }),
             pane(d02 + 0.07, d12 - 0.07, LEVEL2.floor + 0.12, 2.32, "Glass/door"),
-            boxSpan(frame2, x13 - 0.2, x13, 0.36, 2.32, glassZ - 0.04, glassZ + 0.04, { radius: 0.01, name: "Pier" })
+            boxSpan(frame3, x13 - 0.2, x13, 0.36, 2.32, glassZ - 0.04, glassZ + 0.04, { radius: 0.01, name: "Pier" })
           );
           const shelfX0 = x03 + 0.35;
           const shelfX1 = BAR.counter.x1 + 0.15;
@@ -38298,7 +38370,7 @@ function __mpStylesBundle() {
         };
         buildKowloonBlocks = (materials, seed, avoid, signs, footing = []) => {
           const random = createVisualizerRng(`kowloon:blocks:${seed}`);
-          const frame2 = materials.toon("windowFrame");
+          const frame3 = materials.toon("windowFrame");
           const slab = materials.toon("slab");
           const cageMaterials = [materials.toon("cage"), materials.toon("rust")];
           const ac3 = materials.toon("ac");
@@ -38358,8 +38430,8 @@ function __mpStylesBundle() {
               const spacing = face.width / columns;
               const pipes = 1 + Math.floor(random() * 2);
               for (let index = 0; index < pipes; index += 1) {
-                const pick2 = random();
-                const s4 = columns > 1 ? (1 + Math.floor(pick2 * (columns - 1))) * spacing : pick2 < 0.5 ? 0.12 : face.width - 0.12;
+                const pick3 = random();
+                const s4 = columns > 1 ? (1 + Math.floor(pick3 * (columns - 1))) * spacing : pick3 < 0.5 ? 0.12 : face.width - 0.12;
                 if (insideAnyBlock(facePoint(face, s4, block.height - 0.4, 0.12))) continue;
                 const top2 = block.height - 0.1;
                 const bottom = hitsAny(faceBounds(face, s4 - 0.05, s4 + 0.05, 0, FLOORS.ground, 0.04, 0.14), ground) ? FLOORS.ground - 0.03 : 0;
@@ -38381,11 +38453,11 @@ function __mpStylesBundle() {
                   if (!outer && roll < 0.08 && !nearSign(0.3) && claim(faceBounds(face, s4 - 0.3, s4 + 0.3, y4 + 0.06, y4 + 0.92, 0, 0.4))) {
                     const color = random() < 0.5 ? "wallD" : "wallB";
                     parts.push(faceBox(materials.toon(color), face, s4, y4 + 0.06, [0.6, 0.86, 0.4], 0.2, "Addition"));
-                    parts.push(faceBox(frame2, face, s4, y4 + 0.3, [0.42, 0.44, 0.04], 0.41, "Frame"));
+                    parts.push(faceBox(frame3, face, s4, y4 + 0.3, [0.42, 0.44, 0.04], 0.41, "Frame"));
                     glass(face, s4, center + 0.02, 0.32, 0.34, 0.435);
                     continue;
                   }
-                  parts.push(faceBox(frame2, face, s4, center - 0.3, [0.46, 0.6, 0.06], 0, "Frame"));
+                  parts.push(faceBox(frame3, face, s4, center - 0.3, [0.46, 0.6, 0.06], 0, "Frame"));
                   parts.push(faceBox(slab, face, s4, center - 0.33, [0.52, 0.04, 0.12], 0.02, "Sill"));
                   glass(face, s4, center, 0.36, 0.48, 0.035);
                   if (outer) continue;
@@ -38538,8 +38610,8 @@ function __mpStylesBundle() {
           constructor(blend, materials, lampHead2, stallBulb) {
             this.blend = blend;
             this.group.name = "KowloonLights";
-            const point = (key, intensity, distance, at3, source, name) => {
-              const light = new dp(16777215, intensity, distance, 2);
+            const point = (key, intensity, distance2, at3, source, name) => {
+              const light = new dp(16777215, intensity, distance2, 2);
               light.position.copy(at3);
               light.name = `Lights/${name}`;
               this.points.push({ light, key, intensity, source });
@@ -38812,10 +38884,10 @@ function __mpStylesBundle() {
             });
             this.texture.needsUpdate = true;
           }
-          update(frame2) {
+          update(frame3) {
             let glitch = 0;
             if (this.switchElapsed < SWITCH_SECONDS2) {
-              this.switchElapsed += frame2.staticMode ? SWITCH_SECONDS2 : Math.max(frame2.delta, 1 / 120);
+              this.switchElapsed += frame3.staticMode ? SWITCH_SECONDS2 : Math.max(frame3.delta, 1 / 120);
               const t4 = Math.min(1, this.switchElapsed / SWITCH_SECONDS2);
               if (t4 >= 0.4 && this.pending) {
                 this.paint(this.pending.text, this.pending.font);
@@ -38823,15 +38895,15 @@ function __mpStylesBundle() {
               }
               glitch = t4 >= 1 ? 0 : Math.sin(Math.PI * t4);
             }
-            const time = frame2.staticMode ? 0 : frame2.time;
+            const time = frame3.staticMode ? 0 : frame3.time;
             const uniforms = this.panel.uniforms;
             uniforms.uTime.value = time;
-            uniforms.uLevel.value = frame2.level;
+            uniforms.uLevel.value = frame3.level;
             uniforms.uGlitch.value = glitch;
-            uniforms.uColor.value.copy(frame2.color);
+            uniforms.uColor.value.copy(frame3.color);
             this.beam.uniforms.uTime.value = time;
-            this.beam.uniforms.uLevel.value = frame2.level;
-            this.beam.uniforms.uColor.value.copy(frame2.color);
+            this.beam.uniforms.uLevel.value = frame3.level;
+            this.beam.uniforms.uColor.value.copy(frame3.color);
           }
           get busy() {
             return this.switchElapsed < SWITCH_SECONDS2;
@@ -39248,33 +39320,33 @@ function __mpStylesBundle() {
           preheat(target, lines, showText) {
             this.screen.preheat(target, lines, showText);
           }
-          update(frame2) {
+          update(frame3) {
             const content = this.content;
             if (!content) return;
-            this.screen.update(frame2);
+            this.screen.update(frame3);
             const chorus = this.screen.chorus;
             if (this.tickerDirty && this.boardTarget) {
               this.tickerDirty = false;
               this.ticker.setText(resolveKowloonTickerText(this.boardTarget, this.lines, content.song), content.font);
             }
-            this.ticker.update({ delta: frame2.delta, staticMode: frame2.staticMode, speed: 0.8 + 0.4 * chorus, audio: frame2.audio });
-            const neon = Math.pow(frame2.artificial, 1.4) * (1 + 0.1 * chorus);
-            const steady = neon * (0.93 + 0.07 * frame2.flicker);
+            this.ticker.update({ delta: frame3.delta, staticMode: frame3.staticMode, speed: 0.8 + 0.4 * chorus, audio: frame3.audio });
+            const neon = Math.pow(frame3.artificial, 1.4) * (1 + 0.1 * chorus);
+            const steady = neon * (0.93 + 0.07 * frame3.flicker);
             const broken = (salt, offset) => {
-              if (frame2.staticMode) return neon;
-              const flicker = resolveMachiFlicker(frame2.ambientTime + offset, `${this.seed}:${salt}`, 1.8);
+              if (frame3.staticMode) return neon;
+              const flicker = resolveMachiFlicker(frame3.ambientTime + offset, `${this.seed}:${salt}`, 1.8);
               return neon * (flicker < 1 ? 0.12 + 0.3 * (flicker - 0.5) : 1);
             };
             const levels = [steady, broken("neonA", 1.3), broken("neonB", 3.7)];
             this.atlasMaterials.forEach((material, index) => {
               const slot = ATLAS_SLOTS[index];
-              material.color.setScalar(levels[slot.group] * machiNeonGroup(frame2.beat, slot.beat));
+              material.color.setScalar(levels[slot.group] * machiNeonGroup(frame3.beat, slot.beat));
             });
             this.hologram.update({
-              time: frame2.ambientTime,
-              delta: frame2.delta,
-              staticMode: frame2.staticMode,
-              level: (0.3 + 0.7 * (1 - frame2.daylight)) * (0.9 + 0.1 * frame2.flicker) * (1 + 0.15 * chorus),
+              time: frame3.ambientTime,
+              delta: frame3.delta,
+              staticMode: frame3.staticMode,
+              level: (0.3 + 0.7 * (1 - frame3.daylight)) * (0.9 + 0.1 * frame3.flicker) * (1 + 0.15 * chorus),
               color: this.blend.get("holo")
             });
           }
@@ -39302,10 +39374,10 @@ function __mpStylesBundle() {
         init_shapes();
         init_layout3();
         v3 = (x4, y4, z4) => new Ci(x4, y4, z4);
-        hangingSignBox = (sign, margin = 0) => {
-          const [a4, b4] = [Math.min(sign.wall, sign.tip), Math.max(sign.wall, sign.tip)];
+        hangingSignBox = (sign2, margin = 0) => {
+          const [a4, b4] = [Math.min(sign2.wall, sign2.tip), Math.max(sign2.wall, sign2.tip)];
           const half = SIGN_DEPTH / 2 + margin;
-          return sign.axis === "x" ? new Li(v3(a4 - margin, sign.y0 - margin, sign.at - half), v3(b4 + margin, sign.y1 + margin, sign.at + half)) : new Li(v3(sign.at - half, sign.y0 - margin, a4 - margin), v3(sign.at + half, sign.y1 + margin, b4 + margin));
+          return sign2.axis === "x" ? new Li(v3(a4 - margin, sign2.y0 - margin, sign2.at - half), v3(b4 + margin, sign2.y1 + margin, sign2.at + half)) : new Li(v3(sign2.at - half, sign2.y0 - margin, a4 - margin), v3(sign2.at + half, sign2.y1 + margin, b4 + margin));
         };
         kowloonWindowAvoid = () => [
           new Li(v3(SCREEN.x - SCREEN.width / 2 - 0.25, SCREEN.y - SCREEN.height / 2 - 0.25, -1.9), v3(SCREEN.x + SCREEN.width / 2 + 0.25, SCREEN.y + SCREEN.height / 2 + 0.1, -1)),
@@ -39337,7 +39409,7 @@ function __mpStylesBundle() {
         buildShopfronts = (materials) => {
           const shutter = materials.toon("shutter");
           const shutterDark = materials.toon("shutterDark");
-          const frame2 = materials.toon("windowFrame");
+          const frame3 = materials.toon("windowFrame");
           const dark = materials.toon("windowDark");
           const parts = [];
           const face = (name) => {
@@ -39358,26 +39430,26 @@ function __mpStylesBundle() {
           };
           const doorZ = (z03, z13, x4, top = 2.3) => {
             parts.push(boxSpan(dark, x4, x4 + 0.03, 0, top, z03, z13, { radius: 0, name: "Door" }));
-            parts.push(boxSpan(frame2, x4, x4 + 0.08, 0, top + 0.1, z03 - 0.07, z03, { radius: 0.01, name: "Jamb" }));
-            parts.push(boxSpan(frame2, x4, x4 + 0.08, 0, top + 0.1, z13, z13 + 0.07, { radius: 0.01, name: "Jamb" }));
-            parts.push(boxSpan(frame2, x4, x4 + 0.08, top, top + 0.12, z03 - 0.07, z13 + 0.07, { radius: 0.01, name: "Jamb" }));
+            parts.push(boxSpan(frame3, x4, x4 + 0.08, 0, top + 0.1, z03 - 0.07, z03, { radius: 0.01, name: "Jamb" }));
+            parts.push(boxSpan(frame3, x4, x4 + 0.08, 0, top + 0.1, z13, z13 + 0.07, { radius: 0.01, name: "Jamb" }));
+            parts.push(boxSpan(frame3, x4, x4 + 0.08, top, top + 0.12, z03 - 0.07, z13 + 0.07, { radius: 0.01, name: "Jamb" }));
           };
           const windowZ = (z03, z13, x4, glow) => {
             parts.push(boxSpan(materials.glow(glow), x4, x4 + 0.02, 0.45, 2.3, z03, z13, { radius: 0, name: "ShopGlow" }));
             const count = Math.max(1, Math.round((z13 - z03) / 0.65));
             for (let index = 0; index <= count; index += 1) {
               const z4 = z03 + (z13 - z03) * index / count;
-              parts.push(boxSpan(frame2, x4, x4 + 0.07, 0.45, 2.3, z4 - 0.03, z4 + 0.03, { radius: 0.01, name: "Mullion" }));
+              parts.push(boxSpan(frame3, x4, x4 + 0.07, 0.45, 2.3, z4 - 0.03, z4 + 0.03, { radius: 0.01, name: "Mullion" }));
             }
-            parts.push(boxSpan(frame2, x4, x4 + 0.08, 0, 0.45, z03 - 0.03, z13 + 0.03, { radius: 0.01, name: "Kick" }));
-            parts.push(boxSpan(frame2, x4, x4 + 0.08, 2.3, 2.42, z03 - 0.03, z13 + 0.03, { radius: 0.01, name: "Head" }));
+            parts.push(boxSpan(frame3, x4, x4 + 0.08, 0, 0.45, z03 - 0.03, z13 + 0.03, { radius: 0.01, name: "Kick" }));
+            parts.push(boxSpan(frame3, x4, x4 + 0.08, 2.3, 2.42, z03 - 0.03, z13 + 0.03, { radius: 0.01, name: "Head" }));
           };
           shutterX(-2.9, -1.7, face("B0"), 2.45);
           const cafe = face("B0b");
           parts.push(boxSpan(materials.glow("cafe"), -1.5, -0.42, 0.4, 2.4, cafe, cafe + 0.02, { radius: 0, name: "ShopGlow" }));
-          parts.push(boxSpan(frame2, -1.56, -0.36, 0, 0.4, cafe, cafe + 0.08, { radius: 0.01, name: "Kick" }));
-          parts.push(boxSpan(frame2, -1.56, -0.36, 2.4, 2.55, cafe, cafe + 0.08, { radius: 0.01, name: "Head" }));
-          [-1.53, -0.96, -0.39].forEach((x4) => parts.push(boxSpan(frame2, x4 - 0.03, x4 + 0.03, 0.4, 2.4, cafe, cafe + 0.07, { radius: 0.01, name: "Mullion" })));
+          parts.push(boxSpan(frame3, -1.56, -0.36, 0, 0.4, cafe, cafe + 0.08, { radius: 0.01, name: "Kick" }));
+          parts.push(boxSpan(frame3, -1.56, -0.36, 2.4, 2.55, cafe, cafe + 0.08, { radius: 0.01, name: "Head" }));
+          [-1.53, -0.96, -0.39].forEach((x4) => parts.push(boxSpan(frame3, x4 - 0.03, x4 + 0.03, 0.4, 2.4, cafe, cafe + 0.07, { radius: 0.01, name: "Mullion" })));
           parts.push(boxSpan(dark, -1.42, -1.04, 0.4, 0.95, cafe + 0.02, cafe + 0.035, { radius: 0, name: "Booth" }));
           parts.push(boxSpan(dark, -0.88, -0.5, 0.4, 0.95, cafe + 0.02, cafe + 0.035, { radius: 0, name: "Booth" }));
           const l12 = face("L1");
@@ -39393,7 +39465,7 @@ function __mpStylesBundle() {
           doorZ(4.8, 5.5, face("L5"), 2.2);
           const b22 = face("B2");
           parts.push(boxSpan(dark, 5.3, 5.95, 0, 2.4, b22, b22 + 0.03, { radius: 0, name: "Passage" }));
-          parts.push(boxSpan(frame2, 5.22, 5.3, 0, 2.5, b22, b22 + 0.08, { radius: 0.01, name: "Jamb" }));
+          parts.push(boxSpan(frame3, 5.22, 5.3, 0, 2.5, b22, b22 + 0.08, { radius: 0.01, name: "Jamb" }));
           parts.push(boxSpan(materials.glow("tube"), 5.35, 5.9, 2.55, 2.59, b22, b22 + 0.06, { radius: 0.01, name: "Tube" }));
           const wire = materials.toon("wire");
           BLOCKS.filter((block) => block.name.startsWith("L") && block.z1 > -1.8).forEach((block) => {
@@ -39410,19 +39482,19 @@ function __mpStylesBundle() {
           const rod = materials.toon("antenna");
           const parts = [];
           const placements = [];
-          HANGING_SIGNS.forEach((sign, index) => {
-            const bounds = hangingSignBox(sign);
+          HANGING_SIGNS.forEach((sign2, index) => {
+            const bounds = hangingSignBox(sign2);
             parts.push(boxSpan(box, bounds.min.x, bounds.max.x, bounds.min.y, bounds.max.y, bounds.min.z, bounds.max.z, { radius: 0.02, name: `Sign${index}` }));
-            const length = Math.abs(sign.tip - sign.wall);
-            const direction = Math.sign(sign.tip - sign.wall);
-            const along = (offset, y4) => sign.axis === "x" ? v3(sign.wall + direction * offset, y4, sign.at) : v3(sign.at, y4, sign.wall + direction * offset);
-            parts.push(tubeBetween(rod, along(0, sign.y1 + 0.45), along(length * 0.85, sign.y1 + 0.02), 0.015, { name: "Rod", castShadow: false }));
-            parts.push(tubeBetween(rod, along(0, sign.y1 + 0.02), along(0.06, sign.y1 + 0.02), 0.03, { name: "Rod", castShadow: false }));
+            const length = Math.abs(sign2.tip - sign2.wall);
+            const direction = Math.sign(sign2.tip - sign2.wall);
+            const along = (offset, y4) => sign2.axis === "x" ? v3(sign2.wall + direction * offset, y4, sign2.at) : v3(sign2.at, y4, sign2.wall + direction * offset);
+            parts.push(tubeBetween(rod, along(0, sign2.y1 + 0.45), along(length * 0.85, sign2.y1 + 0.02), 0.015, { name: "Rod", castShadow: false }));
+            parts.push(tubeBetween(rod, along(0, sign2.y1 + 0.02), along(0.06, sign2.y1 + 0.02), 0.03, { name: "Rod", castShadow: false }));
             const width = length - 0.08;
-            const height = sign.y1 - sign.y0 - 0.08;
-            const mid = (sign.wall + sign.tip) / 2;
+            const height = sign2.y1 - sign2.y0 - 0.08;
+            const mid = (sign2.wall + sign2.tip) / 2;
             const face = SIGN_DEPTH / 2 + 4e-3;
-            placements.push(sign.axis === "x" ? { position: v3(mid, (sign.y0 + sign.y1) / 2, sign.at + face), rotationY: 0, width, height, vertical: sign.vertical, role: sign.role } : { position: v3(sign.at + face, (sign.y0 + sign.y1) / 2, mid), rotationY: Math.PI / 2, width, height, vertical: sign.vertical, role: sign.role });
+            placements.push(sign2.axis === "x" ? { position: v3(mid, (sign2.y0 + sign2.y1) / 2, sign2.at + face), rotationY: 0, width, height, vertical: sign2.vertical, role: sign2.role } : { position: v3(sign2.at + face, (sign2.y0 + sign2.y1) / 2, mid), rotationY: Math.PI / 2, width, height, vertical: sign2.vertical, role: sign2.role });
           });
           return { group: group("HangingSigns", ...parts), placements };
         };
@@ -39627,7 +39699,7 @@ function __mpStylesBundle() {
             stallBulb: stall.bulb,
             wok: stall.wok,
             manhole: ground.manhole,
-            signBoxes: HANGING_SIGNS.map((sign) => hangingSignBox(sign, 0.08)),
+            signBoxes: HANGING_SIGNS.map((sign2) => hangingSignBox(sign2, 0.08)),
             footing
           };
         };
@@ -39752,7 +39824,7 @@ function __mpStylesBundle() {
         };
         blockOf = (name) => BLOCKS.find((block) => block.name === name);
         kowloonRoofs = () => {
-          const span = (names) => {
+          const span3 = (names) => {
             const blocks = names.map(blockOf);
             return {
               x0: Math.min(...blocks.map((block) => block.x0)),
@@ -39763,10 +39835,10 @@ function __mpStylesBundle() {
             };
           };
           return [
-            span(["L0", "L1", "L2"]),
-            span(["L3", "L4", "L5"]),
-            { ...span(["B0", "B0b"]), x0: -3, x1: -0.3, z1: -2.05 },
-            span(["B1"])
+            span3(["L0", "L1", "L2"]),
+            span3(["L3", "L4", "L5"]),
+            { ...span3(["B0", "B0b"]), x0: -3, x1: -0.3, z1: -2.05 },
+            span3(["B1"])
           ];
         };
         smoothNight = (daylight) => {
@@ -39875,18 +39947,18 @@ function __mpStylesBundle() {
           swapSong(_song, content) {
             this.setContent(content);
           }
-          direct(frame2) {
-            const { songTime, ambientTime, chorus, staticMode, environment, look } = frame2;
-            if (frame2.targetChanged) this.signs.showBoard(frame2.target, frame2.lines, frame2.immediate, frame2.showText);
-            else if (frame2.preheat) this.signs.preheat(frame2.preheat, frame2.lines, frame2.showText);
+          direct(frame3) {
+            const { songTime, ambientTime, chorus, staticMode, environment, look } = frame3;
+            if (frame3.targetChanged) this.signs.showBoard(frame3.target, frame3.lines, frame3.immediate, frame3.showText);
+            else if (frame3.preheat) this.signs.preheat(frame3.preheat, frame3.lines, frame3.showText);
             const daylight = environment.daylight;
             const night = 1 - daylight;
-            const lampFlicker = staticMode ? 1 : resolveMachiFlicker(ambientTime + 4.2, `${frame2.seed}:lamp`, 0.45);
-            const tubeFlicker = staticMode ? 1 : resolveMachiFlicker(ambientTime + 0.6, `${frame2.seed}:tube`, 2.2);
+            const lampFlicker = staticMode ? 1 : resolveMachiFlicker(ambientTime + 4.2, `${frame3.seed}:lamp`, 0.45);
+            const tubeFlicker = staticMode ? 1 : resolveMachiFlicker(ambientTime + 0.6, `${frame3.seed}:tube`, 2.2);
             const lamp2 = look.streetLamps * (0.75 + 0.25 * lampFlicker);
-            const { beat } = frame2;
+            const { beat } = frame3;
             const artificial = look.artificial * beat.warm;
-            const neon = (0.25 + 0.75 * night) * (0.85 + 0.15 * frame2.flicker);
+            const neon = (0.25 + 0.75 * night) * (0.85 + 0.15 * frame3.flicker);
             this.lights.setLevels({
               bar: artificial * (1 + 0.1 * chorus),
               screen: (1 - 0.8 * daylight) * (1 + 0.2 * chorus),
@@ -39901,7 +39973,7 @@ function __mpStylesBundle() {
             materials.setGlowLevel("barStrip", artificial);
             materials.setGlowLevel("barWindow", artificial);
             materials.setGlowLevel("pendant", artificial);
-            materials.setGlowLevel("jukebox", artificial * (0.65 + 0.6 * frame2.audio));
+            materials.setGlowLevel("jukebox", artificial * (0.65 + 0.6 * frame3.audio));
             materials.setGlowLevel("shopGlow", artificial);
             materials.setGlowLevel("cafe", artificial);
             materials.setGlowLevel("stripPink", neon * machiNeonGroup(beat, 1));
@@ -39917,18 +39989,18 @@ function __mpStylesBundle() {
             this.signs.update({
               songTime,
               ambientTime,
-              delta: frame2.delta,
+              delta: frame3.delta,
               staticMode,
               chorus,
-              audio: frame2.audio,
-              flicker: frame2.flicker,
+              audio: frame3.audio,
+              flicker: frame3.flicker,
               artificial: look.artificial,
               daylight,
               beat
             });
-            this.steam.update(ambientTime, frame2.atmosphere.wind);
+            this.steam.update(ambientTime, frame3.atmosphere.wind);
             this.lightCones.update(ambientTime, lamp2 * (1 - 0.6 * daylight));
-            const atmosphere = frame2.atmosphere;
+            const atmosphere = frame3.atmosphere;
             const glow = 1 - 0.85 * daylight;
             atmosphere.glowA.copy(this.glowA);
             atmosphere.glowB.copy(this.glowB);
@@ -40063,8 +40135,8 @@ function __mpStylesBundle() {
           constructor(blend, materials, lampHead2, neonAt) {
             this.blend = blend;
             this.group.name = "StationLights";
-            const point = (intensity, distance, position, name) => {
-              const light = new dp(16777215, intensity, distance, 2);
+            const point = (intensity, distance2, position, name) => {
+              const light = new dp(16777215, intensity, distance2, 2);
               light.position.copy(position);
               light.name = name;
               return light;
@@ -40156,7 +40228,7 @@ function __mpStylesBundle() {
         ];
         resolveStationVariation = (seed, colorCount, liveryCount) => {
           const random = createVisualizerRng(`station:${seed}`);
-          const pick2 = (min, max) => min + (max - min) * random();
+          const pick3 = (min, max) => min + (max - min) * random();
           const stalls = STALL_PATTERNS[Math.floor(random() * STALL_PATTERNS.length)];
           const occupied = stalls.map((kind, index) => kind === "sedan" ? index : -1).filter((index) => index >= 0);
           return {
@@ -40168,10 +40240,10 @@ function __mpStylesBundle() {
             pumpCar: random() < 0.7,
             keiTruck: random() < 0.6,
             hazardStall: occupied.length && random() < 0.75 ? occupied[Math.floor(random() * occupied.length)] : -1,
-            windYaw: pick2(-0.6, 0.6),
-            windSlant: pick2(0.06, 0.2),
-            puddleOffset: [pick2(-40, 40), pick2(-40, 40)],
-            puddleAmount: pick2(0.45, 0.75)
+            windYaw: pick3(-0.6, 0.6),
+            windSlant: pick3(0.06, 0.2),
+            puddleOffset: [pick3(-40, 40), pick3(-40, 40)],
+            puddleAmount: pick3(0.45, 0.75)
           };
         };
       }
@@ -40278,8 +40350,8 @@ function __mpStylesBundle() {
           context.fillText("SELF", width / 2, head * 0.84);
           const rowTop = head + height * 0.03;
           const rowHeight = (height - rowTop - height * 0.03) / paint.rows.length;
-          const span = (value) => value.split("").reduce((sum, char, index) => sum + (char === ":" ? 0.26 : 0.52) + (index > 0 && char !== ":" && value[index - 1] !== ":" ? 0.1664 : 0), 0);
-          const widest = Math.max(...paint.rows.map((row) => span(row.value)), 1);
+          const span3 = (value) => value.split("").reduce((sum, char, index) => sum + (char === ":" ? 0.26 : 0.52) + (index > 0 && char !== ":" && value[index - 1] !== ":" ? 0.1664 : 0), 0);
+          const widest = Math.max(...paint.rows.map((row) => span3(row.value)), 1);
           const panelTop = rowHeight * 0.06;
           const panelHeight = rowHeight * 0.88;
           const labelBand = panelHeight * 0.28;
@@ -40297,7 +40369,7 @@ function __mpStylesBundle() {
             const digitW = digitH * 0.52;
             const gap = digitW * 0.32;
             const colonW = digitW * 0.5;
-            let x4 = width * 0.9 - span(row.value) * digitH;
+            let x4 = width * 0.9 - span3(row.value) * digitH;
             const dy2 = y4 + panelTop + labelBand + (digitArea - digitH) / 2;
             chars.forEach((char, charIndex) => {
               if (charIndex > 0 && char !== ":" && chars[charIndex - 1] !== ":") x4 += gap;
@@ -40479,9 +40551,9 @@ function __mpStylesBundle() {
             const texture = canvasTexture2(canvas3);
             const material = materials.track(new es({ map: texture }));
             material.color.setScalar(level);
-            const sign = { canvas: canvas3, texture, material, level };
-            this.statics.push(sign);
-            return sign;
+            const sign2 = { canvas: canvas3, texture, material, level };
+            this.statics.push(sign2);
+            return sign2;
           }
           get font() {
             return this.content.font;
@@ -40506,8 +40578,8 @@ function __mpStylesBundle() {
             paintMotelVacancy(this.vacancy.canvas, font, false);
             paintMotelVacancy(this.vacancyFull.canvas, font, true);
             this.vacancyFull.texture.needsUpdate = true;
-            this.statics.forEach((sign) => {
-              sign.texture.needsUpdate = true;
+            this.statics.forEach((sign2) => {
+              sign2.texture.needsUpdate = true;
             });
             this.pylonKey = "";
             this.screen.setContent({
@@ -40555,34 +40627,34 @@ function __mpStylesBundle() {
             });
             this.pylon.texture.needsUpdate = true;
           }
-          update(frame2) {
+          update(frame3) {
             const content = this.content;
             if (!content) return;
-            this.screen.update(frame2);
+            this.screen.update(frame3);
             const chorus = this.screen.chorus;
             this.tickers.forEach((ticker) => {
               if (!ticker.strip.hasText && this.boardTarget) {
                 const text = ticker.role === "ticker" ? resolveMachiTickerText(this.boardTarget, this.lines, content.song, "MACHI") : `\u266A ${content.song.title || "MACHI"}${content.song.artist ? ` \u2014 ${content.song.artist}` : ""}   \u25C6   \u7A7A\u8ECA   \u25C6   `;
                 ticker.strip.setText(text, content.font);
               }
-              ticker.strip.update({ delta: frame2.delta, staticMode: frame2.staticMode, speed: 0.8 + 0.4 * chorus, audio: frame2.audio });
+              ticker.strip.update({ delta: frame3.delta, staticMode: frame3.staticMode, speed: 0.8 + 0.4 * chorus, audio: frame3.audio });
             });
-            this.paintPylon(frame2.songTime, frame2.lineIndex);
+            this.paintPylon(frame3.songTime, frame3.lineIndex);
             const full = chorus > 0.5;
             if (full !== this.full) {
               this.full = full;
               this.vacancy.material.map = full ? this.vacancyFull.texture : this.vacancy.texture;
               this.vacancy.material.needsUpdate = true;
             }
-            const { beat } = frame2;
-            const neon = (0.8 + 0.2 * frame2.flicker) * (1 + 0.15 * chorus) * machiNeonGroup(beat, 0);
-            this.motelTall.material.color.setScalar(this.motelTall.level * neon * frame2.artificial);
-            this.motelName.material.color.setScalar(this.motelName.level * frame2.artificial * machiNeonGroup(beat, 1));
-            this.vacancy.material.color.setScalar(this.vacancy.level * frame2.artificial * machiNeonGroup(beat, 2));
-            this.canopy.material.color.setScalar(this.canopy.level * (0.7 + 0.3 * frame2.artificial) * machiLightboxGroup(beat, 1));
-            this.pylon.material.color.setScalar(this.pylon.level * (0.75 + 0.25 * frame2.artificial) * machiLightboxGroup(beat, 2));
-            this.bulbMaterial.uniforms.uTime.value = frame2.staticMode ? 0 : frame2.ambientTime;
-            this.bulbMaterial.uniforms.uLevel.value = frame2.artificial;
+            const { beat } = frame3;
+            const neon = (0.8 + 0.2 * frame3.flicker) * (1 + 0.15 * chorus) * machiNeonGroup(beat, 0);
+            this.motelTall.material.color.setScalar(this.motelTall.level * neon * frame3.artificial);
+            this.motelName.material.color.setScalar(this.motelName.level * frame3.artificial * machiNeonGroup(beat, 1));
+            this.vacancy.material.color.setScalar(this.vacancy.level * frame3.artificial * machiNeonGroup(beat, 2));
+            this.canopy.material.color.setScalar(this.canopy.level * (0.7 + 0.3 * frame3.artificial) * machiLightboxGroup(beat, 1));
+            this.pylon.material.color.setScalar(this.pylon.level * (0.75 + 0.25 * frame3.artificial) * machiLightboxGroup(beat, 2));
+            this.bulbMaterial.uniforms.uTime.value = frame3.staticMode ? 0 : frame3.ambientTime;
+            this.bulbMaterial.uniforms.uLevel.value = frame3.artificial;
             this.bulbMaterial.uniforms.uColor.value.copy(this.blend.get("streetLight"));
           }
           get busy() {
@@ -40591,7 +40663,7 @@ function __mpStylesBundle() {
           dispose() {
             this.screen.dispose();
             this.tickers.forEach((ticker) => ticker.strip.dispose());
-            this.statics.forEach((sign) => sign.texture.dispose());
+            this.statics.forEach((sign2) => sign2.texture.dispose());
             this.vacancyFull.texture.dispose();
             this.geometries.forEach((geometry) => geometry.dispose());
             this.group.traverse((object) => {
@@ -41242,16 +41314,16 @@ function __mpStylesBundle() {
           swapSong(_song, content) {
             this.setContent(content);
           }
-          direct(frame2) {
-            const { songTime, ambientTime, chorus, staticMode, environment, look } = frame2;
-            if (frame2.targetChanged) this.signs.showBoard(frame2.target, frame2.lines, frame2.immediate, frame2.showText);
-            else if (frame2.preheat) this.signs.preheat(frame2.preheat, frame2.lines, frame2.showText);
-            const flicker = staticMode ? 1 : resolveMachiFlicker(ambientTime + 1.7, `${frame2.seed}:canopy`, 0.4);
-            const lampFlicker = staticMode ? 1 : resolveMachiFlicker(ambientTime + 4.2, `${frame2.seed}:lamp`, 0.45);
+          direct(frame3) {
+            const { songTime, ambientTime, chorus, staticMode, environment, look } = frame3;
+            if (frame3.targetChanged) this.signs.showBoard(frame3.target, frame3.lines, frame3.immediate, frame3.showText);
+            else if (frame3.preheat) this.signs.preheat(frame3.preheat, frame3.lines, frame3.showText);
+            const flicker = staticMode ? 1 : resolveMachiFlicker(ambientTime + 1.7, `${frame3.seed}:canopy`, 0.4);
+            const lampFlicker = staticMode ? 1 : resolveMachiFlicker(ambientTime + 4.2, `${frame3.seed}:lamp`, 0.45);
             const lamp2 = look.streetLamps * (0.75 + 0.25 * lampFlicker);
-            const { beat } = frame2;
+            const { beat } = frame3;
             const canopyLevel = (0.85 + 0.15 * flicker) * (1 + 0.08 * chorus) * look.artificial * beat.warm;
-            const motelNeon = look.artificial * (0.8 + 0.2 * frame2.flicker);
+            const motelNeon = look.artificial * (0.8 + 0.2 * frame3.flicker);
             this.lights.setLevels({
               canopy: canopyLevel,
               lamp: lamp2,
@@ -41266,14 +41338,14 @@ function __mpStylesBundle() {
             materials.setGlowLevel("marker", 0.5 + 0.5 * look.artificial);
             materials.setGlowLevel("carHead", 0.12 + 0.88 * (1 - environment.daylight));
             materials.setGlowLevel("carTail", 0.3 + 0.7 * (1 - environment.daylight));
-            materials.setGlowLevel("hazard", !staticMode && this.variation.hazardStall >= 0 && hazardOn(ambientTime, frame2.seed) ? 1 : 0.06);
+            materials.setGlowLevel("hazard", !staticMode && this.variation.hazardStall >= 0 && hazardOn(ambientTime, frame3.seed) ? 1 : 0.06);
             this.traffic.group.visible = !staticMode;
-            this.traffic.update(ambientTime, frame2.seed, frame2.trafficChance);
-            this.nobori.update(ambientTime, 0.35 + 0.65 * Math.min(1, frame2.rain));
+            this.traffic.update(ambientTime, frame3.seed, frame3.trafficChance);
+            this.nobori.update(ambientTime, 0.35 + 0.65 * Math.min(1, frame3.rain));
             this.lightCones.update(ambientTime, lamp2 * (1 - 0.6 * environment.daylight));
-            this.steam.update(ambientTime, frame2.atmosphere.wind);
+            this.steam.update(ambientTime, frame3.atmosphere.wind);
             const night = 1 - 0.85 * environment.daylight;
-            const atmosphere = frame2.atmosphere;
+            const atmosphere = frame3.atmosphere;
             atmosphere.glowA.copy(this.glowA);
             atmosphere.glowB.copy(this.glowB);
             atmosphere.glowColorA.copy(this.context.blend.get("canopyLight")).multiplyScalar(0.5 * canopyLevel * night);
@@ -41281,13 +41353,13 @@ function __mpStylesBundle() {
             this.signs.update({
               songTime,
               ambientTime,
-              delta: frame2.delta,
+              delta: frame3.delta,
               staticMode,
               chorus,
-              audio: frame2.audio,
-              flicker: frame2.flicker,
+              audio: frame3.audio,
+              flicker: frame3.flicker,
               artificial: look.artificial,
-              lineIndex: frame2.target.kind === "line" ? frame2.target.index : -1,
+              lineIndex: frame3.target.kind === "line" ? frame3.target.index : -1,
               beat
             });
           }
@@ -42881,8 +42953,8 @@ function __mpStylesBundle() {
           let weightedSum = 0;
           let weightTotal = 0;
           for (let index = start; index <= end; index += 1) {
-            const distance = Math.abs(index - centerIndex);
-            const weight = Math.max(0.1, 1 - distance / (windowRadius + 1));
+            const distance2 = Math.abs(index - centerIndex);
+            const weight = Math.max(0.1, 1 - distance2 / (windowRadius + 1));
             weightedSum += rawSpectrum[index] * weight;
             weightTotal += weight;
           }
@@ -43993,16 +44065,16 @@ function __mpStylesBundle() {
               zIndex: 4
             };
           }
-          const distance = Math.max(Math.abs(entry.offset), 1);
+          const distance2 = Math.max(Math.abs(entry.offset), 1);
           const isWaiting = entry.status === "waiting";
-          const scale = clamp10(inactiveScale * Math.pow(0.9, distance - 1), 0.68, 0.92);
+          const scale = clamp10(inactiveScale * Math.pow(0.9, distance2 - 1), 0.68, 0.92);
           return {
-            opacity: isWaiting ? clamp10(0.72 - (distance - 1) * 0.18, 0.36, 0.72) : clamp10(0.52 - (distance - 1) * 0.12, 0.28, 0.52),
+            opacity: isWaiting ? clamp10(0.72 - (distance2 - 1) * 0.18, 0.36, 0.72) : clamp10(0.52 - (distance2 - 1) * 0.12, 0.28, 0.52),
             scale,
-            blurPx: isWaiting ? distance === 1 ? 0.7 : 1.8 + (distance - 2) * 0.8 : 1.1 + (distance - 1) * 0.7,
+            blurPx: isWaiting ? distance2 === 1 ? 0.7 : 1.8 + (distance2 - 2) * 0.8 : 1.1 + (distance2 - 1) * 0.7,
             baseColor: colorWithAlpha(theme.primaryColor, isWaiting ? 0.46 : 0.36),
             fontWeight: 500,
-            zIndex: isWaiting ? 3 - distance : 2 - distance
+            zIndex: isWaiting ? 3 - distance2 : 2 - distance2
           };
         };
         resolveLineGap = (previous, next, lyricFontPx) => previous.status === "active" || next.status === "active" ? Math.max(MONET_ACTIVE_GAP_PX, lyricFontPx * MONET_ACTIVE_GAP_RATIO) : Math.max(MONET_INACTIVE_GAP_PX, lyricFontPx * MONET_INACTIVE_GAP_RATIO);
@@ -45982,7 +46054,7 @@ function __mpStylesBundle() {
           const bulge = h4 * 0.18;
           const top = [cx2, cy2 - h4 / 2];
           const bottom = [cx2, cy2 + h4 / 2];
-          const side = (sign) => cubicPoints(top, [cx2 + sign * (convex ? bulge : -bulge * 0.2) + (convex ? 0 : sign * bulge * 0.6), cy2 - h4 / 4], [cx2 + sign * (convex ? bulge : -bulge * 0.2) + (convex ? 0 : sign * bulge * 0.6), cy2 + h4 / 4], bottom, 32);
+          const side = (sign2) => cubicPoints(top, [cx2 + sign2 * (convex ? bulge : -bulge * 0.2) + (convex ? 0 : sign2 * bulge * 0.6), cy2 - h4 / 4], [cx2 + sign2 * (convex ? bulge : -bulge * 0.2) + (convex ? 0 : sign2 * bulge * 0.6), cy2 + h4 / 4], bottom, 32);
           const outline = convex ? [...side(1), ...side(-1).reverse()] : [
             [cx2 - bulge * 0.7, cy2 - h4 / 2],
             [cx2 + bulge * 0.7, cy2 - h4 / 2],
@@ -46053,13 +46125,13 @@ function __mpStylesBundle() {
         });
         fiber = (points, thickness, style = {}) => {
           const center = cubicPoints(...points, 60);
-          const offset = (sign) => center.map(([x4, y4], i4) => {
+          const offset = (sign2) => center.map(([x4, y4], i4) => {
             const [nx0, ny0] = center[Math.max(0, i4 - 1)];
             const [nx1, ny1] = center[Math.min(center.length - 1, i4 + 1)];
             const dx2 = nx1 - nx0;
             const dy2 = ny1 - ny0;
             const len2 = Math.hypot(dx2, dy2) || 1;
-            return [x4 - dy2 / len2 * thickness * sign, y4 + dx2 / len2 * thickness * sign];
+            return [x4 - dy2 / len2 * thickness * sign2, y4 + dx2 / len2 * thickness * sign2];
           });
           return {
             paths: [path(offset(1), { width: 14e-4, alpha: 0.5, ...style, span: 0.6 }), path(offset(-1), { width: 14e-4, alpha: 0.5, ...style, delay: (style.delay ?? 0) + 0.05, span: 0.6 })],
@@ -46169,7 +46241,7 @@ function __mpStylesBundle() {
           return { paths, nodes: [] };
         };
         fernCurl = (cx2, cy2, r4, style = {}) => {
-          const spiral = Array.from({ length: 140 }, (_4, i4) => {
+          const spiral2 = Array.from({ length: 140 }, (_4, i4) => {
             const t4 = i4 / 139;
             const a4 = t4 * TAU2 * 2.2;
             const rr3 = r4 * Math.exp(-t4 * 2.4);
@@ -46177,10 +46249,10 @@ function __mpStylesBundle() {
           });
           const stem = [[cx2 + r4, cy2], [cx2 + r4, cy2 + r4 * 2.2]];
           const leaflets = Array.from({ length: 9 }, (_4, i4) => {
-            const [x4, y4] = spiral[Math.floor(i4 / 9 * 90)];
+            const [x4, y4] = spiral2[Math.floor(i4 / 9 * 90)];
             return circle(x4, y4, 8e-3 + (1 - i4 / 9) * 0.01, { width: 8e-4, alpha: 0.35, delay: (style.delay ?? 0) + 0.4 + i4 * 0.03, span: 0.1 });
           });
-          return { paths: [path(stem, { width: 16e-4, alpha: 0.5, ...style }), path(spiral, { width: 16e-4, alpha: 0.55, ...style, delay: (style.delay ?? 0) + 0.1, span: 0.5 }), ...leaflets], nodes: [] };
+          return { paths: [path(stem, { width: 16e-4, alpha: 0.5, ...style }), path(spiral2, { width: 16e-4, alpha: 0.55, ...style, delay: (style.delay ?? 0) + 0.1, span: 0.5 }), ...leaflets], nodes: [] };
         };
         seedRoots = (cx2, cy2, random, style = {}) => ({
           paths: [
@@ -46272,8 +46344,8 @@ function __mpStylesBundle() {
           paths: Array.from({ length: count }, (_4, i4) => {
             const r4 = maxR * (0.1 + random() * 0.9);
             const a4 = random() * TAU2;
-            const span = 0.4 + random() * 0.8;
-            return path(arcPoints(cx2, cy2, r4, a4, a4 + span, 24), { width: 8e-4 + random() * 8e-4, alpha: 0.25 + random() * 0.3, ...style, delay: (style.delay ?? 0) + i4 / count * 0.4, span: 0.3 });
+            const span3 = 0.4 + random() * 0.8;
+            return path(arcPoints(cx2, cy2, r4, a4, a4 + span3, 24), { width: 8e-4 + random() * 8e-4, alpha: 0.25 + random() * 0.3, ...style, delay: (style.delay ?? 0) + i4 / count * 0.4, span: 0.3 });
           }),
           nodes: [node([cx2, cy2], 0.03, (style.delay ?? 0) + 0.1)]
         });
@@ -47745,9 +47817,9 @@ function __mpStylesBundle() {
           label: "\u6697\u7BB1",
           mood: "quiet",
           light: ({ aspect }) => {
-            const distance = (0.45 + 0.02) * aspect;
+            const distance2 = (0.45 + 0.02) * aspect;
             return opticsRig([
-              { x: -0.02, y: AXIS, angle: 0, spread: -Math.atan(0.15 / distance), width: 0.3, length: 3, softness: 0.4, intensity: 0.8, streaks: 0.3, streakFreq: 6, streakSpeed: 0.05, core: 0.3, reach: distance + 0.3 }
+              { x: -0.02, y: AXIS, angle: 0, spread: -Math.atan(0.15 / distance2), width: 0.3, length: 3, softness: 0.4, intensity: 0.8, streaks: 0.3, streakFreq: 6, streakSpeed: 0.05, core: 0.3, reach: distance2 + 0.3 }
             ], { x: 0.45, y: AXIS, radius: 0.03, intensity: 1, streak: 0.3 });
           },
           lineArt: (context) => merge(pinholeBox(context.aspect * 0.45 + 0.15, AXIS, 0.3, 0.3), sparks5(context)),
@@ -71737,14 +71809,14 @@ function __mpStylesBundle() {
           let sources = initial;
           let rawScale = false;
           let lastMs = 0;
-          const frame2 = { bass: 0, treble: 0, power: 0 };
-          const read = (value) => {
+          const frame3 = { bass: 0, treble: 0, power: 0 };
+          const read2 = (value) => {
             const raw = value?.get() ?? 0;
             if (raw > 1) rawScale = true;
             return raw;
           };
           return {
-            frame: frame2,
+            frame: frame3,
             setSources: (next) => {
               if (next.audioPower === sources.audioPower && next.audioBands === sources.audioBands) return;
               sources = next;
@@ -71754,17 +71826,17 @@ function __mpStylesBundle() {
               const dt3 = lastMs > 0 ? Math.min(0.1, (nowMs2 - lastMs) / 1e3) : 1;
               lastMs = nowMs2;
               if (paused) {
-                frame2.bass = 0;
-                frame2.treble = 0;
-                frame2.power = 0;
+                frame3.bass = 0;
+                frame3.treble = 0;
+                frame3.power = 0;
                 return;
               }
-              const bass = read(sources.audioBands.bass);
-              const treble = read(sources.audioBands.treble);
-              const power = read(sources.audioPower);
-              frame2.bass = smoothLumiereAudioValue(frame2.bass, normalizeLumiereAudioValue(bass, rawScale), dt3);
-              frame2.treble = smoothLumiereAudioValue(frame2.treble, normalizeLumiereAudioValue(treble, rawScale), dt3);
-              frame2.power = smoothLumiereAudioValue(frame2.power, normalizeLumiereAudioValue(power, rawScale), dt3);
+              const bass = read2(sources.audioBands.bass);
+              const treble = read2(sources.audioBands.treble);
+              const power = read2(sources.audioPower);
+              frame3.bass = smoothLumiereAudioValue(frame3.bass, normalizeLumiereAudioValue(bass, rawScale), dt3);
+              frame3.treble = smoothLumiereAudioValue(frame3.treble, normalizeLumiereAudioValue(treble, rawScale), dt3);
+              frame3.power = smoothLumiereAudioValue(frame3.power, normalizeLumiereAudioValue(power, rawScale), dt3);
             }
           };
         };
@@ -71785,8 +71857,8 @@ function __mpStylesBundle() {
           const out = program.paragraphs[index]?.transitionOut;
           if (!out || time < out.startTime) return { alpha: 1, scale: 1, blur: 0 };
           const progress = (time - out.startTime) / Math.max(out.endTime - out.startTime, 1e-3);
-          const frame2 = LUMIERE_TRANSITIONS[out.kind].resolveFrame("exit", progress);
-          return out.kind === "lights-out" ? { ...frame2, alpha: 1 } : frame2;
+          const frame3 = LUMIERE_TRANSITIONS[out.kind].resolveFrame("exit", progress);
+          return out.kind === "lights-out" ? { ...frame3, alpha: 1 } : frame3;
         };
         resolveLumiereSceneFrames = (program, time, transitionsEnabled) => {
           if (program.paragraphs.length === 0) return { activeIndex: -1, layers: [] };
@@ -72022,14 +72094,14 @@ function __mpStylesBundle() {
             glProgram: program(combineFragment, "lumiere-bloom-combine"),
             resources: { bloomCombine: combineUniforms, uAdd: pixi.Texture.EMPTY.source }
           });
-          const mapFor = (from, to3, target, clamp20, weight) => {
+          const mapFor = (from, to3, target, clamp21, weight) => {
             target[0] = from.source.width / to3.source.width;
             target[1] = from.source.height / to3.source.height;
             target[2] = weight;
-            clamp20[0] = 0.5 / to3.source.pixelWidth;
-            clamp20[1] = 0.5 / to3.source.pixelHeight;
-            clamp20[2] = to3.frame.width / to3.source.width - 0.5 / to3.source.pixelWidth;
-            clamp20[3] = to3.frame.height / to3.source.height - 0.5 / to3.source.pixelHeight;
+            clamp21[0] = 0.5 / to3.source.pixelWidth;
+            clamp21[1] = 0.5 / to3.source.pixelHeight;
+            clamp21[2] = to3.frame.width / to3.source.width - 0.5 / to3.source.pixelWidth;
+            clamp21[3] = to3.frame.height / to3.source.height - 0.5 / to3.source.pixelHeight;
           };
           class LumiereBloomFilter extends Filter {
             options;
@@ -72182,18 +72254,18 @@ function __mpStylesBundle() {
           const view = new pixi.Container();
           const pool = Array.from({ length: MAX_BURSTS }, () => {
             const holder = new pixi.Container();
-            const make = (texture) => {
+            const make2 = (texture) => {
               const sprite = new pixi.Sprite(texture);
               sprite.anchor.set(0.5);
               holder.addChild(sprite);
               return sprite;
             };
-            const ring = make(sprites.bokeh);
-            const verticalGlow = make(sprites.streak);
-            const horizontalGlow = make(sprites.streak);
-            const verticalCore = make(sprites.streak);
-            const horizontalCore = make(sprites.streak);
-            const flash = make(sprites.dot);
+            const ring = make2(sprites.bokeh);
+            const verticalGlow = make2(sprites.streak);
+            const horizontalGlow = make2(sprites.streak);
+            const verticalCore = make2(sprites.streak);
+            const horizontalCore = make2(sprites.streak);
+            const flash = make2(sprites.dot);
             verticalGlow.rotation = Math.PI / 2;
             verticalCore.rotation = Math.PI / 2;
             holder.visible = false;
@@ -72700,8 +72772,8 @@ function __mpStylesBundle() {
           });
           const mesh2 = new pixi.Mesh({ geometry, shader });
           const u4 = uniforms.uniforms;
-          const update = (frame2) => {
-            const { beams, rig: rig2, time } = frame2;
+          const update = (frame3) => {
+            const { beams, rig: rig2, time } = frame3;
             const A4 = u4.uBeamA, B4 = u4.uBeamB, C4 = u4.uBeamC, D4 = u4.uBeamD, E4 = u4.uBeamE, F4 = u4.uBeamF;
             A4.fill(0);
             B4.fill(0);
@@ -72739,28 +72811,28 @@ function __mpStylesBundle() {
             u4.uFrame[2] = time;
             u4.uFrame[3] = beams.length;
             const fog = rig2.fog;
-            u4.uFogA[0] = fog.density * frame2.fogScale;
+            u4.uFogA[0] = fog.density * frame3.fogScale;
             u4.uFogA[1] = fog.tyndallBase;
             u4.uFogA[2] = fog.scale;
             u4.uFogA[3] = fog.warp;
             u4.uFogB[0] = fog.driftX;
             u4.uFogB[1] = fog.driftY;
-            u4.uFogB[2] = fog.ambient * frame2.fogScale;
-            u4.uFogB[3] = frame2.octaves;
-            u4.uFogColor[0] = frame2.color[0];
-            u4.uFogColor[1] = frame2.color[1];
-            u4.uFogColor[2] = frame2.color[2];
+            u4.uFogB[2] = fog.ambient * frame3.fogScale;
+            u4.uFogB[3] = frame3.octaves;
+            u4.uFogColor[0] = frame3.color[0];
+            u4.uFogColor[1] = frame3.color[1];
+            u4.uFogColor[2] = frame3.color[2];
             const glare = rig2.glare;
             const aspect = width / height;
             u4.uGlare[0] = glare ? glare.x * aspect : 0;
             u4.uGlare[1] = glare ? glare.y : 0;
             u4.uGlare[2] = glare ? glare.radius : 0;
-            u4.uGlare[3] = glare ? glare.intensity * frame2.glareScale : 0;
+            u4.uGlare[3] = glare ? glare.intensity * frame3.glareScale : 0;
             u4.uGlareB[0] = glare ? glare.streak : 0;
-            u4.uGlareColor[0] = frame2.color[0];
-            u4.uGlareColor[1] = frame2.color[1];
-            u4.uGlareColor[2] = frame2.color[2];
-            u4.uDark.set(frame2.dark);
+            u4.uGlareColor[0] = frame3.color[0];
+            u4.uGlareColor[1] = frame3.color[1];
+            u4.uGlareColor[2] = frame3.color[2];
+            u4.uDark.set(frame3.dark);
             const caustic2 = rig2.caustic;
             u4.uCaustic[0] = caustic2?.scale ?? 0;
             u4.uCaustic[1] = caustic2?.speed ?? 0;
@@ -72770,17 +72842,17 @@ function __mpStylesBundle() {
             u4.uCausticFloor[1] = caustic2?.floor?.cy ?? 0;
             u4.uCausticFloor[2] = (caustic2?.floor?.rx ?? 0) * aspect;
             u4.uCausticFloor[3] = caustic2?.floor?.ry ?? 0;
-            u4.uCausticB[0] = (caustic2?.floor?.strength ?? 0) * frame2.glareScale;
+            u4.uCausticB[0] = (caustic2?.floor?.strength ?? 0) * frame3.glareScale;
             const wave2 = rig2.wave;
             u4.uWave[0] = wave2 ? WAVE_MODE_ID[wave2.mode] : 0;
             u4.uWave[1] = wave2?.frequency ?? 0;
             u4.uWave[2] = wave2?.speed ?? 0;
-            u4.uWave[3] = (wave2?.strength ?? 0) * frame2.glareScale;
+            u4.uWave[3] = (wave2?.strength ?? 0) * frame3.glareScale;
             u4.uWaveB[0] = (wave2?.cx ?? 0) * aspect;
             u4.uWaveB[1] = wave2?.cy ?? 0;
             u4.uWaveB[2] = wave2?.radius ?? 0;
             u4.uWaveB[3] = wave2?.separation ?? 0;
-            const region2 = frame2.textRegion;
+            const region2 = frame3.textRegion;
             u4.uShield[0] = region2 ? region2.cx * aspect : 0;
             u4.uShield[1] = region2 ? region2.cy : 0;
             u4.uShield[2] = region2 ? region2.w * aspect / 2 : 1;
@@ -72810,8 +72882,8 @@ function __mpStylesBundle() {
         lumiereScaleMask10 = globalThis.devicePixelRatio | 0;
         LUMIERE_NEUTRAL_OFFSET10 = (443 ^ lumiereScaleMask10) + Math.imul(186 ^ lumiereScaleMask10, 252 ^ lumiereScaleMask10) - ((443 ^ lumiereScaleMask10) + Math.imul(186 ^ lumiereScaleMask10, 252 ^ lumiereScaleMask10));
         wrap = (value, min, max) => {
-          const span = max - min;
-          return min + ((value - min) % span + span) % span;
+          const span3 = max - min;
+          return min + ((value - min) % span3 + span3) % span3;
         };
         createMotes = (pixi, options) => {
           const { width, height, spec, texture } = options;
@@ -73041,11 +73113,11 @@ function __mpStylesBundle() {
             const { points, dash } = path2.spec;
             const limit = Math.min(amount, path2.total);
             const period = dash ? dash[0] + dash[1] : 0;
-            const at3 = (index, distance) => {
+            const at3 = (index, distance2) => {
               const [ax2, ay2] = points[index - 1];
               const [bx2, by2] = points[index];
               const segment2 = path2.lengths[index] - path2.lengths[index - 1];
-              const f4 = segment2 > 0 ? (distance - path2.lengths[index - 1]) / segment2 : 0;
+              const f4 = segment2 > 0 ? (distance2 - path2.lengths[index - 1]) / segment2 : 0;
               return [(ax2 + (bx2 - ax2) * f4) * height, (ay2 + (by2 - ay2) * f4) * height];
             };
             g4.moveTo(points[0][0] * height, points[0][1] * height);
@@ -73078,8 +73150,8 @@ function __mpStylesBundle() {
             resident = true;
             hiddenSince = Number.NaN;
             for (const path2 of paths) {
-              const { delay, span } = path2.spec;
-              const local = clamp015((draw - delay) / Math.max(span, 1e-3));
+              const { delay, span: span3 } = path2.spec;
+              const local = clamp015((draw - delay) / Math.max(span3, 1e-3));
               const eased = 1 - (1 - local) ** 3;
               const amount = eased * path2.total;
               if (Math.abs(amount - path2.drawn) > 1e-5) {
@@ -73642,7 +73714,7 @@ function __mpStylesBundle() {
             const w4 = Math.max(0.5, offsets[index + 1] - x4);
             const left = index === 0 ? 0 : pad + x4;
             const right = index === graphemes2.length - 1 ? width + pad * 2 : pad + x4 + w4;
-            const frame2 = new pixi.Rectangle(left, 0, right - left, height + pad * 2);
+            const frame3 = new pixi.Rectangle(left, 0, right - left, height + pad * 2);
             return {
               char,
               x: left - pad,
@@ -73651,7 +73723,7 @@ function __mpStylesBundle() {
               charWidth: w4,
               anchorX: (pad + x4 + w4 / 2 - left) / (right - left),
               anchorY: 0.5,
-              texture: new pixi.Texture({ source, frame: frame2 }),
+              texture: new pixi.Texture({ source, frame: frame3 }),
               blank: char.trim().length === 0,
               upright: isUprightGlyph(char)
             };
@@ -73896,7 +73968,7 @@ function __mpStylesBundle() {
             const oy2 = beam?.oy ?? 0;
             const bx2 = beam?.dx ?? 0;
             const by2 = beam?.dy ?? 1;
-            const halfAt = (distance) => (beam ? beam.halfWidth + distance * beam.tanSpread : 0.08) + 0.04;
+            const halfAt = (distance2) => (beam ? beam.halfWidth + distance2 * beam.tanSpread : 0.08) + 0.04;
             fragments.forEach((fragment5, index) => {
               const holder = holders[index];
               const age = time - fragment5.birth;
@@ -73904,10 +73976,10 @@ function __mpStylesBundle() {
               const alpha = presence * intensity * options.opacity;
               holder.visible = age >= 0 && age <= LIFE && alpha > 3e-3;
               if (!holder.visible) return;
-              const distance = BIRTH_DISTANCE + SPEED * fragment5.speed * age;
-              const across = fragment5.across * halfAt(distance);
-              const x4 = (ox2 + bx2 * distance - by2 * across) * height;
-              const y4 = (oy2 + by2 * distance + bx2 * across) * height;
+              const distance2 = BIRTH_DISTANCE + SPEED * fragment5.speed * age;
+              const across = fragment5.across * halfAt(distance2);
+              const x4 = (ox2 + bx2 * distance2 - by2 * across) * height;
+              const y4 = (oy2 + by2 * distance2 + bx2 * across) * height;
               holder.position.set(x4, y4);
               holder.rotation = fragment5.rotation + fragment5.spin * age;
               holder.scale.set(fragment5.scale * fragment5.stretch, fragment5.scale);
@@ -74017,36 +74089,36 @@ function __mpStylesBundle() {
           const pieces = [];
           const pxOf = (index) => heroPx * glyphs[index].scale;
           let pendingOpen = null;
-          spans.forEach((span, index) => {
-            if (span.kind === "space") {
+          spans.forEach((span3, index) => {
+            if (span3.kind === "space") {
               if (pendingOpen) pieces.push({ kind: "unit", unit: { start: pendingOpen.start, end: pendingOpen.end, text: textOf(glyphs, pendingOpen.start, pendingOpen.end), px: pxOf(pendingOpen.start) } });
               pendingOpen = null;
-              pieces.push({ kind: "space", span });
+              pieces.push({ kind: "space", span: span3 });
               return;
             }
             const previous = pieces[pieces.length - 1];
             const next = spans[index + 1];
-            if (span.kind === "punct") {
-              const text = textOf(glyphs, span.start, span.end);
+            if (span3.kind === "punct") {
+              const text = textOf(glyphs, span3.start, span3.end);
               if (OPENING.test(text) && next && next.kind !== "space") {
-                pendingOpen = pendingOpen ? { ...pendingOpen, end: span.end } : span;
+                pendingOpen = pendingOpen ? { ...pendingOpen, end: span3.end } : span3;
                 return;
               }
-              if (!pendingOpen && previous?.kind === "unit" && previous.unit.end === span.start) {
-                previous.unit.end = span.end;
+              if (!pendingOpen && previous?.kind === "unit" && previous.unit.end === span3.start) {
+                previous.unit.end = span3.end;
                 return;
               }
             }
-            const start = pendingOpen ? pendingOpen.start : span.start;
+            const start = pendingOpen ? pendingOpen.start : span3.start;
             pendingOpen = null;
-            pieces.push({ kind: "unit", unit: { start, end: span.end, text: textOf(glyphs, span.start, span.end), px: pxOf(span.start) } });
+            pieces.push({ kind: "unit", unit: { start, end: span3.end, text: textOf(glyphs, span3.start, span3.end), px: pxOf(span3.start) } });
           });
           const open2 = pendingOpen;
           if (open2) pieces.push({ kind: "unit", unit: { start: open2.start, end: open2.end, text: textOf(glyphs, open2.start, open2.end), px: pxOf(open2.start) } });
           return pieces;
         };
         breakLines = (measurer, glyphs, pieces, advances, heroPx, lines) => {
-          const extentOf = (unit2) => advances.slice(unit2.start, unit2.end).reduce((sum, advance) => sum + advance, 0);
+          const extentOf = (unit2) => advances.slice(unit2.start, unit2.end).reduce((sum, advance2) => sum + advance2, 0);
           const items = [];
           const unitOfItem = [];
           let widest = 0;
@@ -74110,10 +74182,10 @@ function __mpStylesBundle() {
               const ratio = extent > 0 ? fragment5.occupiedWidth / extent : 0;
               let inner = cursor;
               for (let index = unit2.start; index < unit2.end; index += 1) {
-                const advance = advances[index] * ratio;
+                const advance2 = advances[index] * ratio;
                 row[index] = r4;
-                offset[index] = inner + advance / 2;
-                inner += advance;
+                offset[index] = inner + advance2 / 2;
+                inner += advance2;
               }
               cursor += fragment5.occupiedWidth;
             }
@@ -74136,7 +74208,7 @@ function __mpStylesBundle() {
         splitLongUnits = (glyphs, pieces, advances, limit, heroPx) => pieces.flatMap((piece) => {
           if (piece.kind === "space") return [piece];
           const { unit: unit2 } = piece;
-          const extent = advances.slice(unit2.start, unit2.end).reduce((sum, advance) => sum + advance, 0);
+          const extent = advances.slice(unit2.start, unit2.end).reduce((sum, advance2) => sum + advance2, 0);
           if (extent <= limit || unit2.end - unit2.start < 2) return [piece];
           const out = [];
           for (let index = unit2.start; index < unit2.end; index += 1) {
@@ -74155,13 +74227,13 @@ function __mpStylesBundle() {
           const spans = spansOf(glyphs, words);
           const basePieces = unitsOf(glyphs, spans, heroPx);
           const horizontal = new Array(glyphs.length).fill(0);
-          for (const span of spans) {
-            const px2 = heroPx * glyphs[span.start].scale;
-            const text = textOf(glyphs, span.start, span.end);
+          for (const span3 of spans) {
+            const px2 = heroPx * glyphs[span3.start].scale;
+            const text = textOf(glyphs, span3.start, span3.end);
             const width = measurer.natural(text, px2);
-            const canvas3 = glyphs.slice(span.start, span.end).reduce((sum, glyph) => sum + glyph.advance, 0);
-            for (let index = span.start; index < span.end; index += 1) {
-              horizontal[index] = canvas3 > 0 ? width * glyphs[index].advance / canvas3 : width / (span.end - span.start);
+            const canvas3 = glyphs.slice(span3.start, span3.end).reduce((sum, glyph) => sum + glyph.advance, 0);
+            for (let index = span3.start; index < span3.end; index += 1) {
+              horizontal[index] = canvas3 > 0 ? width * glyphs[index].advance / canvas3 : width / (span3.end - span3.start);
             }
           }
           const vertical = glyphs.map((glyph, index) => glyph.upright ? heroPx * glyph.scale * (1 + measurer.spacing(1)) : horizontal[index]);
@@ -74505,15 +74577,15 @@ function __mpStylesBundle() {
           const nearScale = vertical ? 0.58 : 0.52;
           const scale = far ? vertical ? 0.48 : 0.44 : nearScale;
           const gap = STACK_GAP[vertical ? "vertical" : "horizontal"];
-          const sign = previous ? -1 : 1;
+          const sign2 = previous ? -1 : 1;
           let offset = across(0, 1) / 2 + (previous ? gap.previous : gap.next) * fontH;
-          if (far) offset += across(sign, nearScale) + (previous ? gap.farPrevious : gap.farNext) * fontH;
+          if (far) offset += across(sign2, nearScale) + (previous ? gap.farPrevious : gap.farNext) * fontH;
           offset += across(relative, scale) / 2;
           const alpha = previous ? far ? 0 : 0.9 : far ? 0 : nextAlpha;
           if (vertical) {
-            return slot(-sign * offset, sign * (far ? 0.07 : 0.03), scale, alpha, orient);
+            return slot(-sign2 * offset, sign2 * (far ? 0.07 : 0.03), scale, alpha, orient);
           }
-          return slot(sign * region2.w * (far ? 0.24 : 0.16), sign * offset, scale, alpha, orient);
+          return slot(sign2 * region2.w * (far ? 0.24 : 0.16), sign2 * offset, scale, alpha, orient);
         };
         CROSSED_CLEARANCE = 0.5;
         stackX = (kind) => kind === "vertical" ? 1 : 0;
@@ -74657,9 +74729,9 @@ function __mpStylesBundle() {
         softAbs = (a4) => Math.sqrt(a4 * a4 + AWAY_SOFTNESS * AWAY_SOFTNESS) - AWAY_SOFTNESS;
         awayDrift = (drift, away) => {
           if (away === 0) return drift;
-          const sign = away > 0 ? 1 : -1;
-          const along = drift * sign;
-          return drift + Math.abs(away) * (softAbs(along) - along) * sign;
+          const sign2 = away > 0 ? 1 : -1;
+          const along = drift * sign2;
+          return drift + Math.abs(away) * (softAbs(along) - along) * sign2;
         };
         heldDrift = (vx2, vy2, age, axis) => {
           const speed = Math.hypot(vx2, vy2);
@@ -74687,8 +74759,8 @@ function __mpStylesBundle() {
             const dy2 = y4 - box.y;
             const u4 = Math.abs(dx2 * box.cos + dy2 * box.sin) - box.halfW - half;
             const v5 = Math.abs(dy2 * box.cos - dx2 * box.sin) - box.halfH - half;
-            const outside = u4 > 0 && v5 > 0 ? Math.hypot(u4, v5) : Math.max(u4, v5, 0);
-            protect += box.weight * (1 - smooth5(outside / box.margin));
+            const outside2 = u4 > 0 && v5 > 0 ? Math.hypot(u4, v5) : Math.max(u4, v5, 0);
+            protect += box.weight * (1 - smooth5(outside2 / box.margin));
           }
           return Math.min(1, protect);
         };
@@ -74762,14 +74834,14 @@ function __mpStylesBundle() {
             if (kind === "crossed" && clamped !== 0) {
               const base = view.placements.get(clamped);
               const baseOrient = base.orient >= 0.5 ? 1 : 0;
-              const sign = base.dy < 0 ? -1 : 1;
+              const sign2 = base.dy < 0 ? -1 : 1;
               const currentHalf = current >= 0 && current < lineCount ? (() => {
                 const settled = settle2(current, kind, 0, 1);
                 return settled.variant.inkHeight / height * settled.scale / 2;
               })() : fontH / 2;
               const gap = fontH * CROSSED_CLEARANCE;
               const centerY = region2.cy + shift.y;
-              const room = sign < 0 ? centerY - currentHalf - gap - band2.top : band2.bottom - (centerY + currentHalf + gap);
+              const room = sign2 < 0 ? centerY - currentHalf - gap - band2.top : band2.bottom - (centerY + currentHalf + gap);
               const flow = view.flow[baseOrient];
               const budget = baseOrient === 1 ? columnCap : maxWidthOf(kind);
               const tilt = Math.abs(base.rotation) + 0.03;
@@ -74783,7 +74855,7 @@ function __mpStylesBundle() {
               }
               wrap3 = w4;
               const clearance = currentHalf + gap + heightOf(w4, scale) / 2;
-              const dy2 = sign * Math.max(Math.abs(base.dy), clearance);
+              const dy2 = sign2 * Math.max(Math.abs(base.dy), clearance);
               const wider = baseOrient === 1 ? Math.max(0, acrossOf(index, kind, 1, scale) - fontH * scale) / 2 : 0;
               slot = { ...base, scale, dy: dy2, dx: base.dx + Math.sign(base.dx) * wider };
             } else {
@@ -75081,9 +75153,9 @@ function __mpStylesBundle() {
                 const world = toWorld(transforms[i4], local);
                 fontPx = heroPx * transforms[i4].scale * local.scale;
                 flying = local.flying;
-                const wobble = Math.sin(i4 * 0.9 + glyph.flight.wobble + sample * 6) * heroPx * 0.02;
-                const x4 = world.x + wobble;
-                const y4 = world.y - wobble * 0.6;
+                const wobble2 = Math.sin(i4 * 0.9 + glyph.flight.wobble + sample * 6) * heroPx * 0.02;
+                const x4 = world.x + wobble2;
+                const y4 = world.y - wobble2 * 0.6;
                 if (previous) {
                   length += Math.hypot(x4 - previous.x, y4 - previous.y);
                   trackLayer.lineTo(x4, y4);
@@ -75099,9 +75171,9 @@ function __mpStylesBundle() {
               else trackLayer.beginPath();
             });
           };
-          const update = (frame2) => {
-            const { time, beams, litColor, unlitColor, unlitAlpha, intensity } = frame2;
-            trackLayer.visible = frame2.hideTrails !== true;
+          const update = (frame3) => {
+            const { time, beams, litColor, unlitColor, unlitAlpha, intensity } = frame3;
+            trackLayer.visible = frame3.hideTrails !== true;
             if (tracksDrawn) {
               trackLayer.clear();
               tracksDrawn = false;
@@ -75255,12 +75327,12 @@ function __mpStylesBundle() {
           }
           return found.profile.typography;
         };
-        resolveLumiereCameraProgress = (time, span, sections) => {
+        resolveLumiereCameraProgress = (time, span3, sections) => {
           const eased = (start, end) => {
             const linear2 = Math.min(1, Math.max(0, (time - start) / Math.max(end - start, 1e-3)));
             return (1 - Math.cos(linear2 * Math.PI)) / 2;
           };
-          if (!sections || sections.length === 0) return eased(span.startTime, span.endTime);
+          if (!sections || sections.length === 0) return eased(span3.startTime, span3.endTime);
           let index = 0;
           for (let i4 = 0; i4 < sections.length; i4 += 1) if (sections[i4].startTime <= time) index = i4;
           const section = sections[index];
@@ -75270,9 +75342,9 @@ function __mpStylesBundle() {
         createLumiereCamera = (options) => {
           const { width, height, camera } = options;
           const motion2 = options.animationIntensity === "calm" ? 0.6 : options.animationIntensity === "chaotic" ? 1.4 : 1;
-          const span = { startTime: options.startTime, endTime: options.endTime };
+          const span3 = { startTime: options.startTime, endTime: options.endTime };
           return (time) => {
-            const progress = resolveLumiereCameraProgress(time, span, options.sections);
+            const progress = resolveLumiereCameraProgress(time, span3, options.sections);
             const floatX = (Math.sin(time * 0.21 + 0.4) * 0.6 + Math.sin(time * 0.53 + 1.9) * 0.4) * 6e-3 * motion2;
             const floatY = (Math.cos(time * 0.17 + 1.1) * 0.6 + Math.sin(time * 0.47 + 0.3) * 0.4) * 6e-3 * motion2;
             return {
@@ -75341,9 +75413,9 @@ function __mpStylesBundle() {
           return peak < 0.04 ? fallback : scaleRgb(rgb, 1 / peak);
         };
         resolveLumierePalette = (theme, themeMix = 0) => {
-          const mix6 = Math.min(1, Math.max(0, themeMix));
+          const mix7 = Math.min(1, Math.max(0, themeMix));
           const accent = rgbOf(theme.accentColor, CHAMPAGNE);
-          let light = mixRgb(mixRgb(CHAMPAGNE, accent, 0.18), glowOf(accent, CHAMPAGNE), mix6);
+          let light = mixRgb(mixRgb(CHAMPAGNE, accent, 0.18), glowOf(accent, CHAMPAGNE), mix7);
           const peak = Math.max(...light, 1e-3);
           light = scaleRgb(light, 1 / peak);
           const warmLit = mixRgb(light, WHITE2, 0.2);
@@ -75351,8 +75423,8 @@ function __mpStylesBundle() {
           const secondary = theme.secondaryColor ? glowOf(rgbOf(theme.secondaryColor, primary), primary) : primary;
           return {
             light,
-            lit: mixRgb(warmLit, mixRgb(primary, WHITE2, 0.2), mix6),
-            unlit: mixRgb(mixRgb(light, UNLIT_COOL, 0.55), mixRgb(secondary, UNLIT_COOL, 0.35), mix6)
+            lit: mixRgb(warmLit, mixRgb(primary, WHITE2, 0.2), mix7),
+            unlit: mixRgb(mixRgb(light, UNLIT_COOL, 0.55), mixRgb(secondary, UNLIT_COOL, 0.35), mix7)
           };
         };
         blendRig = (from, to3, k4, glareK) => ({
@@ -75780,14 +75852,14 @@ function __mpStylesBundle() {
           holder.zIndex = index;
           return { index, unit: unit2, holder, blur: null };
         };
-        applyLumiereLayerFrame = (pixi, entry, frame2, blurResolution) => {
-          entry.holder.alpha = frame2.alpha;
-          entry.holder.scale.set(frame2.scale);
-          if (frame2.blur > BLUR_EPSILON) {
+        applyLumiereLayerFrame = (pixi, entry, frame3, blurResolution) => {
+          entry.holder.alpha = frame3.alpha;
+          entry.holder.scale.set(frame3.scale);
+          if (frame3.blur > BLUR_EPSILON) {
             if (!entry.blur) {
-              entry.blur = new pixi.BlurFilter({ strength: frame2.blur, quality: 3, resolution: blurResolution });
+              entry.blur = new pixi.BlurFilter({ strength: frame3.blur, quality: 3, resolution: blurResolution });
             }
-            entry.blur.strength = frame2.blur;
+            entry.blur.strength = frame3.blur;
             if (!entry.holder.filters?.includes(entry.blur)) entry.holder.filters = [entry.blur];
           } else if (entry.holder.filters?.length) {
             entry.holder.filters = [];
@@ -76061,13 +76133,13 @@ function __mpStylesBundle() {
             if (this.credits) applyLumiereSceneQuality(this.credits, quality);
           }
           /** 片尾卡以画面中心缩放、上下偏移；没激活时整层不画。 */
-          update(time, frame2, width, height) {
+          update(time, frame3, width, height) {
             const credits = this.credits;
-            this.holder.visible = Boolean(credits) && frame2.active && frame2.posterAlpha > 2e-3;
+            this.holder.visible = Boolean(credits) && frame3.active && frame3.posterAlpha > 2e-3;
             if (!credits || !this.holder.visible) return;
-            this.holder.alpha = frame2.posterAlpha;
-            this.holder.position.set(width / 2, height / 2 + frame2.posterOffsetY * height);
-            this.holder.scale.set(frame2.posterScale);
+            this.holder.alpha = frame3.posterAlpha;
+            this.holder.position.set(width / 2, height / 2 + frame3.posterOffsetY * height);
+            this.holder.scale.set(frame3.posterScale);
             credits.update(time - this.lyricEndTime);
           }
           /** 作废当前片尾卡（下次需要时重建）。 */
@@ -77813,10 +77885,10 @@ function __mpStylesBundle() {
             const ringRadius = radius * (0.32 + ring * 0.18);
             const dashes = 12 + ring * 4;
             const offset = seed * 0.13 + ring * 0.7;
-            const span = TAU3 / dashes * 0.55;
+            const span3 = TAU3 / dashes * 0.55;
             for (let dash = 0; dash < dashes; dash += 1) {
               const start = offset + dash / dashes * TAU3;
-              target.arc(0, 0, ringRadius, start, start + span).stroke({ color: ring === 1 ? secondary : primary, width: ring === 1 ? 1 : 2, alpha: 0.28 + ring * 0.06 });
+              target.arc(0, 0, ringRadius, start, start + span3).stroke({ color: ring === 1 ? secondary : primary, width: ring === 1 ? 1 : 2, alpha: 0.28 + ring * 0.06 });
             }
           }
           const markerAngle = seed * 0.31;
@@ -77827,9 +77899,9 @@ function __mpStylesBundle() {
         drawOpenFragments = ({ target, radius, seed, primary, secondary }) => {
           for (let index = 0; index < 5; index += 1) {
             const angle = index / 5 * TAU3 + seed * 0.05;
-            const distance = radius * (0.42 + (seed + index * 7) % 30 / 100);
-            const cx2 = Math.cos(angle) * distance;
-            const cy2 = Math.sin(angle) * distance * 0.8;
+            const distance2 = radius * (0.42 + (seed + index * 7) % 30 / 100);
+            const cx2 = Math.cos(angle) * distance2;
+            const cy2 = Math.sin(angle) * distance2 * 0.8;
             const size = radius * (0.07 + (seed + index * 13) % 20 / 200);
             const rotation = seed * 0.11 + index * 0.9;
             const points = [
@@ -77867,14 +77939,14 @@ function __mpStylesBundle() {
         };
         drawSemiWreath = ({ target, radius, seed, primary, secondary }) => {
           const opening = seed % 4 * (Math.PI / 2) + Math.PI / 8;
-          const span = TAU3 * 0.75;
+          const span3 = TAU3 * 0.75;
           const outer = radius * 0.58;
           const inner = radius * 0.5;
-          target.arc(0, 0, outer, opening, opening + span).stroke({ color: primary, width: 2.5, alpha: 0.55 });
-          target.arc(0, 0, inner, opening, opening + span).stroke({ color: secondary, width: 1, alpha: 0.3 });
+          target.arc(0, 0, outer, opening, opening + span3).stroke({ color: primary, width: 2.5, alpha: 0.55 });
+          target.arc(0, 0, inner, opening, opening + span3).stroke({ color: secondary, width: 1, alpha: 0.3 });
           const ticks = 18;
           for (let index = 0; index < ticks; index += 1) {
-            const angle = opening + index / ticks * span;
+            const angle = opening + index / ticks * span3;
             target.moveTo(Math.cos(angle) * outer, Math.sin(angle) * outer).lineTo(Math.cos(angle) * (outer + radius * 0.05), Math.sin(angle) * (outer + radius * 0.05)).stroke({ color: primary, width: 1, alpha: 0.4 });
             if (index % 6 === 0) {
               target.circle(Math.cos(angle) * inner, Math.sin(angle) * inner, radius * 0.016).fill({ color: secondary, alpha: 0.6 });
@@ -77926,10 +77998,10 @@ function __mpStylesBundle() {
           }
         };
         drawCornerPetalSpray = ({ target, width, height, radius, seed, primary, secondary }) => {
-          const sign = seed % 2 === 0 ? 1 : -1;
+          const sign2 = seed % 2 === 0 ? 1 : -1;
           const corners = [
-            { x: -sign * width * 0.28, y: -height * 0.26, base: Math.atan2(1, sign) },
-            { x: sign * width * 0.28, y: height * 0.26, base: Math.atan2(-1, -sign) }
+            { x: -sign2 * width * 0.28, y: -height * 0.26, base: Math.atan2(1, sign2) },
+            { x: sign2 * width * 0.28, y: height * 0.26, base: Math.atan2(-1, -sign2) }
           ];
           corners.forEach((corner, cornerIndex) => {
             for (let petal = 0; petal < 5; petal += 1) {
@@ -77968,11 +78040,11 @@ function __mpStylesBundle() {
           }
         };
         drawOpenRadar = ({ target, radius, seed, primary, secondary }) => {
-          const span = TAU3 * 0.56;
+          const span3 = TAU3 * 0.56;
           for (let ring = 0; ring < 3; ring += 1) {
             const ringRadius = radius * (0.3 + ring * 0.18);
             const start = seed * 0.1 + ring * 0.9;
-            target.arc(0, 0, ringRadius, start, start + span).stroke({ color: ring === 1 ? secondary : primary, width: ring === 1 ? 2 : 1, alpha: 0.35 + ring * 0.06 });
+            target.arc(0, 0, ringRadius, start, start + span3).stroke({ color: ring === 1 ? secondary : primary, width: ring === 1 ? 2 : 1, alpha: 0.35 + ring * 0.06 });
           }
           const sweep = seed * 0.07;
           target.moveTo(0, 0).lineTo(Math.cos(sweep) * radius * 0.66, Math.sin(sweep) * radius * 0.66).stroke({ color: primary, width: 1.5, alpha: 0.5 });
@@ -78213,11 +78285,11 @@ function __mpStylesBundle() {
             const bx2 = (visualizerHash01(seed, blob, 211) - 0.5) * radius * 0.5;
             const by2 = (visualizerHash01(seed, blob, 223) - 0.5) * radius * 0.4;
             const br3 = radius * (0.2 + blob * 0.1);
-            const wobble = visualizerHash01(seed, blob, 227) * 0.6;
+            const wobble2 = visualizerHash01(seed, blob, 227) * 0.6;
             target.moveTo(bx2 + br3, by2);
-            target.bezierCurveTo(bx2 + br3, by2 - br3 * (0.6 + wobble * 0.3), bx2 + br3 * 0.5, by2 - br3, bx2, by2 - br3 * (0.9 - wobble * 0.2));
-            target.bezierCurveTo(bx2 - br3 * 0.6, by2 - br3 * 0.8, bx2 - br3, by2 - br3 * 0.3, bx2 - br3 * (0.85 + wobble * 0.2), by2 + br3 * 0.2);
-            target.bezierCurveTo(bx2 - br3 * 0.7, by2 + br3 * 0.7, bx2 - br3 * 0.2, by2 + br3, bx2 + br3 * 0.3, by2 + br3 * (0.8 + wobble * 0.2));
+            target.bezierCurveTo(bx2 + br3, by2 - br3 * (0.6 + wobble2 * 0.3), bx2 + br3 * 0.5, by2 - br3, bx2, by2 - br3 * (0.9 - wobble2 * 0.2));
+            target.bezierCurveTo(bx2 - br3 * 0.6, by2 - br3 * 0.8, bx2 - br3, by2 - br3 * 0.3, bx2 - br3 * (0.85 + wobble2 * 0.2), by2 + br3 * 0.2);
+            target.bezierCurveTo(bx2 - br3 * 0.7, by2 + br3 * 0.7, bx2 - br3 * 0.2, by2 + br3, bx2 + br3 * 0.3, by2 + br3 * (0.8 + wobble2 * 0.2));
             target.bezierCurveTo(bx2 + br3 * 0.8, by2 + br3 * 0.6, bx2 + br3, by2 + br3 * 0.4, bx2 + br3, by2);
             target.stroke({ color: blob % 2 === 0 ? primary : secondary, width: 1.5, alpha: 0.35 - blob * 0.04 });
             if (blob < 2) target.fill({ color: primary, alpha: 0.05 });
@@ -78439,11 +78511,11 @@ function __mpStylesBundle() {
             for (let i4 = 0; i4 < count; i4 += 1) {
               const t4 = i4 / count;
               const y4 = radius * 0.55 - t4 * radius * 1.05;
-              const wobble = (visualizerHash01(seed, column * 10 + i4, 313) - 0.5) * radius * 0.08;
+              const wobble2 = (visualizerHash01(seed, column * 10 + i4, 313) - 0.5) * radius * 0.08;
               const r4 = radius * (0.02 + t4 * 0.055);
-              target.circle(x4 + wobble, y4, r4).stroke({ color: i4 % 3 === 0 ? secondary : primary, width: 1, alpha: 0.35 + t4 * 0.35 });
+              target.circle(x4 + wobble2, y4, r4).stroke({ color: i4 % 3 === 0 ? secondary : primary, width: 1, alpha: 0.35 + t4 * 0.35 });
               if (r4 > radius * 0.05) {
-                target.arc(x4 + wobble, y4, r4 * 0.55, Math.PI * 1.1, Math.PI * 1.6).stroke({ color: secondary, width: 1, alpha: 0.5 });
+                target.arc(x4 + wobble2, y4, r4 * 0.55, Math.PI * 1.1, Math.PI * 1.6).stroke({ color: secondary, width: 1, alpha: 0.5 });
               }
             }
           }
@@ -79317,9 +79389,9 @@ function __mpStylesBundle() {
             for (let column = 0; column < columns; column += 1) {
               const x4 = (column - (columns - 1) / 2) * spacing;
               const y4 = (row - (rows - 1) / 2) * spacing;
-              const distance = Math.hypot(x4, y4) / radius;
+              const distance2 = Math.hypot(x4, y4) / radius;
               const pulse = 0.5 + 0.5 * Math.sin(column * 0.9 + row * 1.4 + seed * 0.08);
-              const dotRadius = radius * (9e-3 + Math.max(0, 0.72 - distance) * 0.034 + pulse * 0.012);
+              const dotRadius = radius * (9e-3 + Math.max(0, 0.72 - distance2) * 0.034 + pulse * 0.012);
               target.circle(x4, y4, dotRadius).fill({
                 color: (row + column) % 5 === 0 ? secondary : primary,
                 alpha: 0.24 + pulse * 0.5
@@ -79483,9 +79555,9 @@ function __mpStylesBundle() {
               const slot = index * GOLDEN2 % 1;
               const jitter = (index * 2654435761 >>> 0) / 4294967296;
               const delay = slot * (isStroke ? 0.5 : 0.45);
-              const span = isStroke ? 0.32 + jitter * 0.26 : 0.4 + jitter * 0.25;
+              const span3 = isStroke ? 0.32 + jitter * 0.26 : 0.4 + jitter * 0.25;
               cmd.staggerDelay = delay;
-              cmd.staggerSpan = Math.min(span, 1 - delay);
+              cmd.staggerSpan = Math.min(span3, 1 - delay);
             }
             this.staggerScheduled = true;
           }
@@ -79657,9 +79729,9 @@ function __mpStylesBundle() {
           const rulerY = hh3 - marginY + inset;
           target.moveTo(-hw2 + marginX + arm + 12, rulerY).lineTo(hw2 - marginX - arm - 12, rulerY).stroke({ color: primary, width: 1, alpha: 0.3 });
           const ticks = 24;
-          const span = (hw2 - marginX - arm - 12) * 2;
+          const span3 = (hw2 - marginX - arm - 12) * 2;
           for (let i4 = 0; i4 <= ticks; i4 += 1) {
-            const x4 = -hw2 + marginX + arm + 12 + span * i4 / ticks;
+            const x4 = -hw2 + marginX + arm + 12 + span3 * i4 / ticks;
             const long = i4 % 6 === 0;
             target.moveTo(x4, rulerY).lineTo(x4, rulerY - (long ? 8 : 4)).stroke({ color: long ? secondary : primary, width: 1, alpha: long ? 0.55 : 0.3 });
           }
@@ -80241,7 +80313,7 @@ function __mpStylesBundle() {
         isSonnetBeatFxActive = (smartBeatEnabled) => smartBeatEnabled && isBeatFxReady();
         createSonnetBeatFxReader = () => {
           let smoothedTreble = 0;
-          const frame2 = { zoom: 1, rotation: 0, tear: 0, tearSeed: 0, flare: 0, lineLift: 0 };
+          const frame3 = { zoom: 1, rotation: 0, tear: 0, tearSeed: 0, flare: 0, lineLift: 0 };
           const accent = { zoom: 1, tilt: 1 };
           return (audioBands, smartBeatEnabled) => {
             if (!isSonnetBeatFxActive(smartBeatEnabled)) {
@@ -80260,7 +80332,7 @@ function __mpStylesBundle() {
               getBeatFxRotationSign(),
               performance.now() / 1e3,
               smoothedTreble,
-              frame2,
+              frame3,
               resolveSonnetBeatFxAccent(last, accent)
             );
           };
@@ -80276,13 +80348,13 @@ function __mpStylesBundle() {
           return elapsedMs >= 0 && Number.isFinite(elapsedMs) ? Math.exp(-elapsedMs / SONNET_BEAT_FX.iconDecayMs * 2.3) : 0;
         };
         resolveSonnetIconPopScale = (k4) => 1 + SONNET_BEAT_FX.iconPop * k4 * (1.15 - 0.15 * k4);
-        applySonnetBeatFxLayers = (view, frame2) => {
-          const lineAlpha = resolveSonnetLineFlashAlpha(frame2.lineLift);
+        applySonnetBeatFxLayers = (view, frame3) => {
+          const lineAlpha = resolveSonnetLineFlashAlpha(frame3.lineLift);
           if (view.mgGeoLayer) view.mgGeoLayer.alpha = lineAlpha;
           if (view.mgBackgroundLayer) view.mgBackgroundLayer.alpha = lineAlpha;
           if (view.mgFixedGeoLayer) view.mgFixedGeoLayer.alpha = lineAlpha;
           const base = view.haloBaseAlpha;
-          view.haloLayer.alpha = Math.min(1, base + (1 - base) * Math.min(1, frame2.flare));
+          view.haloLayer.alpha = Math.min(1, base + (1 - base) * Math.min(1, frame3.flare));
         };
         restoreSonnetBeatFxLayers = (view) => {
           if (view.mgGeoLayer) view.mgGeoLayer.alpha = 1;
@@ -80895,11 +80967,11 @@ function __mpStylesBundle() {
         };
         resolveSonnetSegmentNormalOffset = (role, layoutDirection, rotation, fontSize, randomValue) => {
           if (role !== "support") return { x: 0, y: 0 };
-          const distance = (Math.min(1, Math.max(0, randomValue)) * 2 - 1) * fontSize * 0.3;
+          const distance2 = (Math.min(1, Math.max(0, randomValue)) * 2 - 1) * fontSize * 0.3;
           const normalAngle = rotation + (layoutDirection === "vertical" ? 0 : Math.PI / 2);
           return {
-            x: Math.cos(normalAngle) * distance,
-            y: Math.sin(normalAngle) * distance
+            x: Math.cos(normalAngle) * distance2,
+            y: Math.sin(normalAngle) * distance2
           };
         };
         SONNET_CAMERA_SMOOTHING_SAMPLES = [
@@ -80940,8 +81012,8 @@ function __mpStylesBundle() {
           const logWeights = ranges.map((range) => {
             const startTime = Math.min(range.startTime, range.endTime);
             const endTime = Math.max(range.startTime, range.endTime);
-            const distance = time < startTime ? startTime - time : time > endTime ? time - endTime : 0;
-            return -(distance * distance) / (2 * safeSigma * safeSigma);
+            const distance2 = time < startTime ? startTime - time : time > endTime ? time - endTime : 0;
+            return -(distance2 * distance2) / (2 * safeSigma * safeSigma);
           });
           const maxLogWeight = Math.max(...logWeights);
           const weights = logWeights.map((weight) => Math.exp(weight - maxLogWeight));
@@ -81281,16 +81353,16 @@ function __mpStylesBundle() {
           const layer = new pixi.Container();
           const filters = [];
           if (profile.glowStrength > 0) {
-            const blur = new pixi.BlurFilter({
+            const blur2 = new pixi.BlurFilter({
               strength: profile.glowStrength,
               quality: 2,
               kernelSize: 5,
               resolution: 0.75
             });
-            layer.filters = [blur];
+            layer.filters = [blur2];
             layer.alpha = profile.glowAlpha;
             layer.blendMode = "screen";
-            filters.push(blur);
+            filters.push(blur2);
           }
           return { layer, filters };
         };
@@ -82355,14 +82427,14 @@ function __mpStylesBundle() {
             endTime: segment2.startTime + (segment2.endTime - segment2.startTime) * (index + 1) / Math.max(1, fallbackChars.length)
           }));
           const advances = graphemes2.map((item) => placement.vertical ? fontSize * 0.9 : Math.max(fontSize * 0.2, measureGlyph2(item.char)));
-          const totalAdvance = advances.reduce((sum, advance) => sum + advance, 0);
+          const totalAdvance = advances.reduce((sum, advance2) => sum + advance2, 0);
           const motionDuration = resolveSonnetGlyphMotionDuration(motionWindow);
           let cursor = -totalAdvance / 2;
           return graphemes2.map((grapheme, index) => {
-            const advance = advances[index];
-            const localX = placement.vertical ? 0 : cursor + advance / 2;
-            const localY = placement.vertical ? cursor + advance / 2 : 0;
-            cursor += advance;
+            const advance2 = advances[index];
+            const localX = placement.vertical ? 0 : cursor + advance2 / 2;
+            const localY = placement.vertical ? cursor + advance2 / 2 : 0;
+            cursor += advance2;
             const cosine = Math.cos(placement.rotation);
             const sine = Math.sin(placement.rotation);
             const stagger = index % 2 === 0 ? -1 : 1;
@@ -86744,8 +86816,8 @@ function __mpStylesBundle() {
         };
         resolveFlowAngle = (previous, seed) => {
           if (previous === null) {
-            const sign = visualizerHash01(seed, 6, 71) > 0.5 ? 1 : -1;
-            return sign * Math.PI / 2 + (visualizerHash01(seed, 8, 79) - 0.5) * 0.4;
+            const sign2 = visualizerHash01(seed, 6, 71) > 0.5 ? 1 : -1;
+            return sign2 * Math.PI / 2 + (visualizerHash01(seed, 8, 79) - 0.5) * 0.4;
           }
           const axis = (Math.sin(previous) >= 0 ? 1 : -1) * Math.PI / 2;
           return previous + (axis - previous) * 0.3 + (visualizerHash01(seed, 7, 73) - 0.5) * 0.5;
@@ -87295,7 +87367,7 @@ function __mpStylesBundle() {
           cx2 - rx2,
           cy2
         ];
-        clipToConvex = (polygon, ax2, ay2, dx2, dy2, span) => {
+        clipToConvex = (polygon, ax2, ay2, dx2, dy2, span3) => {
           const count = polygon.length / 2;
           let cx2 = 0;
           let cy2 = 0;
@@ -87305,8 +87377,8 @@ function __mpStylesBundle() {
           }
           cx2 /= count;
           cy2 /= count;
-          let tMin = -span;
-          let tMax = span;
+          let tMin = -span3;
+          let tMax = span3;
           for (let index = 0; index < count; index += 1) {
             const x03 = polygon[index * 2];
             const y02 = polygon[index * 2 + 1];
@@ -87421,10 +87493,10 @@ function __mpStylesBundle() {
           const dy2 = Math.sin(angle);
           for (let index = 0; index < total; index += 1) {
             const jitter = (visualizerHash01(seed, index, salt) - 0.5) * spacing * 0.16;
-            const distance = index * spacing + jitter;
+            const distance2 = index * spacing + jitter;
             marks.push({
-              x: x4 + dx2 * distance,
-              y: y4 + dy2 * distance,
+              x: x4 + dx2 * distance2,
+              y: y4 + dy2 * distance2,
               size: size * (0.82 + visualizerHash01(seed, index, salt + 3) * 0.36),
               rotation: (visualizerHash01(seed, index, salt + 11) - 0.5) * 0.3
             });
@@ -87455,8 +87527,8 @@ function __mpStylesBundle() {
           const lines = [];
           for (let index = 0; index < total; index += 1) {
             const anchorY = height * (0.18 + visualizerHash01(seed, index, salt) * 0.64);
-            const sign = visualizerHash01(seed, index, salt + 5) > 0.5 ? 1 : -1;
-            const angle = sign * (0.07 + visualizerHash01(seed, index, salt + 9) * 0.11);
+            const sign2 = visualizerHash01(seed, index, salt + 5) > 0.5 ? 1 : -1;
+            const angle = sign2 * (0.07 + visualizerHash01(seed, index, salt + 9) * 0.11);
             const reach = width * 0.9;
             lines.push({
               x1: -width * 0.3,
@@ -88336,15 +88408,15 @@ function __mpStylesBundle() {
           const { width, height, palette, bleed } = ctx2;
           const half = height * 0.14;
           const lean = height * 0.3;
-          const ribbon = (sign) => [
+          const ribbon = (sign2) => [
             -bleed,
-            height / 2 + sign * lean - half,
+            height / 2 + sign2 * lean - half,
             width + bleed,
-            height / 2 - sign * lean - half,
+            height / 2 - sign2 * lean - half,
             width + bleed,
-            height / 2 - sign * lean + half,
+            height / 2 - sign2 * lean + half,
             -bleed,
-            height / 2 + sign * lean + half
+            height / 2 + sign2 * lean + half
           ];
           ctx2.add(drawPolygonFill(ctx2.pixi, rectPolygon(-bleed, -bleed, width + bleed * 2, height + bleed * 2), palette.tone1, 0.9, ctx2.gradient), { span: 0.5 });
           ctx2.add(drawPolygonFill(ctx2.pixi, ribbon(1), palette.tone3, 0.8, ctx2.gradient), { delay: 0.05, span: 0.55, enterDX: -width * 0.3 });
@@ -88512,9 +88584,9 @@ function __mpStylesBundle() {
           const { width, height, palette, bleed } = ctx2;
           const spacing = Math.max(22, Math.sqrt(width * height / 1200));
           const marks = buildDotGrid(width + bleed, height + bleed, spacing, 2.4);
-          const span = width + height;
-          const near = marks.filter((mark) => mark.x + mark.y > span * 0.5);
-          const far = marks.filter((mark) => mark.x + mark.y <= span * 0.5 && (mark.x + mark.y) % 2 < 1);
+          const span3 = width + height;
+          const near = marks.filter((mark) => mark.x + mark.y > span3 * 0.5);
+          const far = marks.filter((mark) => mark.x + mark.y <= span3 * 0.5 && (mark.x + mark.y) % 2 < 1);
           ctx2.add(drawSquareMarks(ctx2.pixi, near, palette.tone4, 0.5), { span: 0.6, enterDX: width * 0.12 });
           ctx2.add(drawSquareMarks(ctx2.pixi, far, palette.tone4, 0.24), { delay: 0.08, span: 0.6, enterDX: -width * 0.12 });
         };
@@ -88722,15 +88794,15 @@ function __mpStylesBundle() {
         scallopBandPolygon = (x03, x13, flatY, baseY, bumps, segmentsPerBump = 10) => {
           const count = Math.max(1, Math.round(bumps));
           const steps = Math.max(3, Math.round(segmentsPerBump));
-          const span = (x13 - x03) / count;
-          const radius = Math.abs(span) / 2;
+          const span3 = (x13 - x03) / count;
+          const radius = Math.abs(span3) / 2;
           const direction = baseY >= flatY ? 1 : -1;
           const points = [x03, flatY, x13, flatY];
           for (let bump = count - 1; bump >= 0; bump -= 1) {
-            const cx2 = x03 + span * (bump + 0.5);
+            const cx2 = x03 + span3 * (bump + 0.5);
             for (let step = 0; step <= steps; step += 1) {
               const angle = step / steps * Math.PI;
-              points.push(cx2 + Math.cos(angle) * (span / 2), baseY + direction * Math.sin(angle) * radius);
+              points.push(cx2 + Math.cos(angle) * (span3 / 2), baseY + direction * Math.sin(angle) * radius);
             }
           }
           return points;
@@ -89099,19 +89171,19 @@ function __mpStylesBundle() {
         };
         acrossFlow = (angle) => {
           const across = angle + Math.PI / 2;
-          const sign = Math.cos(across) >= 0 ? 1 : -1;
-          return { x: Math.cos(across) * sign, y: Math.sin(across) * sign };
+          const sign2 = Math.cos(across) >= 0 ? 1 : -1;
+          return { x: Math.cos(across) * sign2, y: Math.sin(across) * sign2 };
         };
         acrossPoint = (ctx2, offset) => {
           const across = acrossFlow(channelAxis(ctx2));
           return { x: ctx2.width / 2 + across.x * offset, y: ctx2.height / 2 + across.y * offset };
         };
-        flowPoint = (ctx2, distance, offset) => {
+        flowPoint = (ctx2, distance2, offset) => {
           const base = acrossPoint(ctx2, offset);
           const angle = channelAxis(ctx2);
           return {
-            x: base.x + Math.cos(angle) * distance,
-            y: base.y + Math.sin(angle) * distance
+            x: base.x + Math.cos(angle) * distance2,
+            y: base.y + Math.sin(angle) * distance2
           };
         };
         flowSpan = (ctx2) => Math.hypot(ctx2.width, ctx2.height) * 1.6;
@@ -89483,9 +89555,9 @@ function __mpStylesBundle() {
           );
           ctx2.add(drawRings(ctx2.pixi, [{ x: cx2, y: cy2, radius: unit2 * 0.08 }], palette.ink, 2.4, 0.85), { delay: 0.12, span: 0.5 });
           [1, -1].forEach((side, index) => {
-            const distance = unit2 * 0.46;
-            const capX = cx2 + Math.cos(ctx2.flowAngle) * distance * side;
-            const capY = cy2 + Math.sin(ctx2.flowAngle) * distance * side;
+            const distance2 = unit2 * 0.46;
+            const capX = cx2 + Math.cos(ctx2.flowAngle) * distance2 * side;
+            const capY = cy2 + Math.sin(ctx2.flowAngle) * distance2 * side;
             ctx2.add(
               drawPolygonFill(ctx2.pixi, axisRect(capX, capY, unit2 * 0.1, unit2 * 0.34, ctx2.flowAngle), palette.ink, 0.85),
               { delay: 0.16 + index * 0.04, span: 0.5 }
@@ -89740,10 +89812,10 @@ function __mpStylesBundle() {
           addCutField(ctx2, palette.tone2, [slot]);
           addHoleLip(ctx2, slot, 2.2, 0.8, 0.08);
           const rungs = Array.from({ length: 9 }, (_4, index) => {
-            const distance = (index - 4) * height * 0.13;
+            const distance2 = (index - 4) * height * 0.13;
             const long = index % 3 === 0;
-            const inner = flowPoint(ctx2, distance, offset - unit2 * 0.09);
-            const outer = flowPoint(ctx2, distance, offset - unit2 * (long ? 0.22 : 0.15));
+            const inner = flowPoint(ctx2, distance2, offset - unit2 * 0.09);
+            const outer = flowPoint(ctx2, distance2, offset - unit2 * (long ? 0.22 : 0.15));
             return { x1: inner.x, y1: inner.y, x2: outer.x, y2: outer.y };
           });
           ctx2.add(drawLines(ctx2.pixi, rungs, palette.tone4, 2, 0.7), { delay: 0.14, span: 0.6 });
@@ -90677,9 +90749,9 @@ function __mpStylesBundle() {
           };
           words.forEach((word) => {
             const newLine = current.length > 0 && word.lineIndex !== current[0].lineIndex;
-            const advance = current.length === 0 ? word.width : word.width + word.leadingGap;
-            if (newLine || current.length > 0 && currentWidth + advance > budgetFor(rows.length)) flush();
-            currentWidth += current.length === 0 ? word.width : advance;
+            const advance2 = current.length === 0 ? word.width : word.width + word.leadingGap;
+            if (newLine || current.length > 0 && currentWidth + advance2 > budgetFor(rows.length)) flush();
+            currentWidth += current.length === 0 ? word.width : advance2;
             current.push(word);
           });
           flush();
@@ -90720,11 +90792,11 @@ function __mpStylesBundle() {
           const centerX = placements.reduce((sum, placement) => sum + placement.x, 0) / placements.length;
           const centerY = placements.reduce((sum, placement) => sum + placement.y, 0) / placements.length;
           placements.forEach((placement) => {
-            const span = Math.max(
+            const span3 = Math.max(
               0.5,
               (lineSpans.get(placement.lineIndex) ?? placement.endTime) - (lineStarts.get(placement.lineIndex) ?? placement.startTime)
             );
-            placement.releaseTime = Math.max(placement.endTime, placement.settleTime) + span;
+            placement.releaseTime = Math.max(placement.endTime, placement.settleTime) + span3;
             placement.trackingX = placement.x - centerX;
             placement.trackingY = placement.y - centerY;
           });
@@ -91244,14 +91316,14 @@ function __mpStylesBundle() {
           node2.rotation = 0;
           node2.alpha = 1;
           node2.visible = true;
-          const blur = new pixi.BlurFilter({ strength, quality: 3, kernelSize: 5, resolution });
-          holder.filters = [blur];
+          const blur2 = new pixi.BlurFilter({ strength, quality: 3, kernelSize: 5, resolution });
+          holder.filters = [blur2];
           const bounds = holder.getLocalBounds().rectangle;
-          const pad = Math.ceil(blur.padding);
-          const frame2 = new pixi.Rectangle(bounds.x - pad, bounds.y - pad, bounds.width + pad * 2, bounds.height + pad * 2);
-          const texture = renderer.generateTexture({ target: holder, frame: frame2, resolution });
+          const pad = Math.ceil(blur2.padding);
+          const frame3 = new pixi.Rectangle(bounds.x - pad, bounds.y - pad, bounds.width + pad * 2, bounds.height + pad * 2);
+          const texture = renderer.generateTexture({ target: holder, frame: frame3, resolution });
           holder.filters = null;
-          blur.destroy();
+          blur2.destroy();
           holder.removeChild(node2);
           holder.destroy();
           if (parent) parent.addChildAt(node2, index);
@@ -91259,7 +91331,7 @@ function __mpStylesBundle() {
           node2.rotation = rotation;
           node2.alpha = alpha;
           node2.visible = visible;
-          return { texture, anchorX: -frame2.x / frame2.width, anchorY: -frame2.y / frame2.height };
+          return { texture, anchorX: -frame3.x / frame3.width, anchorY: -frame3.y / frame3.height };
         };
         createTemperaBlurBaker = (pixi, renderer, options) => {
           if (options.staticMode || !renderer) return null;
@@ -91379,11 +91451,11 @@ function __mpStylesBundle() {
           const hatchIndex = Math.floor(visualizerHash01(seed, 5, 251) * CREDITS_DISC_COUNT) % CREDITS_DISC_COUNT;
           for (let index = 0; index < CREDITS_DISC_COUNT; index += 1) {
             const angle = baseAngle + index * Math.PI * 2 / CREDITS_DISC_COUNT + (visualizerHash01(seed, index, 257) - 0.5) * 0.7;
-            const distance = diagonal * (0.58 + visualizerHash01(seed, index, 263) * 0.14);
-            const radius = distance + diagonal * (0.06 + visualizerHash01(seed, index, 269) * 0.1);
+            const distance2 = diagonal * (0.58 + visualizerHash01(seed, index, 263) * 0.14);
+            const radius = distance2 + diagonal * (0.06 + visualizerHash01(seed, index, 269) * 0.1);
             const polygon = circlePolygon(0, 0, radius, 72);
-            const cx2 = Math.cos(angle) * distance;
-            const cy2 = Math.sin(angle) * distance;
+            const cx2 = Math.cos(angle) * distance2;
+            const cy2 = Math.sin(angle) * distance2;
             const delay = 0.08 + index * 0.16;
             const travel = {
               enterDX: Math.cos(angle) * diagonal * 0.16,
@@ -91795,15 +91867,15 @@ function __mpStylesBundle() {
               wipe.visible = false;
               return;
             }
-            const span = Math.hypot(width, height);
-            const notch = span * 0.08;
-            const length = span + notch * 2;
+            const span3 = Math.hypot(width, height);
+            const notch = span3 * 0.08;
+            const length = span3 + notch * 2;
             const key = `${width}x${height}|${color}`;
             if (key !== this.wipeKey) {
               this.wipeKey = key;
-              const start = -span / 2 - notch;
+              const start = -span3 / 2 - notch;
               const end = start + length;
-              const half = span / 2;
+              const half = span3 / 2;
               wipe.clear();
               wipe.poly([
                 start,
@@ -92140,27 +92212,27 @@ function __mpStylesBundle() {
             this.offsets[layer * 2 + 1] = offsetY / spanY;
             if (this.shader.resources[resource] !== texture.source) this.shader.resources[resource] = texture.source;
           }
-          update(frame2) {
-            const { hits, strength } = frame2;
+          update(frame3) {
+            const { hits, strength } = frame3;
             if (strength <= 0 || !this.ensureMesh() || !hits) {
               this.container.visible = false;
               return;
             }
-            this.resize(frame2.width, frame2.height);
+            this.resize(frame3.width, frame3.height);
             const indices = resolveFlashIndices(hits);
-            const last = findLastFlash(hits, indices, frame2.time);
-            const unit2 = Math.min(frame2.width, frame2.height);
-            const cover = Math.hypot(frame2.width, frame2.height) / TEX_H;
-            if (frame2.inkColor !== this.inkKey) {
-              this.inkKey = frame2.inkColor;
-              this.ink.set(new this.pixi.Color(frame2.inkColor || 16777215).toArray().slice(0, 3));
+            const last = findLastFlash(hits, indices, frame3.time);
+            const unit2 = Math.min(frame3.width, frame3.height);
+            const cover = Math.hypot(frame3.width, frame3.height) / TEX_H;
+            if (frame3.inkColor !== this.inkKey) {
+              this.inkKey = frame3.inkColor;
+              this.ink.set(new this.pixi.Color(frame3.inkColor || 16777215).toArray().slice(0, 3));
             }
             let lift = 0;
             for (let slot = 0; slot < 2; slot += 1) {
               const layer = 2 - slot;
               const position = last - slot;
               const hitTime = position >= 0 ? hits.times[indices[position]] : Number.NEGATIVE_INFINITY;
-              const envelope = flashEnvelope2(frame2.time - hitTime);
+              const envelope = flashEnvelope2(frame3.time - hitTime);
               if (envelope < 0.01) {
                 this.alphas[layer] = 0;
                 continue;
@@ -92174,9 +92246,9 @@ function __mpStylesBundle() {
               this.placeLayer(layer, layer === 2 ? "uFlashTextureB" : "uFlashTextureA", texture, rotation, scale * mirror2, scale, random() * TEX_W * scale, random() * TEX_H * scale);
               this.alphas[layer] = clamp0111(envelope * FLASH_ALPHA * strength);
             }
-            const stainRandom = seededRandom2(Math.max(0, frame2.paragraphIndex) * 7 + 3);
+            const stainRandom = seededRandom2(Math.max(0, frame3.paragraphIndex) * 7 + 3);
             const stainTexture = this.textures[Math.floor(stainRandom() * this.textures.length)];
-            this.placeLayer(0, "uStainTexture", stainTexture, 0, cover, cover, stainRandom() * frame2.width, stainRandom() * frame2.height - frame2.time * unit2 * 6e-3);
+            this.placeLayer(0, "uStainTexture", stainTexture, 0, cover, cover, stainRandom() * frame3.width, stainRandom() * frame3.height - frame3.time * unit2 * 6e-3);
             this.alphas[0] = STAIN_ALPHA * Math.min(1, strength) * (1 - STAIN_LIFT * lift);
             this.container.visible = Math.max(this.alphas[0], this.alphas[1], this.alphas[2]) >= MIN_VISIBLE_ALPHA;
           }
@@ -92270,17 +92342,17 @@ function __mpStylesBundle() {
             destroyTemperaGradientFills(this.pixi, view.container);
             destroyPixiDisplayTree(view.container);
           }
-          applyFrame(frame2, hasPoster, time, finalEndTime, width, height) {
-            this.container.visible = frame2.active && hasPoster;
-            this.container.alpha = frame2.posterAlpha;
+          applyFrame(frame3, hasPoster, time, finalEndTime, width, height) {
+            this.container.visible = frame3.active && hasPoster;
+            this.container.alpha = frame3.posterAlpha;
             if (this.container.visible) {
               this.view?.updateTime(time - (finalEndTime ?? time));
             }
             this.container.position.set(
               width / 2,
-              height / 2 + frame2.posterOffsetY * height
+              height / 2 + frame3.posterOffsetY * height
             );
-            this.container.scale.set(frame2.posterScale);
+            this.container.scale.set(frame3.posterScale);
           }
         };
       }
@@ -92353,68 +92425,68 @@ function __mpStylesBundle() {
           const animationScale = resolveAnimationScale(theme);
           const camera = tuning.cameraIntensity * animationScale;
           const motion2 = tuning.glyphMotion * animationScale;
-          const frame2 = resolveTemperaCameraFrame(view.shot, rawProgress);
+          const frame3 = resolveTemperaCameraFrame(view.shot, rawProgress);
           const breathWeight = resolveTemperaBreathWeight(time, view.revealDoneTime);
           if (breathWeight > 0) {
             const breathPhase = view.idHash % 1024 / 1024 * Math.PI * 2;
             const breath = resolveTemperaCameraBreath(time, breathPhase);
-            frame2.x += breath.x * breathWeight;
-            frame2.y += breath.y * breathWeight;
-            frame2.scale += breath.scale * breathWeight;
-            frame2.rotation += breath.rotation * breathWeight;
+            frame3.x += breath.x * breathWeight;
+            frame3.y += breath.y * breathWeight;
+            frame3.scale += breath.scale * breathWeight;
+            frame3.rotation += breath.rotation * breathWeight;
           }
           const handoff = resolveShotHandoff(view);
-          const span = Math.max(width, height);
+          const span3 = Math.max(width, height);
           const enter = easeTemperaEnter(clamp0110((time - view.shot.startTime) / (handoff * 0.8)));
           const exit = easeTemperaInOut(resolveTemperaShotExit(view, time));
-          const travel = exit * span * 0.55 - (1 - enter) * span * 0.32;
+          const travel = exit * span3 * 0.55 - (1 - enter) * span3 * 0.32;
           const [panX, panY] = PAN_DIRECTIONS[(view.idHash >>> 5) % PAN_DIRECTIONS.length];
           const panEnter = 1 - easeTemperaEnter(clamp0110((time - view.shot.startTime) / RISE_ENTER_SECONDS));
           const pan = (panEnter * RISE_ENTER + (0.5 - clamp0110(rawProgress)) * RISE_DRIFT) * height * camera * depthMix * tuning.depthPan;
-          const cameraX = frame2.x * width * camera + Math.cos(view.shot.flowAngle) * travel - panX * pan;
-          const cameraY = frame2.y * height * camera + Math.sin(view.shot.flowAngle) * travel - panY * pan;
+          const cameraX = frame3.x * width * camera + Math.cos(view.shot.flowAngle) * travel - panX * pan;
+          const cameraY = frame3.y * height * camera + Math.sin(view.shot.flowAngle) * travel - panY * pan;
           view.container.position.set(view.baseX + cameraX, view.baseY + cameraY);
           const parallax = depthMix * tuning.depthOfField;
           applyTemperaParallax(view.depth, cameraX * parallax, cameraY * parallax);
           view.container.alpha = 1 - exit;
-          view.container.scale.set((1 + (frame2.scale - 1) * camera) * (1 - exit * 0.08));
-          view.container.rotation = frame2.rotation * camera;
+          view.container.scale.set((1 + (frame3.scale - 1) * camera) * (1 - exit * 0.08));
+          view.container.rotation = frame3.rotation * camera;
           view.blocks.updateTime(time, view.shot.startTime, view.shot.endTime, view.shot.lyricEndTime);
           view.images.updateTime(time, view.shot.startTime, view.shot.endTime, view.shot.lyricEndTime);
           const glyphParallaxCap = Math.min(width, height) * GLYPH_PARALLAX_CAP;
           const glyphDepth = depthMix * tuning.glyphDepth;
           view.glyphs.forEach((glyph) => {
-            const frame3 = resolveTemperaGlyphMotion(glyph.motion, time, motion2);
+            const frame4 = resolveTemperaGlyphMotion(glyph.motion, time, motion2);
             const lead = (glyph.depth * (GLYPH_LEAD_NEAR + GLYPH_LAG_FAR) - GLYPH_LAG_FAR) * glyphDepth;
             const depthX = Math.max(-glyphParallaxCap, Math.min(glyphParallaxCap, cameraX * lead));
             const depthY = Math.max(-glyphParallaxCap, Math.min(glyphParallaxCap, cameraY * lead));
             const shade = Math.max(MIN_GLYPH_SHADE, 1 - (1 - FAR_GLYPH_ALPHA) * (1 - glyph.depth) * glyphDepth);
-            const x4 = glyph.baseX + frame3.x + depthX;
-            const y4 = glyph.baseY + frame3.y + depthY;
-            glyph.display.alpha = frame3.alpha * shade;
-            glyph.display.visible = frame3.visible;
+            const x4 = glyph.baseX + frame4.x + depthX;
+            const y4 = glyph.baseY + frame4.y + depthY;
+            glyph.display.alpha = frame4.alpha * shade;
+            glyph.display.visible = frame4.visible;
             glyph.display.position.set(x4, y4);
-            glyph.display.scale.set(frame3.scaleX, frame3.scaleY);
-            glyph.display.rotation = frame3.rotation;
+            glyph.display.scale.set(frame4.scaleX, frame4.scaleY);
+            glyph.display.rotation = frame4.rotation;
             if (glyph.shadow) {
-              glyph.shadow.alpha = frame3.alpha * shade * 0.34;
-              glyph.shadow.visible = frame3.visible;
+              glyph.shadow.alpha = frame4.alpha * shade * 0.34;
+              glyph.shadow.visible = frame4.visible;
               glyph.shadow.position.set(x4 + glyph.shadowDX, y4 + glyph.shadowDY);
-              glyph.shadow.scale.set(frame3.scaleX, frame3.scaleY);
-              glyph.shadow.rotation = frame3.rotation;
+              glyph.shadow.scale.set(frame4.scaleX, frame4.scaleY);
+              glyph.shadow.rotation = frame4.rotation;
             }
-            const echoVisible = frame3.visible && frame3.echoAlpha > 4e-3;
+            const echoVisible = frame4.visible && frame4.echoAlpha > 4e-3;
             glyph.echoes.forEach((echo, index) => {
               echo.visible = echoVisible;
               if (!echoVisible) return;
               const depth = 1 + index * 0.85;
-              echo.alpha = frame3.echoAlpha * shade / (index + 1.4);
+              echo.alpha = frame4.echoAlpha * shade / (index + 1.4);
               echo.position.set(
-                glyph.baseX + depthX + frame3.echoX * depth,
-                glyph.baseY + depthY + frame3.echoY * depth
+                glyph.baseX + depthX + frame4.echoX * depth,
+                glyph.baseY + depthY + frame4.echoY * depth
               );
-              echo.scale.set(frame3.scaleX, frame3.scaleY);
-              echo.rotation = frame3.rotation;
+              echo.scale.set(frame4.scaleX, frame4.scaleY);
+              echo.rotation = frame4.rotation;
             });
           });
         };
@@ -93530,11 +93602,11 @@ function __mpStylesBundle() {
         };
         resolveHanabiChorusWeight = (spans, time) => {
           let weight = 0;
-          for (const span of spans) {
-            if (time < span.startTime - RAMP_IN_BEFORE) break;
-            if (time > span.endTime + RAMP_OUT_AFTER) continue;
-            const rampIn = smooth8((time - (span.startTime - RAMP_IN_BEFORE)) / (RAMP_IN_BEFORE + RAMP_IN_AFTER));
-            const rampOut = 1 - smooth8((time - (span.endTime - RAMP_OUT_BEFORE)) / (RAMP_OUT_BEFORE + RAMP_OUT_AFTER));
+          for (const span3 of spans) {
+            if (time < span3.startTime - RAMP_IN_BEFORE) break;
+            if (time > span3.endTime + RAMP_OUT_AFTER) continue;
+            const rampIn = smooth8((time - (span3.startTime - RAMP_IN_BEFORE)) / (RAMP_IN_BEFORE + RAMP_IN_AFTER));
+            const rampOut = 1 - smooth8((time - (span3.endTime - RAMP_OUT_BEFORE)) / (RAMP_OUT_BEFORE + RAMP_OUT_AFTER));
             weight = Math.max(weight, Math.min(rampIn, rampOut));
           }
           return weight;
@@ -94958,12 +95030,12 @@ function __mpStylesBundle() {
             const from = Math.max(ws4, start);
             const to3 = Math.min(we3, end);
             if (to3 <= from) continue;
-            const span = Math.max(we3 - ws4, 1);
+            const span3 = Math.max(we3 - ws4, 1);
             const duration = word.endTime - word.startTime;
             words.push({
               text: text.slice(from, to3),
-              startTime: word.startTime + duration * ((from - ws4) / span),
-              endTime: word.startTime + duration * ((to3 - ws4) / span)
+              startTime: word.startTime + duration * ((from - ws4) / span3),
+              endTime: word.startTime + duration * ((to3 - ws4) / span3)
             });
           }
           const fullText = text.slice(start, end);
@@ -95264,7 +95336,7 @@ function __mpStylesBundle() {
         clamp17 = (value, low, high) => value < low ? low : value > high ? high : value;
         lerp4 = (a4, b4, t4) => a4 + (b4 - a4) * t4;
         fract2 = (value) => value - Math.floor(value);
-        wrap2 = (value, span) => value - span * Math.floor(value / span);
+        wrap2 = (value, span3) => value - span3 * Math.floor(value / span3);
         easeOutCubic6 = (t4) => 1 - (1 - clamp0113(t4)) ** 3;
         easeInCubic2 = (t4) => clamp0113(t4) ** 3;
         easeOutExpo2 = (t4) => {
@@ -95679,9 +95751,9 @@ function __mpStylesBundle() {
               film.at = input.start + 0.1;
               items.push(film);
               const floaters = countOf(7, amount, 3);
-              const span = Math.max(0.5, input.end - input.start);
+              const span3 = Math.max(0.5, input.end - input.start);
               for (let k4 = 0; k4 < floaters; k4 += 1) {
-                const at3 = input.start + k4 / floaters * span * 0.8 + random() * 0.3;
+                const at3 = input.start + k4 / floaters * span3 * 0.8 + random() * 0.3;
                 items.push({
                   kind: "floater",
                   shape: pick(["heart", "star", "sparkle", "flower"], random),
@@ -96000,12 +96072,12 @@ function __mpStylesBundle() {
             return canvas3;
           });
           const paintFilm = (color, height) => {
-            const frame2 = height * 1.18;
-            const width = Math.round(frame2 * 3);
+            const frame3 = height * 1.18;
+            const width = Math.round(frame3 * 3);
             const { canvas: canvas3, context } = canvasOf3(width, height);
             context.fillStyle = css(CANDY_INK, 0.92);
             context.fillRect(0, 0, width, height);
-            const pitch = frame2 / 4;
+            const pitch = frame3 / 4;
             const holeW = pitch * 0.48;
             const holeH = height * 0.11;
             context.save();
@@ -96023,9 +96095,9 @@ function __mpStylesBundle() {
             const colors = [color, CANDY[(base + 2) % CANDY.length], CANDY[(base + 4) % CANDY.length]];
             const icons = ["heart", "star", "sparkle"];
             for (let k4 = 0; k4 < 3; k4 += 1) {
-              const x4 = k4 * frame2 + frame2 * 0.07;
+              const x4 = k4 * frame3 + frame3 * 0.07;
               const y4 = height * 0.25;
-              const w4 = frame2 * 0.86;
+              const w4 = frame3 * 0.86;
               const h4 = height * 0.5;
               context.fillStyle = css(colors[k4], 0.92);
               context.beginPath();
@@ -97534,10 +97606,10 @@ function __mpStylesBundle() {
         launchHead = (launch2, p4, salt, out) => {
           const k4 = clamp0113(p4);
           const rise = 1 - (1 - k4) ** 2;
-          const span = Math.hypot(launch2.toX - launch2.fromX, launch2.toY - launch2.fromY);
+          const span3 = Math.hypot(launch2.toX - launch2.fromX, launch2.toY - launch2.fromY);
           const freq = 2.2 + hash012(1, salt) * 1.6;
           const phase = hash012(2, salt) * TAU12;
-          const sway = Math.sin(k4 * freq * TAU12 + phase) * span * 0.018 * (1 - k4 * 0.7);
+          const sway = Math.sin(k4 * freq * TAU12 + phase) * span3 * 0.018 * (1 - k4 * 0.7);
           out.x = lerp4(launch2.fromX, launch2.toX, rise) + sway;
           out.y = lerp4(launch2.fromY, launch2.toY, rise);
           return out;
@@ -97618,7 +97690,7 @@ function __mpStylesBundle() {
             return { layer, sprites: [], used: 0, shown: 0 };
           };
           const normal = poolOf("normal");
-          const additive3 = poolOf("add");
+          const additive4 = poolOf("add");
           let used = 0;
           const plans = /* @__PURE__ */ new Map();
           const active = [];
@@ -97631,7 +97703,7 @@ function __mpStylesBundle() {
           };
           const emit = (texture, x4, y4, width, height, rotation, alpha, tint) => {
             if (used >= maxParticles) return false;
-            const pool = texture === "flash" ? additive3 : normal;
+            const pool = texture === "flash" ? additive4 : normal;
             let sprite = pool.sprites[pool.used];
             if (!sprite) {
               sprite = new pixi.Sprite(textures.glow);
@@ -97688,7 +97760,7 @@ function __mpStylesBundle() {
             }
             drawBursts(active, time, maxParticles - used, emit);
             hideRest(normal);
-            hideRest(additive3);
+            hideRest(additive4);
             view.visible = used > 0;
           };
           return {
@@ -97897,10 +97969,10 @@ function __mpStylesBundle() {
             case "scramble": {
               pose.alpha = clamp0115(q4 * 8);
               if (q4 < 0.72) {
-                const frame2 = Math.floor(ctx2.time * 22);
-                pose.scramble = Math.floor(hash013(frame2, Math.floor(r02 * 1e6)) * 1e6);
-                pose.dy = (hash013(frame2 + 7, Math.floor(r12 * 1e6)) - 0.5) * 0.12;
-                pose.alpha *= 0.75 + 0.25 * hash013(frame2 + 13, 1);
+                const frame3 = Math.floor(ctx2.time * 22);
+                pose.scramble = Math.floor(hash013(frame3, Math.floor(r02 * 1e6)) * 1e6);
+                pose.dy = (hash013(frame3 + 7, Math.floor(r12 * 1e6)) - 0.5) * 0.12;
+                pose.alpha *= 0.75 + 0.25 * hash013(frame3 + 13, 1);
               } else {
                 scaled(pose, 1 + 0.16 * (1 - (q4 - 0.72) / 0.28) ** 2);
               }
@@ -97958,15 +98030,15 @@ function __mpStylesBundle() {
             }
             case "glitch": {
               if (q4 < 0.8) {
-                const frame2 = Math.floor(ctx2.time * 24);
+                const frame3 = Math.floor(ctx2.time * 24);
                 const seed = Math.floor(r02 * 1e6);
                 const intensity = 1 - q4 / 0.8;
-                const h12 = hash013(frame2, seed), h22 = hash013(frame2, seed + 1), h32 = hash013(frame2, seed + 2), h4 = hash013(frame2, seed + 3);
+                const h12 = hash013(frame3, seed), h22 = hash013(frame3, seed + 1), h32 = hash013(frame3, seed + 2), h4 = hash013(frame3, seed + 3);
                 pose.dx = h22 > 0.35 ? (h12 - 0.5) * 0.9 * intensity : 0;
                 pose.rgbSplit = (0.05 + 0.13 * h32) * intensity;
                 pose.skew = h4 > 0.7 ? (h12 - 0.5) * 0.9 * intensity : 0;
                 pose.scaleX = h22 > 0.82 ? 1 + 0.4 * intensity : 1;
-                pose.alpha = clamp0115(q4 * 10) * (hash013(frame2, seed + 4) > 0.18 ? 1 : 0.25);
+                pose.alpha = clamp0115(q4 * 10) * (hash013(frame3, seed + 4) > 0.18 ? 1 : 0.25);
               }
               break;
             }
@@ -98064,8 +98136,8 @@ function __mpStylesBundle() {
               break;
             }
             case "dissolve": {
-              const frame2 = Math.floor(ctx2.time * 20);
-              const flicker = hash013(frame2, Math.floor(r02 * 1e6));
+              const frame3 = Math.floor(ctx2.time * 20);
+              const flicker = hash013(frame3, Math.floor(r02 * 1e6));
               pose.alpha = (1 - q4) ** 1.3 * (1 - 0.45 * q4 * flicker);
               scaled(pose, 1 + 0.14 * easeOutQuad(q4));
               pose.dy = -0.35 * easeOutQuad(q4);
@@ -98307,7 +98379,7 @@ function __mpStylesBundle() {
           const midT = (minT + maxT) / 2;
           const midN = (minN + maxN) / 2;
           const thickness = maxN - minN + padT * 2;
-          const frame2 = {
+          const frame3 = {
             cx: origin.x + tx2 * midT + nx2 * midN,
             cy: origin.y + ty2 * midT + ny2 * midN,
             angle,
@@ -98330,13 +98402,13 @@ function __mpStylesBundle() {
             }
             raw.push(edge(members[members.length - 1], 1, padL));
             let s4 = 0;
-            frame2.points = raw.map((point, index) => {
+            frame3.points = raw.map((point, index) => {
               if (index > 0) s4 += Math.hypot(point.x - raw[index - 1].x, point.y - raw[index - 1].y);
               const len2 = Math.hypot(point.nx, point.ny) || 1;
               return { x: point.x, y: point.y, nx: point.nx / len2, ny: point.ny / len2, s: s4 };
             });
           }
-          return frame2;
+          return frame3;
         };
         SWEEP = /* @__PURE__ */ new Set(["band", "slant", "double", "marker", "outline"]);
         easeOutCubic8 = (t4) => 1 - (1 - t4) ** 3;
@@ -98375,15 +98447,15 @@ function __mpStylesBundle() {
             });
             return { first, last, exitStart, exitEnd };
           };
-          const newPiece = (partsSpec, anchor, frame2, timing) => {
+          const newPiece = (partsSpec, anchor, frame3, timing) => {
             const piece = {
               parts: partsSpec.map((spec) => ({ g: makeGraphics(spec.layer), lag: spec.lag ?? 0, ox: spec.ox ?? 0, oy: spec.oy ?? 0, slide: spec.slide ?? 0 })),
               anchor,
-              ...frame2,
+              ...frame3,
               ...timing,
               rand: [rng(), rng(), rng(), rng()],
-              toCenterX: (options.centerX - frame2.x) / Math.max(1, frame2.unit),
-              toCenterY: (options.centerY - frame2.y) / Math.max(1, frame2.unit),
+              toCenterX: (options.centerX - frame3.x) / Math.max(1, frame3.unit),
+              toCenterY: (options.centerY - frame3.y) / Math.max(1, frame3.unit),
               lastKey: ""
             };
             pieces.push(piece);
@@ -98494,15 +98566,15 @@ function __mpStylesBundle() {
               groups.push({ indices: [index], word: glyph.word });
             });
             groups.forEach((group2, ordinal) => {
-              const frame2 = runFrame(glyphs, group2.indices, fontPx * (style === "pill" ? 0.26 : 0.2), fontPx * 0.1);
-              if (!frame2) return;
+              const frame3 = runFrame(glyphs, group2.indices, fontPx * (style === "pill" ? 0.26 : 0.2), fontPx * 0.1);
+              if (!frame3) return;
               const times2 = timesOf(group2.indices);
               if (!Number.isFinite(times2.first)) return;
               const color = colorAt(ordinal);
               const color2 = second(ordinal);
-              const L4 = frame2.length;
-              const T4 = frame2.thickness;
-              const tx2 = Math.cos(frame2.angle), ty2 = Math.sin(frame2.angle);
+              const L4 = frame3.length;
+              const T4 = frame3.thickness;
+              const tx2 = Math.cos(frame3.angle), ty2 = Math.sin(frame3.angle);
               const sweep = style === "slant" || style === "double";
               const timing = {
                 enterStart: times2.first - 0.08,
@@ -98510,7 +98582,7 @@ function __mpStylesBundle() {
                 exitStart: times2.exitStart,
                 exitEnd: times2.exitEnd
               };
-              const base = sweep ? { x: frame2.cx - tx2 * L4 / 2, y: frame2.cy - ty2 * L4 / 2, angle: frame2.angle, length: L4, thickness: T4, unit: T4 / 1.3 } : { x: frame2.cx, y: frame2.cy, angle: frame2.angle, length: L4, thickness: T4, unit: T4 / 1.3 };
+              const base = sweep ? { x: frame3.cx - tx2 * L4 / 2, y: frame3.cy - ty2 * L4 / 2, angle: frame3.angle, length: L4, thickness: T4, unit: T4 / 1.3 } : { x: frame3.cx, y: frame3.cy, angle: frame3.angle, length: L4, thickness: T4, unit: T4 / 1.3 };
               group2.indices.forEach((index) => glyphColor.set(index, color));
               if (style === "slant") {
                 const piece = newPiece([{ layer: front }], "start", base, timing);
@@ -98551,28 +98623,28 @@ function __mpStylesBundle() {
             placement.rows.forEach((row, rowIndex) => {
               const padL = fontPx * (style === "band" ? 0.32 : 0.26);
               const padT = fontPx * (style === "band" ? 0.12 : 0.16);
-              const frame2 = runFrame(glyphs, row, padL, padT);
-              if (!frame2) return;
+              const frame3 = runFrame(glyphs, row, padL, padT);
+              if (!frame3) return;
               const times2 = timesOf(row);
               if (!Number.isFinite(times2.first)) return;
               const color = colorAt(rowIndex);
               row.forEach((index) => {
                 if (!glyphs[index].blank) glyphColor.set(index, color);
               });
-              const L4 = frame2.length;
-              const T4 = frame2.thickness;
-              const tx2 = Math.cos(frame2.angle), ty2 = Math.sin(frame2.angle);
+              const L4 = frame3.length;
+              const T4 = frame3.thickness;
+              const tx2 = Math.cos(frame3.angle), ty2 = Math.sin(frame3.angle);
               const timing = {
                 enterStart: times2.first - 0.1,
                 enterDur: times2.last - times2.first + 0.45,
                 exitStart: times2.exitStart,
                 exitEnd: times2.exitEnd
               };
-              if (style === "band" && frame2.curved) {
+              if (style === "band" && frame3.curved) {
                 const piece2 = newPiece([{ layer: front }], "center", { x: 0, y: 0, angle: 0, length: L4, thickness: T4, unit: T4 / 1.3 }, timing);
                 piece2.toCenterX = 0;
                 piece2.toCenterY = 0;
-                const points = frame2.points;
+                const points = frame3.points;
                 const total = points[points.length - 1].s || 1;
                 piece2.redraw = (g4, a4, b4, thick) => {
                   g4.clear();
@@ -98608,7 +98680,7 @@ function __mpStylesBundle() {
                 const piece2 = newPiece(
                   [{ layer: front }],
                   "start",
-                  { x: frame2.cx - tx2 * L4 / 2, y: frame2.cy - ty2 * L4 / 2, angle: frame2.angle, length: L4, thickness: T4, unit: T4 / 1.3 },
+                  { x: frame3.cx - tx2 * L4 / 2, y: frame3.cy - ty2 * L4 / 2, angle: frame3.angle, length: L4, thickness: T4, unit: T4 / 1.3 },
                   timing
                 );
                 const g4 = piece2.parts[0].g;
@@ -98619,7 +98691,7 @@ function __mpStylesBundle() {
               const piece = newPiece(
                 [{ layer: front }],
                 "center",
-                { x: frame2.cx, y: frame2.cy, angle: frame2.angle, length: L4, thickness: T4, unit: T4 / 1.3 },
+                { x: frame3.cx, y: frame3.cy, angle: frame3.angle, length: L4, thickness: T4, unit: T4 / 1.3 },
                 timing
               );
               const stroke = Math.max(1.5, T4 * 0.07);
@@ -99122,13 +99194,13 @@ function __mpStylesBundle() {
             const members = [];
             for (let k4 = 0; k4 < unitIndices.length; k4 += 1) {
               const unit2 = units[unitIndices[k4]];
-              const outside = k4 < a4 || k4 > b4;
+              const outside2 = k4 < a4 || k4 > b4;
               if (k4 > a4 && k4 <= b4) s4 += gaps[unitIndices[k4]];
               let wordStart = -1;
               let stepIndex = 0;
               unit2.glyphs.forEach((glyph) => {
                 const size = sizes[glyph];
-                const advance = outside ? 0 : along[glyph];
+                const advance2 = outside2 ? 0 : along[glyph];
                 const word = glyphInputs[glyph].word;
                 if (word !== wordStart) {
                   wordStart = word;
@@ -99138,9 +99210,9 @@ function __mpStylesBundle() {
                 const stair = glyphInputs[glyph].blank ? 0 : -params.stairStep * size * (stepIndex % 3);
                 if (!glyphInputs[glyph].blank) stepIndex += 1;
                 work[glyph].row = rowIndex;
-                work[glyph].advance = advance;
-                place(glyph, s4 + advance / 2, settle2 + stair);
-                s4 += advance;
+                work[glyph].advance = advance2;
+                place(glyph, s4 + advance2 / 2, settle2 + stair);
+                s4 += advance2;
                 members.push(glyph);
               });
             }
@@ -99753,14 +99825,14 @@ function __mpStylesBundle() {
               groups.set(key, list);
             });
             groups.forEach((indices) => {
-              const frame2 = runFrame(glyphs, indices, 0, 0);
-              if (!frame2) return;
+              const frame3 = runFrame(glyphs, indices, 0, 0);
+              if (!frame3) return;
               const members = indices.map((index) => rigOf.get(index));
-              const tx2 = Math.cos(frame2.angle), ty2 = Math.sin(frame2.angle);
+              const tx2 = Math.cos(frame3.angle), ty2 = Math.sin(frame3.angle);
               const nx2 = -ty2, ny2 = tx2;
               const avgSize = members.reduce((sum, rig2) => sum + rig2.size, 0) / members.length;
               const thick = Math.max(3, avgSize * 0.15);
-              const offset = frame2.thickness / 2 + thick * 0.4;
+              const offset = frame3.thickness / 2 + thick * 0.4;
               const g4 = new pixi.Graphics();
               g4.rect(0, -0.5, 1, 1).fill({ color: 16777215 });
               g4.tint = members[0]?.sungTint ?? palette.accent;
@@ -99769,10 +99841,10 @@ function __mpStylesBundle() {
               underlines.push({
                 g: g4,
                 members,
-                x: frame2.cx - tx2 * frame2.length / 2 + nx2 * offset,
-                y: frame2.cy - ty2 * frame2.length / 2 + ny2 * offset,
-                angle: frame2.angle,
-                length: frame2.length,
+                x: frame3.cx - tx2 * frame3.length / 2 + nx2 * offset,
+                y: frame3.cy - ty2 * frame3.length / 2 + ny2 * offset,
+                angle: frame3.angle,
+                length: frame3.length,
                 thick,
                 from: Math.min(...members.map((rig2) => rig2.sungAt)),
                 to: Math.max(...members.map((rig2) => rig2.sungEnd))
@@ -99797,8 +99869,8 @@ function __mpStylesBundle() {
             const a4 = enterPose(spec.enter, (t4 - rig2.enterStart) / Math.max(1e-3, enter.duration), rig2.ctx);
             Object.assign(scratchEnter, a4);
             rig2.ctx.time = t4 - rig2.exitStart;
-            const span = rig2.exitEnd - rig2.exitStart;
-            const b4 = exitPose(spec.exit, span > 0 ? (t4 - rig2.exitStart) / span : 0, rig2.ctx);
+            const span3 = rig2.exitEnd - rig2.exitStart;
+            const b4 = exitPose(spec.exit, span3 > 0 ? (t4 - rig2.exitStart) / span3 : 0, rig2.ctx);
             combinePoses(scratchEnter, b4, out);
             if (singOut) {
               const sung = t4 >= rig2.landed ? singPose(spec.sing, t4 - rig2.sungAt, rig2.sungEnd - rig2.sungAt, rig2.ctx.rand[3], motion2) : restSing();
@@ -100389,13 +100461,13 @@ function __mpStylesBundle() {
             this.holder.pivot.set(context.width / 2, context.height / 2);
           }
           /** 片尾卡以画面中心缩放、上下偏移；没激活时整层不画。 */
-          update(time, frame2, width, height) {
+          update(time, frame3, width, height) {
             const credits = this.credits;
-            this.holder.visible = Boolean(credits) && frame2.active && frame2.posterAlpha > 2e-3;
+            this.holder.visible = Boolean(credits) && frame3.active && frame3.posterAlpha > 2e-3;
             if (!credits || !this.holder.visible) return;
-            this.holder.alpha = frame2.posterAlpha;
-            this.holder.position.set(width / 2, height / 2 + frame2.posterOffsetY * height);
-            this.holder.scale.set(frame2.posterScale);
+            this.holder.alpha = frame3.posterAlpha;
+            this.holder.position.set(width / 2, height / 2 + frame3.posterOffsetY * height);
+            this.holder.scale.set(frame3.posterScale);
             credits.update(time - this.lyricEndTime);
           }
           /** 作废当前片尾卡（下次需要时重建）。 */
@@ -100553,13 +100625,13 @@ function __mpStylesBundle() {
         parallaxY = (y02, rise, parallax, drift, height, margin) => wrap2(y02 + rise * parallax + drift + margin, height + margin * 2) - margin;
         DISTANT_KINDS = ["kiku", "botan", "ring", "yanagi", "senrin", "kamuro", "strobe", "kiku", "botan"];
         DISTANT_DURATION = 2.6;
-        distantBurstAt = (seed, k4, rate, startTime, width, span) => {
+        distantBurstAt = (seed, k4, rate, startTime, width, span3) => {
           const salt = hashString3(seed) % 9973;
           const h4 = (i4) => hash012(k4 * 17 + i4, salt + 0.37);
           const at3 = startTime + (k4 + 0.1 + h4(1) * 0.8) / rate;
           const kind = DISTANT_KINDS[Math.floor(h4(2) * DISTANT_KINDS.length) % DISTANT_KINDS.length];
           const x4 = width * (0.06 + h4(3) * 0.88);
-          const y02 = span * h4(4);
+          const y02 = span3 * h4(4);
           return {
             at: at3,
             x: x4,
@@ -100610,15 +100682,15 @@ function __mpStylesBundle() {
           const bokehLayer = new pixi.Container();
           front.addChild(bokehLayer, emberLayer);
           const margin = unit2 * 0.36;
-          const span = height + margin * 2;
+          const span3 = height + margin * 2;
           const sprite = (texture, parent) => {
             const s4 = new pixi.Sprite(texture);
             s4.anchor.set(0.5);
             parent.addChild(s4);
             return s4;
           };
-          const dots = (count, parent, make) => Array.from({ length: count }, (_4, i4) => {
-            const spec = make(i4);
+          const dots = (count, parent, make2) => Array.from({ length: count }, (_4, i4) => {
+            const spec = make2(i4);
             const s4 = sprite(spec.texture, parent);
             s4.tint = spec.tint;
             return { ...spec, sprite: s4 };
@@ -100631,7 +100703,7 @@ function __mpStylesBundle() {
               texture: bright ? textures.star4 : textures.dot,
               tint: bright ? mixColor(WHITE3, palette.glow, 0.4) : starTint,
               x: rng() * width,
-              y0: rng() * span,
+              y0: rng() * span3,
               size: unit2 * (bright ? 0.012 + rng() * 0.01 : 2e-3 + rng() * 4e-3),
               alpha: bright ? 0.7 : 0.2 + rng() * 0.55,
               parallax: AMBIENT_PARALLAX.starsFar + depth * (AMBIENT_PARALLAX.starsNear - AMBIENT_PARALLAX.starsFar),
@@ -100655,7 +100727,7 @@ function __mpStylesBundle() {
             texture: smokeTexture,
             tint: mixColor(tintedSpark(palette, i4), 10133684, 0.6),
             x: width * (0.1 + rng() * 0.8),
-            y0: rng() * span,
+            y0: rng() * span3,
             size: unit2 * (0.6 + rng() * 0.5) * SMOKE_CROP,
             alpha: 0.035 + rng() * 0.035,
             parallax: AMBIENT_PARALLAX.smoke,
@@ -100668,7 +100740,7 @@ function __mpStylesBundle() {
             texture: textures.glow,
             tint: mixColor(GOLD, tintedSpark(palette, i4), 0.3),
             x: rng() * width,
-            y0: rng() * span,
+            y0: rng() * span3,
             // glow 纹理的亮芯只占三成：画面上约 3–7 px 的火星。
             size: unit2 * (0.012 + rng() * 0.016),
             alpha: 0.55 + rng() * 0.45,
@@ -100682,7 +100754,7 @@ function __mpStylesBundle() {
             texture: textures.glow,
             tint: tintedSpark(palette, i4 + 2),
             x: rng() * width,
-            y0: rng() * span,
+            y0: rng() * span3,
             size: unit2 * (0.08 + rng() * 0.1),
             alpha: 0.06 + rng() * 0.08,
             parallax: AMBIENT_PARALLAX.bokeh,
@@ -100763,7 +100835,7 @@ function __mpStylesBundle() {
               for (let k4 = first; k4 <= last; k4 += 1) {
                 let entry = distantPlans.get(k4);
                 if (!entry) {
-                  const burst2 = distantBurstAt(options.seed, k4, options.distantBursts, options.startTime, width, span);
+                  const burst2 = distantBurstAt(options.seed, k4, options.distantBursts, options.startTime, width, span3);
                   entry = { burst: burst2, plan: planBurst(burst2.event, palette, { unit: unit2, amount: Math.min(1.5, density2) }) };
                   distantPlans.set(k4, entry);
                 }
@@ -100842,14 +100914,14 @@ function __mpStylesBundle() {
           const sung = glyphs.map((g4) => g4.sungAt).sort((p4, q4) => p4 - q4);
           const factor = Math.max(0, ctx2.amount) * (0.35 + 0.9 * clamp0113(spec.density));
           const count = (baseCount, min = 1) => factor <= 0 ? 0 : Math.max(min, Math.round(baseCount * factor));
-          const pick2 = (list, i4, fallback) => list.length > 0 ? list[(i4 % list.length + list.length) % list.length] : fallback;
+          const pick3 = (list, i4, fallback) => list.length > 0 ? list[(i4 % list.length + list.length) % list.length] : fallback;
           const color = (i4) => {
             const p4 = ctx2.palette;
             switch (spec.color) {
               case "spark":
-                return pick2(p4.sparks, i4, p4.accent);
+                return pick3(p4.sparks, i4, p4.accent);
               case "block":
-                return pick2(p4.blocks, i4, p4.accent);
+                return pick3(p4.blocks, i4, p4.accent);
               case "paper":
                 return p4.paper;
               case "glow":
@@ -100860,7 +100932,7 @@ function __mpStylesBundle() {
           };
           const pad = base * 0.35;
           const sites = (mode, maxGlyphSites) => {
-            const make = (x4, y4, w4, h4, angle, extra = {}) => ({
+            const make2 = (x4, y4, w4, h4, angle, extra = {}) => ({
               x: x4,
               y: y4,
               w: w4,
@@ -100873,11 +100945,11 @@ function __mpStylesBundle() {
             });
             switch (spec.placement) {
               case "behind":
-                return [make(cx2, cy2, hw2, hh3, -Math.PI / 2)];
+                return [make2(cx2, cy2, hw2, hh3, -Math.PI / 2)];
               case "around":
-                return [make(cx2, cy2, hw2 + pad, hh3 + pad, -Math.PI / 2, { hollow: mode === "scatter" })];
+                return [make2(cx2, cy2, hw2 + pad, hh3 + pad, -Math.PI / 2, { hollow: mode === "scatter" })];
               case "corners":
-                return [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([sx2, sy2], k4) => make(
+                return [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([sx2, sy2], k4) => make2(
                   cx2 + sx2 * (hw2 + pad * 0.6),
                   cy2 + sy2 * (hh3 + pad * 0.6),
                   base * 0.6,
@@ -100886,18 +100958,18 @@ function __mpStylesBundle() {
                   { start: start + k4 * 0.07 }
                 ));
               case "line-start":
-                return [vertical ? make(cx2, cy2 - hh3 - pad, base * 0.7, base * 0.7, -Math.PI / 2) : make(cx2 - hw2 - pad, cy2, base * 0.7, base * 0.7, Math.PI)];
+                return [vertical ? make2(cx2, cy2 - hh3 - pad, base * 0.7, base * 0.7, -Math.PI / 2) : make2(cx2 - hw2 - pad, cy2, base * 0.7, base * 0.7, Math.PI)];
               case "line-end":
-                return [vertical ? make(cx2, cy2 + hh3 + pad, base * 0.7, base * 0.7, Math.PI / 2) : make(cx2 + hw2 + pad, cy2, base * 0.7, base * 0.7, 0)];
+                return [vertical ? make2(cx2, cy2 + hh3 + pad, base * 0.7, base * 0.7, Math.PI / 2) : make2(cx2 + hw2 + pad, cy2, base * 0.7, base * 0.7, 0)];
               case "screen":
-                return [make(0, 0, ctx2.width * 0.55, ctx2.height * 0.55, -Math.PI / 2)];
+                return [make2(0, 0, ctx2.width * 0.55, ctx2.height * 0.55, -Math.PI / 2)];
               case "glyphs":
               default: {
-                if (glyphs.length === 0) return [make(cx2, cy2, hw2, hh3, -Math.PI / 2)];
+                if (glyphs.length === 0) return [make2(cx2, cy2, hw2, hh3, -Math.PI / 2)];
                 const limit = Math.max(1, Math.min(glyphs.length, maxGlyphSites));
                 const chosen = [];
                 for (let i4 = 0; i4 < limit; i4 += 1) chosen.push(glyphs[Math.floor((i4 + 0.5) * glyphs.length / limit)]);
-                return chosen.map((g4) => make(g4.x, g4.y, g4.size * 0.55, g4.size * 0.55, -Math.PI / 2, {
+                return chosen.map((g4) => make2(g4.x, g4.y, g4.size * 0.55, g4.size * 0.55, -Math.PI / 2, {
                   glyph: g4.index,
                   start: Math.max(start, g4.sungAt)
                 }));
@@ -101008,7 +101080,7 @@ function __mpStylesBundle() {
         tracksFor = (kit, reach, across) => {
           const pad = kit.size * 0.35;
           const { cx: cx2, cy: cy2, hw: hw2, hh: hh3, vertical, start } = kit;
-          const along = (sign) => vertical ? { x: cx2, y: cy2 + sign * (hh3 + pad), dx: 0, dy: sign, length: reach, glyph: -1, start } : { x: cx2 + sign * (hw2 + pad), y: cy2, dx: sign, dy: 0, length: reach, glyph: -1, start };
+          const along = (sign2) => vertical ? { x: cx2, y: cy2 + sign2 * (hh3 + pad), dx: 0, dy: sign2, length: reach, glyph: -1, start } : { x: cx2 + sign2 * (hw2 + pad), y: cy2, dx: sign2, dy: 0, length: reach, glyph: -1, start };
           switch (kit.spec.placement) {
             case "line-start":
               return [along(-1)];
@@ -101059,7 +101131,7 @@ function __mpStylesBundle() {
         };
         zigzagOrnament = (kit) => {
           const reach = kit.size * (2.6 + kit.rng() * 1.4);
-          const tracks = tracksFor(kit, reach, false);
+          const tracks2 = tracksFor(kit, reach, false);
           const g4 = kit.graphics();
           g4.tint = kit.color(0);
           const echo = kit.graphics();
@@ -101073,7 +101145,7 @@ function __mpStylesBundle() {
             let any = false;
             const flip = Math.floor(time * 6) % 2 === 0 ? 0 : 0.5;
             const pump = 1 + 0.3 * (Math.floor(time * 3) % 3 === 0 ? 1 : 0);
-            for (const track of tracks) {
+            for (const track of tracks2) {
               const local = time - track.start;
               if (local < 0 || x4 >= 1) continue;
               const teeth = Math.max(3, Math.round(track.length / (kit.size * 0.34)));
@@ -101099,7 +101171,7 @@ function __mpStylesBundle() {
         };
         waveOrnament = (kit) => {
           const reach = kit.size * 4;
-          const tracks = tracksFor(kit, reach, true);
+          const tracks2 = tracksFor(kit, reach, true);
           const layers = Math.min(3, Math.max(2, kit.count(2.4, 2)));
           const waves = Array.from({ length: layers }, (_4, j4) => {
             const g4 = kit.graphics();
@@ -101113,7 +101185,7 @@ function __mpStylesBundle() {
             waves.forEach((w4, j4) => {
               w4.g.clear();
               let any = false;
-              for (const track of tracks) {
+              for (const track of tracks2) {
                 const local = time - track.start - j4 * 0.08;
                 if (local < 0 || x4 >= 1) continue;
                 const to3 = easeOutCubic6(local / 0.7);
@@ -101267,10 +101339,10 @@ function __mpStylesBundle() {
               glyph
             ));
           } else if (placement === "line-start" || placement === "line-end") {
-            const sign = placement === "line-start" ? -1 : 1;
+            const sign2 = placement === "line-start" ? -1 : 1;
             const length = kit.size * 3;
-            if (vertical) lineAlong(kit.cx, kit.cy + sign * (kit.hh + pad), 0, sign, length, true);
-            else lineAlong(kit.cx + sign * (kit.hw + pad), kit.cy, sign, 0, length, true);
+            if (vertical) lineAlong(kit.cx, kit.cy + sign2 * (kit.hh + pad), 0, sign2, length, true);
+            else lineAlong(kit.cx + sign2 * (kit.hw + pad), kit.cy, sign2, 0, length, true);
           } else if (placement === "screen") {
             const w4 = kit.ctx.width * 0.5;
             if (vertical) lineAlong(kit.cx + kit.hw + pad * 2, -kit.ctx.height * 0.5, 0, 1, kit.ctx.height, false);
@@ -101341,8 +101413,8 @@ function __mpStylesBundle() {
               return { at: Math.max(kit.start, g4.sungAt), glyph: g4 };
             });
           }
-          const span = Math.max(0.5, kit.ctx.exitAt - kit.start);
-          return Array.from({ length: count }, (_4, i4) => ({ at: kit.start + span * i4 / count, glyph: null }));
+          const span3 = Math.max(0.5, kit.ctx.exitAt - kit.start);
+          return Array.from({ length: count }, (_4, i4) => ({ at: kit.start + span3 * i4 / count, glyph: null }));
         };
         sparkleOrnament = (kit) => {
           const onGlyph = kit.spec.placement === "glyphs";
@@ -101580,8 +101652,8 @@ function __mpStylesBundle() {
               kit.pos(it3.site, anchors, p4);
               const { top, bottom } = fallerLayout(kit, it3.site);
               const cycle = fract2(local / it3.period + it3.offset);
-              const span = it3.site.w + kit.size * 2;
-              const drift = wrap2(it3.x0 + span + cycle * kit.size * 2.5 + span, span * 2) - span;
+              const span3 = it3.site.w + kit.size * 2;
+              const drift = wrap2(it3.x0 + span3 + cycle * kit.size * 2.5 + span3, span3 * 2) - span3;
               const ox2 = drift + Math.sin(local * it3.swayFreq * TAU12) * it3.sway + kit.size * 6 * x4 * x4;
               const oy2 = lerp4(top, bottom, cycle);
               const flip = Math.cos(local * it3.flip);
@@ -101683,10 +101755,10 @@ function __mpStylesBundle() {
               }
               kit.pos(l4.site, anchors, p4);
               const top = -l4.site.h - kit.size * 2 - l4.length;
-              const span = l4.site.h * 2 + kit.size * 4 + l4.length * 2;
+              const span3 = l4.site.h * 2 + kit.size * 4 + l4.length * 2;
               const travel = l4.speed * (local + 2 * x4 * x4);
-              const y4 = top + wrap2(l4.y0 * span + travel, span);
-              const cycle = (y4 - top) / span;
+              const y4 = top + wrap2(l4.y0 * span3 + travel, span3);
+              const cycle = (y4 - top) / span3;
               const window2 = clamp0113(cycle / 0.15) * clamp0113((1 - cycle) / 0.15);
               const flicker = hash012(Math.floor(time * 15), l4.salt) < 0.2 ? 0.3 : 1;
               l4.sprite.visible = window2 > 0.01;
@@ -102097,7 +102169,7 @@ function __mpStylesBundle() {
           const placement = kit.spec.placement;
           const thick = Math.max(2, kit.size * 0.08);
           const pad = kit.size * 0.4;
-          const make = (a4, b4, rotation, color) => {
+          const make2 = (a4, b4, rotation, color) => {
             const g4 = kit.graphics();
             g4.moveTo(a4, 0).lineTo(0, 0).lineTo(0, b4).stroke({ width: thick, color: 16777215, cap: "square", join: "miter" });
             g4.rotation = rotation;
@@ -102107,7 +102179,7 @@ function __mpStylesBundle() {
           const CORNERS = [[-1, -1, 0], [1, -1, Math.PI / 2], [1, 1, Math.PI], [-1, 1, Math.PI * 1.5]];
           if (placement === "glyphs" && kit.glyphs.length > 0) {
             const arm = kit.size * 0.28;
-            const corners = CORNERS.map(([sx2, sy2, rot], k4) => ({ g: make(arm, arm, rot, kit.color(k4)), sx: sx2, sy: sy2 }));
+            const corners = CORNERS.map(([sx2, sy2, rot], k4) => ({ g: make2(arm, arm, rot, kit.color(k4)), sx: sx2, sy: sy2 }));
             const order = [...kit.glyphs].sort((p4, q4) => p4.sungAt - q4.sungAt);
             return (time) => {
               const x4 = kit.exit(time);
@@ -102152,7 +102224,7 @@ function __mpStylesBundle() {
           }
           const pieces = chosen.map(([sx2, sy2, rot], k4) => {
             const swap = k4 % 2 === 1 && chosen.length === 4;
-            return { g: make(swap ? armB : armA, swap ? armA : armB, rot, kit.color(k4)), sx: sx2, sy: sy2, delay: k4 * 0.06 };
+            return { g: make2(swap ? armB : armA, swap ? armA : armB, rot, kit.color(k4)), sx: sx2, sy: sy2, delay: k4 * 0.06 };
           });
           return (time) => {
             const beat = Math.exp(-(time - kit.lastSung(time)) / 0.12);
@@ -102355,9 +102427,9 @@ function __mpStylesBundle() {
           const holder = new kit.pixi.Container();
           kit.view.addChild(holder);
           holder.position.set(x03, y02);
-          const frame2 = kit.graphics(holder);
-          frame2.circle(0, 0, radius).stroke({ width: radius * 0.1, color: 16777215 });
-          frame2.circle(0, 0, radius * 0.8).stroke({ width: radius * 0.035, color: 16777215 });
+          const frame3 = kit.graphics(holder);
+          frame3.circle(0, 0, radius).stroke({ width: radius * 0.1, color: 16777215 });
+          frame3.circle(0, 0, radius * 0.8).stroke({ width: radius * 0.035, color: 16777215 });
           const char = STAMP_CHARS[Math.floor(kit.rng() * STAMP_CHARS.length) % STAMP_CHARS.length];
           const text = new kit.pixi.Text({
             text: char,
@@ -103146,16 +103218,16 @@ function __mpStylesBundle() {
           holder.zIndex = index;
           return { index, scene, holder, blur: null };
         };
-        applyHanabiLayerFrame = (pixi, entry, frame2, size, blurResolution) => {
-          entry.holder.alpha = frame2.alpha;
-          entry.holder.scale.set(frame2.scale);
-          entry.holder.position.set(size.width / 2, size.height / 2 + frame2.y * size.height);
-          entry.holder.rotation = frame2.rotation;
-          if (frame2.blur > BLUR_EPSILON2) {
+        applyHanabiLayerFrame = (pixi, entry, frame3, size, blurResolution) => {
+          entry.holder.alpha = frame3.alpha;
+          entry.holder.scale.set(frame3.scale);
+          entry.holder.position.set(size.width / 2, size.height / 2 + frame3.y * size.height);
+          entry.holder.rotation = frame3.rotation;
+          if (frame3.blur > BLUR_EPSILON2) {
             if (!entry.blur) {
-              entry.blur = new pixi.BlurFilter({ strength: frame2.blur, quality: 3, resolution: blurResolution });
+              entry.blur = new pixi.BlurFilter({ strength: frame3.blur, quality: 3, resolution: blurResolution });
             }
-            entry.blur.strength = frame2.blur;
+            entry.blur.strength = frame3.blur;
             if (!entry.holder.filters?.includes(entry.blur)) {
               entry.holder.filterArea ??= new pixi.Rectangle(-size.width, -size.height, size.width * 3, size.height * 3);
               entry.holder.filters = [entry.blur];
@@ -103440,16 +103512,16 @@ function __mpStylesBundle() {
         createHanabiTextures = (pixi, resolution) => {
           const scale = Math.max(0.5, Math.min(4, resolution || 1));
           const px2 = (base) => Math.max(4, Math.min(1024, Math.round(base * scale)));
-          const make = (canvas3) => pixi.Texture.from(canvas3);
+          const make2 = (canvas3) => pixi.Texture.from(canvas3);
           const textures = {
-            dot: make(drawDot2(px2(32))),
-            glow: make(drawGlow(px2(96))),
-            star4: make(drawStar4(px2(96))),
-            streak: make(drawStreak2(px2(16), px2(128))),
-            ring: make(drawRing(px2(160))),
-            square: make(drawSquare(px2(8))),
-            triangle: make(drawTriangle(px2(48))),
-            petal: make(drawPetal2(px2(32), px2(44)))
+            dot: make2(drawDot2(px2(32))),
+            glow: make2(drawGlow(px2(96))),
+            star4: make2(drawStar4(px2(96))),
+            streak: make2(drawStreak2(px2(16), px2(128))),
+            ring: make2(drawRing(px2(160))),
+            square: make2(drawSquare(px2(8))),
+            triangle: make2(drawTriangle(px2(48))),
+            petal: make2(drawPetal2(px2(32), px2(44)))
           };
           return {
             ...textures,
@@ -104858,11 +104930,11 @@ function __mpStylesBundle() {
         SHARP_SCALE = 0.5;
         MARGIN2 = 0.15;
         SLACK = 0.2;
-        ringColumns = (a4, b4, span, w4) => {
-          const ca3 = Math.floor(a4 / span * w4), n4 = Math.min(w4, Math.ceil(b4 / span * w4) - ca3);
+        ringColumns = (a4, b4, span3, w4) => {
+          const ca3 = Math.floor(a4 / span3 * w4), n4 = Math.min(w4, Math.ceil(b4 / span3 * w4) - ca3);
           const start = (ca3 % w4 + w4) % w4, first = Math.min(Math.max(n4, 0), w4 - start);
           const runs = n4 <= 0 ? [] : n4 > first ? [[start, first], [0, n4 - first]] : [[start, n4]];
-          return { x0: ca3 * span / w4, runs };
+          return { x0: ca3 * span3 / w4, runs };
         };
         BLD_FILL_UNIFORMS = ["uFillB", "uFillLayer", "uFillX0", "uFillGeo", "uFillSize"];
         NebbiaBuildingCache = class {
@@ -106180,7 +106252,7 @@ function __mpStylesBundle() {
           for (const l4 of lumps) l4.w /= sw2;
           return { arms, discs, specks, lumps };
         };
-        density = (sh3, blur) => {
+        density = (sh3, blur2) => {
           const c4 = canvas(), x4 = c4.getContext("2d"), R4 = FLAKE_R;
           x4.translate(FLAKE_SPRITE / 2, FLAKE_SPRITE / 2);
           x4.lineCap = "round";
@@ -106221,7 +106293,7 @@ function __mpStylesBundle() {
             x4.fill();
           }
           const out = canvas(), ox2 = out.getContext("2d");
-          ox2.filter = `blur(${blur}px)`;
+          ox2.filter = `blur(${blur2}px)`;
           ox2.drawImage(c4, 0, 0);
           const px2 = ox2.getImageData(0, 0, FLAKE_SPRITE, FLAKE_SPRITE).data, a4 = new Uint8ClampedArray(FLAKE_SPRITE * FLAKE_SPRITE);
           for (let i4 = 0; i4 < a4.length; i4 += 1) a4[i4] = px2[i4 * 4 + 3];
@@ -109897,8 +109969,8 @@ function __mpStylesBundle() {
            * 走 dt 秒（暂停、静止时 0）：落新雪、化雪、长水；sweeps 是这一帧扫过的几段（抹雪、吸水），wet 是写好的笔画（只吸水），暂停时也照样算。
            * wind 是车速带的风（雨夜街景里是 tuning.busSpeed，水族箱里 0）；outside 为假（水族箱）时窗外不下雪，只有贴上玻璃的。
            */
-          step(dt3, t4, sweeps, wet, wind, outside = true) {
-            this.fall.step(dt3, outside ? t4.snow : 0, wind);
+          step(dt3, t4, sweeps, wet, wind, outside2 = true) {
+            this.fall.step(dt3, outside2 ? t4.snow : 0, wind);
             this.spawnAcc += dt3 * t4.snow * 25 * this.W * this.H / (1280 * 720);
             for (; this.spawnAcc >= 1; this.spawnAcc -= 1) this.flakes.push(this.newFlake(t4, wind));
             this.boxOf(sweeps);
@@ -115867,7 +115939,7 @@ function __mpStylesBundle() {
           const value = target + (change + temp) * exp;
           return { value, velocity: newVelocity };
         };
-        frameHalfWidth = (distance, verticalFovDeg, aspect) => distance * Math.tan(verticalFovDeg * DEG_TO_RAD / 2) * aspect;
+        frameHalfWidth = (distance2, verticalFovDeg, aspect) => distance2 * Math.tan(verticalFovDeg * DEG_TO_RAD / 2) * aspect;
         DIORAMA_SUB_MODE_PRESETS = {
           normal: { move: 1, drift: 0.62, smooth: 0.42, audio: 1, weave: 1 },
           calm: { move: 0.6, drift: 0.4, smooth: 0.56, audio: 0.5, weave: 0.5 },
@@ -115928,10 +116000,10 @@ function __mpStylesBundle() {
           return frames[i4] ?? DEFAULT_FRAME;
         };
         translateFrames = (frames, offset) => frames.map((f4) => ({ position: vadd(f4.position, offset), forward: f4.forward, right: f4.right, up: f4.up }));
-        composeLocal = (frame2, right, up3, depth) => ({
-          x: frame2.position.x + frame2.right.x * right + frame2.up.x * up3 + frame2.forward.x * depth,
-          y: frame2.position.y + frame2.right.y * right + frame2.up.y * up3 + frame2.forward.y * depth,
-          z: frame2.position.z + frame2.right.z * right + frame2.up.z * up3 + frame2.forward.z * depth
+        composeLocal = (frame3, right, up3, depth) => ({
+          x: frame3.position.x + frame3.right.x * right + frame3.up.x * up3 + frame3.forward.x * depth,
+          y: frame3.position.y + frame3.right.y * right + frame3.up.y * up3 + frame3.forward.y * depth,
+          z: frame3.position.z + frame3.right.z * right + frame3.up.z * up3 + frame3.forward.z * depth
         });
         resolveReadHeadTruck = (wordProgress, trackWidth, visibleHalfWidth) => {
           if (trackWidth <= 0) return 0;
@@ -116112,16 +116184,16 @@ function __mpStylesBundle() {
           return weightedPickShot(computeShotWeights(lineIndex, lines, subMode), u4);
         };
         getDioramaShot = (lineIndex, lines, seed, subMode = "normal") => {
-          const pick2 = basePickShot(lineIndex, lines, seed, subMode);
+          const pick3 = basePickShot(lineIndex, lines, seed, subMode);
           const prev1 = lineIndex > 0 ? basePickShot(lineIndex - 1, lines, seed, subMode) : null;
           const prev2 = lineIndex > 1 ? basePickShot(lineIndex - 2, lines, seed, subMode) : null;
-          if (pick2 === prev1 || pick2 === prev2) {
-            const others = SHOT_KINDS.filter((k4) => k4 !== pick2 && k4 !== prev1 && k4 !== prev2);
-            const pool = others.length > 0 ? others : SHOT_KINDS.filter((k4) => k4 !== pick2);
+          if (pick3 === prev1 || pick3 === prev2) {
+            const others = SHOT_KINDS.filter((k4) => k4 !== pick3 && k4 !== prev1 && k4 !== prev2);
+            const pool = others.length > 0 ? others : SHOT_KINDS.filter((k4) => k4 !== pick3);
             const alt = seededUnit(hashSeed(seed) + lineIndex * 53 + 19);
             return pool[Math.floor(clamp0116(alt) * pool.length) % pool.length];
           }
-          return pick2;
+          return pick3;
         };
         resolveShotOffset = (kind, ctx2) => {
           const { hero, lift, seed, lineIndex } = ctx2;
@@ -116283,16 +116355,16 @@ function __mpStylesBundle() {
           specs.forEach((s4, i4) => {
             const radius = getSpecClearanceRadius(s4) * DIORAMA_PARTICLE_AUDIO_SCALE_MAX;
             const minimum = 2.8 + radius;
-            const distance = Math.hypot(s4.r, s4.u);
-            if (distance >= minimum) return;
+            const distance2 = Math.hypot(s4.r, s4.u);
+            if (distance2 >= minimum) return;
             const fallbackAngle = (i4 % 2 === 0 ? 1 : -1) * Math.PI * 0.16;
-            const directionR = distance > 1e-3 ? s4.r / distance : Math.cos(fallbackAngle);
-            const directionU = distance > 1e-3 ? s4.u / distance : Math.sin(fallbackAngle);
+            const directionR = distance2 > 1e-3 ? s4.r / distance2 : Math.cos(fallbackAngle);
+            const directionU = distance2 > 1e-3 ? s4.u / distance2 : Math.sin(fallbackAngle);
             s4.r = directionR * minimum;
             s4.u = directionU * minimum;
           });
         };
-        buildFormation = (lineIndex, seed, shot, frame2, placement, volumeScale = 1) => {
+        buildFormation = (lineIndex, seed, shot, frame3, placement, volumeScale = 1) => {
           const salt = hashSeed(seed) + lineIndex * 97;
           const rnd = (k4) => seededUnit(salt + k4);
           const dir = getShotDir(lineIndex, seed);
@@ -116413,7 +116485,7 @@ function __mpStylesBundle() {
           enforceTextClearance(specs);
           return specs.map((s4, j4) => ({
             kind: s4.kind,
-            position: composeLocal(frame2, placement.offsetR + s4.r, placement.offsetU + s4.u, s4.d),
+            position: composeLocal(frame3, placement.offsetR + s4.r, placement.offsetU + s4.u, s4.d),
             scale: s4.scale,
             stretchY: s4.stretchY,
             upright: s4.upright,
@@ -116435,7 +116507,7 @@ function __mpStylesBundle() {
         appendSegment = (state, input) => {
           const raw = buildDioramaPath(input.lines.length, input.seed);
           const frames = translateFrames(raw, input.placementOrigin);
-          const span = Math.max(input.lines.length, 1);
+          const span3 = Math.max(input.lines.length, 1);
           const segment2 = {
             key: `${String(input.seed)}#${input.round}`,
             seed: input.seed,
@@ -116443,23 +116515,23 @@ function __mpStylesBundle() {
             lines: input.lines,
             frames,
             globalStart: state.nextGlobalStart,
-            span,
+            span: span3,
             placementOrigin: input.placementOrigin,
             linesEpoch: 0
           };
           state.segments.push(segment2);
-          state.nextGlobalStart += span;
+          state.nextGlobalStart += span3;
           return segment2;
         };
         updateActiveSegmentLines = (state, lines) => {
           const seg = state.segments[state.segments.length - 1];
           if (!seg) return;
           const raw = buildDioramaPath(lines.length, seg.seed);
-          const span = Math.max(lines.length, 1);
-          state.nextGlobalStart += span - seg.span;
+          const span3 = Math.max(lines.length, 1);
+          state.nextGlobalStart += span3 - seg.span;
           seg.lines = lines;
           seg.frames = translateFrames(raw, seg.placementOrigin);
-          seg.span = span;
+          seg.span = span3;
           seg.linesEpoch += 1;
         };
         totalGlobalLines = (state) => state.nextGlobalStart;
@@ -116592,8 +116664,8 @@ function __mpStylesBundle() {
             if (now >= timing.endTime) {
               revealed = i4 + 1;
             } else if (now >= timing.startTime) {
-              const span = Math.max(timing.endTime - timing.startTime, 1e-3);
-              revealed = i4 + clamp0117((now - timing.startTime) / span);
+              const span3 = Math.max(timing.endTime - timing.startTime, 1e-3);
+              revealed = i4 + clamp0117((now - timing.startTime) / span3);
               break;
             } else {
               break;
@@ -116645,24 +116717,24 @@ function __mpStylesBundle() {
             let progress = line2 ? 1 : 0;
             if (line2) {
               const renderEndTime = getLineRenderEndTime(line2);
-              const span = renderEndTime - line2.startTime;
-              progress = span > 0 ? clamp0117((now - line2.startTime) / span) : now >= line2.startTime ? 1 : 0;
+              const span3 = renderEndTime - line2.startTime;
+              progress = span3 > 0 ? clamp0117((now - line2.startTime) / span3) : now >= line2.startTime ? 1 : 0;
             }
             const camera = state.camera;
             const aspect = camera.isPerspectiveCamera ? camera.aspect : 1;
             const fov = camera.isPerspectiveCamera ? camera.fov : 55;
             const visibleHalf = frameHalfWidth(DIORAMA_HERO_DISTANCE, fov, aspect) * DIORAMA_SAFE_FRAME_FRACTION;
-            const frame2 = resolved ? resolved.frame : getFrame([], 0);
-            const R4 = frame2.right;
-            const U4 = frame2.up;
-            const F4 = frame2.forward;
+            const frame3 = resolved ? resolved.frame : getFrame([], 0);
+            const R4 = frame3.right;
+            const U4 = frame3.up;
+            const F4 = frame3.forward;
             const settle2 = line2 ? resolveHoldSettle(now - getLineRenderEndTime(line2)) : 1;
             const truck = resolveReadHeadTruck(rtl ? 1 - wordProgress : wordProgress, activeLineWidthRef.current, visibleHalf) * settle2;
             const headR = placement.offsetR + truck;
             const headU = placement.offsetU;
-            const baseX = frame2.position.x + R4.x * headR + U4.x * headU;
-            const baseY = frame2.position.y + R4.y * headR + U4.y * headU;
-            const baseZ = frame2.position.z + R4.z * headR + U4.z * headU;
+            const baseX = frame3.position.x + R4.x * headR + U4.x * headU;
+            const baseY = frame3.position.y + R4.y * headR + U4.y * headU;
+            const baseZ = frame3.position.z + R4.z * headR + U4.z * headU;
             const shotSeed = resolved?.segment.seed;
             const shot = resolveShotOffset(shotKind, {
               progress,
@@ -116824,17 +116896,17 @@ function __mpStylesBundle() {
           }
           return result;
         };
-        extendDioramaFrame = (frame2, steps) => steps === 0 ? frame2 : {
+        extendDioramaFrame = (frame3, steps) => steps === 0 ? frame3 : {
           position: {
-            x: frame2.position.x + frame2.forward.x * DIORAMA_STEP_DISTANCE * steps,
-            y: frame2.position.y + frame2.forward.y * DIORAMA_STEP_DISTANCE * steps,
-            z: frame2.position.z + frame2.forward.z * DIORAMA_STEP_DISTANCE * steps
+            x: frame3.position.x + frame3.forward.x * DIORAMA_STEP_DISTANCE * steps,
+            y: frame3.position.y + frame3.forward.y * DIORAMA_STEP_DISTANCE * steps,
+            z: frame3.position.z + frame3.forward.z * DIORAMA_STEP_DISTANCE * steps
           },
-          forward: frame2.forward,
-          right: frame2.right,
-          up: frame2.up
+          forward: frame3.forward,
+          right: frame3.right,
+          up: frame3.up
         };
-        writeDioramaMoteLine = (out, frame2, line2, circumference, radial2, seed) => {
+        writeDioramaMoteLine = (out, frame3, line2, circumference, radial2, seed) => {
           const base = hashSeed(seed);
           const goldenAngle = Math.PI * (3 - Math.sqrt(5));
           const twoPi = Math.PI * 2;
@@ -116850,7 +116922,7 @@ function __mpStylesBundle() {
               const angle = phase + (line2 + ri3) * goldenAngle + ci2 / circumference * twoPi + (seededUnit(s4 + 3) - 0.5) * (twoPi / circumference);
               const depth = (radicalInverse(p4 + 1, 2) + (seededUnit(s4 + 2) - 0.5) / total - 0.5) * DIORAMA_STEP_DISTANCE;
               const point = composeLocal(
-                frame2,
+                frame3,
                 Math.cos(angle) * radius,
                 Math.sin(angle) * radius * MOTE_VERTICAL_SQUASH,
                 depth
@@ -116873,20 +116945,20 @@ function __mpStylesBundle() {
         init_dioramaMoteField();
         init_dioramaSequencer();
         DIORAMA_PARTICLE_CORRIDOR_RADIUS = 7.4;
-        buildDioramaParticleCorridorSpan = (frame2, nextFrame, pathStart, enabled) => {
-          const start = { ...frame2.position };
+        buildDioramaParticleCorridorSpan = (frame3, nextFrame, pathStart, enabled) => {
+          const start = { ...frame3.position };
           const end = nextFrame != null ? { ...nextFrame.position } : {
-            x: start.x + frame2.forward.x * DIORAMA_STEP_DISTANCE,
-            y: start.y + frame2.forward.y * DIORAMA_STEP_DISTANCE,
-            z: start.z + frame2.forward.z * DIORAMA_STEP_DISTANCE
+            x: start.x + frame3.forward.x * DIORAMA_STEP_DISTANCE,
+            y: start.y + frame3.forward.y * DIORAMA_STEP_DISTANCE,
+            z: start.z + frame3.forward.z * DIORAMA_STEP_DISTANCE
           };
           return {
             start,
             end,
-            startRight: frame2.right,
-            endRight: nextFrame ? nextFrame.right : frame2.right,
-            startUp: frame2.up,
-            endUp: nextFrame ? nextFrame.up : frame2.up,
+            startRight: frame3.right,
+            endRight: nextFrame ? nextFrame.right : frame3.right,
+            startUp: frame3.up,
+            endUp: nextFrame ? nextFrame.up : frame3.up,
             pathStart,
             enabled
           };
@@ -117148,7 +117220,7 @@ function __mpStylesBundle() {
         };
         resolveRingSegments = (pointsPerSpan) => Math.max(12, Math.min(256, Math.round(Math.sqrt(pointsPerSpan * 2.4))));
         buildDioramaCorridorGeometryData = (spans, density2, radius = DIORAMA_PARTICLE_CORRIDOR_RADIUS) => {
-          const activeSpans = spans.filter((span) => span.enabled);
+          const activeSpans = spans.filter((span3) => span3.enabled);
           const spanCount = activeSpans.length;
           const pointsPerSpan = normalizeDensity(Math.min(density2, DIORAMA_MAX_CORRIDOR_POINTS_PER_SPAN));
           const ringSegments = resolveRingSegments(pointsPerSpan);
@@ -117159,23 +117231,23 @@ function __mpStylesBundle() {
           const spacing = Math.max(spanUnits / Math.max(1, rings2), Math.PI * 2 / ringSegments);
           const data = allocate(pointCount, perSpan, spacing);
           let target = 0;
-          activeSpans.forEach((span) => {
+          activeSpans.forEach((span3) => {
             for (let ring = 0; ring < rings2; ring += 1) {
               const t4 = rings2 > 1 ? ring / (rings2 - 1) : 0.5;
-              const cx2 = span.start.x + (span.end.x - span.start.x) * t4;
-              const cy2 = span.start.y + (span.end.y - span.start.y) * t4;
-              const cz = span.start.z + (span.end.z - span.start.z) * t4;
+              const cx2 = span3.start.x + (span3.end.x - span3.start.x) * t4;
+              const cy2 = span3.start.y + (span3.end.y - span3.start.y) * t4;
+              const cz = span3.start.z + (span3.end.z - span3.start.z) * t4;
               const right = normalizeVec(
-                span.startRight.x + (span.endRight.x - span.startRight.x) * t4,
-                span.startRight.y + (span.endRight.y - span.startRight.y) * t4,
-                span.startRight.z + (span.endRight.z - span.startRight.z) * t4
+                span3.startRight.x + (span3.endRight.x - span3.startRight.x) * t4,
+                span3.startRight.y + (span3.endRight.y - span3.startRight.y) * t4,
+                span3.startRight.z + (span3.endRight.z - span3.startRight.z) * t4
               );
               const up3 = normalizeVec(
-                span.startUp.x + (span.endUp.x - span.startUp.x) * t4,
-                span.startUp.y + (span.endUp.y - span.startUp.y) * t4,
-                span.startUp.z + (span.endUp.z - span.startUp.z) * t4
+                span3.startUp.x + (span3.endUp.x - span3.startUp.x) * t4,
+                span3.startUp.y + (span3.endUp.y - span3.startUp.y) * t4,
+                span3.startUp.z + (span3.endUp.z - span3.startUp.z) * t4
               );
-              const longitudinal = span.pathStart + t4;
+              const longitudinal = span3.pathStart + t4;
               for (let segment2 = 0; segment2 < ringSegments; segment2 += 1) {
                 const angle = segment2 / ringSegments * Math.PI * 2;
                 const cos = Math.cos(angle);
@@ -117202,7 +117274,7 @@ function __mpStylesBundle() {
                 data.phases[target] = longitudinal * 1.7;
                 data.waves[target * 2] = longitudinal * spanUnits;
                 data.waves[target * 2 + 1] = angle;
-                writeStyle(data, target, 3, (Math.round(span.pathStart) + ring) % 2, 0);
+                writeStyle(data, target, 3, (Math.round(span3.pathStart) + ring) % 2, 0);
                 target += 1;
               }
             }
@@ -117836,7 +117908,7 @@ function __mpStylesBundle() {
           texture.colorSpace = Je;
           return texture;
         };
-        drawGlowGlyph = (ctx2, text, x4, y4, blur) => {
+        drawGlowGlyph = (ctx2, text, x4, y4, blur2) => {
           const OFFSCREEN = 1e4;
           ctx2.save();
           ctx2.globalCompositeOperation = "lighter";
@@ -117848,10 +117920,10 @@ function __mpStylesBundle() {
             ctx2.shadowOffsetY = 0;
             ctx2.fillText(text, x4 - OFFSCREEN, y4);
           };
-          haloPass(blur, 0.95);
-          haloPass(blur, 0.85);
-          haloPass(blur * 2, 0.55);
-          haloPass(blur * 2.9, 0.3);
+          haloPass(blur2, 0.95);
+          haloPass(blur2, 0.85);
+          haloPass(blur2 * 2, 0.55);
+          haloPass(blur2 * 2.9, 0.3);
           ctx2.restore();
         };
         rasterDioramaUnit = (text, fontSpec2) => {
@@ -118240,8 +118312,8 @@ function __mpStylesBundle() {
         resolveGradientEnergy = (now, unit2) => {
           if (now <= unit2.startTime) return 0;
           if (now < unit2.endTime) {
-            const span = Math.max(unit2.endTime - unit2.startTime, 1e-3);
-            return smoothstep012(clamp0119((now - unit2.startTime) / span));
+            const span3 = Math.max(unit2.endTime - unit2.startTime, 1e-3);
+            return smoothstep012(clamp0119((now - unit2.startTime) / span3));
           }
           const sinceSung = now - unit2.endTime;
           if (sinceSung <= GRADIENT_HOLD_SECONDS) return 1;
@@ -118254,9 +118326,9 @@ function __mpStylesBundle() {
           const nearT = clamp0119((distanceToCamera - TEXT_DISSOLVE_END) / (TEXT_DISSOLVE_START - TEXT_DISSOLVE_END));
           return farT * farT * (3 - 2 * farT) * (nearT * nearT * (3 - 2 * nearT));
         };
-        resolveFrameFitScale = (renderedWidth, distance, verticalFovDeg, aspect) => {
-          if (renderedWidth <= 0 || distance <= 0) return 1;
-          const frameWidth = 2 * distance * Math.tan(verticalFovDeg * DEG_TO_RAD2 / 2) * aspect;
+        resolveFrameFitScale = (renderedWidth, distance2, verticalFovDeg, aspect) => {
+          if (renderedWidth <= 0 || distance2 <= 0) return 1;
+          const frameWidth = 2 * distance2 * Math.tan(verticalFovDeg * DEG_TO_RAD2 / 2) * aspect;
           const targetWidth = frameWidth * TARGET_FRAME_WIDTH_FRACTION;
           return Math.min(1, Math.max(MIN_FIT_SCALE, targetWidth / renderedWidth));
         };
@@ -118268,10 +118340,10 @@ function __mpStylesBundle() {
         _basisFwd = new Ci();
         _axisY = new Ci(0, 1, 0);
         _axisZ = new Ci(0, 0, 1);
-        frameQuaternion = (frame2, roll = 0, yaw = 0) => {
-          _basisRight.set(frame2.right.x, frame2.right.y, frame2.right.z);
-          _basisUp.set(frame2.up.x, frame2.up.y, frame2.up.z);
-          _basisFwd.set(-frame2.forward.x, -frame2.forward.y, -frame2.forward.z);
+        frameQuaternion = (frame3, roll = 0, yaw = 0) => {
+          _basisRight.set(frame3.right.x, frame3.right.y, frame3.right.z);
+          _basisUp.set(frame3.up.x, frame3.up.y, frame3.up.z);
+          _basisFwd.set(-frame3.forward.x, -frame3.forward.y, -frame3.forward.z);
           _basisMatrix.makeBasis(_basisRight, _basisUp, _basisFwd);
           _basisQuat.setFromRotationMatrix(_basisMatrix);
           if (yaw !== 0) _basisQuat.multiply(_tiltQuat2.setFromAxisAngle(_axisY, yaw));
@@ -118358,19 +118430,19 @@ function __mpStylesBundle() {
           for (const i4 of mountedIndices) {
             const resolved = resolveGlobal(sequencer, i4);
             if (!resolved || !resolved.line) continue;
-            const { frame: frame2 } = resolved;
+            const { frame: frame3 } = resolved;
             const placement = getDioramaTextPlacement(resolved.localIndex, resolved.segment.seed, weaveScale);
             const position = {
-              x: frame2.position.x + frame2.right.x * placement.offsetR + frame2.up.x * placement.offsetU,
-              y: frame2.position.y + frame2.right.y * placement.offsetR + frame2.up.y * placement.offsetU,
-              z: frame2.position.z + frame2.right.z * placement.offsetR + frame2.up.z * placement.offsetU
+              x: frame3.position.x + frame3.right.x * placement.offsetR + frame3.up.x * placement.offsetU,
+              y: frame3.position.y + frame3.right.y * placement.offsetR + frame3.up.y * placement.offsetU,
+              z: frame3.position.z + frame3.right.z * placement.offsetR + frame3.up.z * placement.offsetU
             };
             result.push({
               index: i4,
               line: resolved.line,
               placement,
               position: [position.x, position.y, position.z],
-              quaternion: frameQuaternion(frame2, placement.roll, placement.yaw),
+              quaternion: frameQuaternion(frame3, placement.roll, placement.yaw),
               // A line belongs to the departing cluster if it sits nearer the outgoing centre than the
               // current one (works whether that cluster is a different segment or this corridor's own end).
               isOutgoing: transitionOutgoingIndex != null && Math.abs(i4 - transitionOutgoingIndex) <= Math.abs(i4 - globalIndex)
@@ -118410,10 +118482,10 @@ function __mpStylesBundle() {
           for (const i4 of Array.from(clusterIndices).sort((a4, b4) => a4 - b4)) {
             const resolved = resolveGlobal(sequencer, i4);
             if (!resolved) continue;
-            const { frame: frame2, localIndex, segment: segment2 } = resolved;
+            const { frame: frame3, localIndex, segment: segment2 } = resolved;
             const placement = getDioramaTextPlacement(localIndex, segment2.seed, motion2.weaveScale);
             const shot = getDioramaShot(localIndex, segment2.lines, segment2.seed, motion2.subMode);
-            buildFormation(localIndex, segment2.seed, shot, frame2, placement, particleScale).forEach((piece, slot) => {
+            buildFormation(localIndex, segment2.seed, shot, frame3, placement, particleScale).forEach((piece, slot) => {
               result.push({
                 ...piece,
                 key: `${i4}-${slot}`,
@@ -118688,8 +118760,8 @@ function __mpStylesBundle() {
             if (!baseMat || !lightVals || !soulVals) return;
             const isCurrent = now >= unit2.startTime && now < unit2.endTime;
             const sung = now >= unit2.endTime;
-            const span = Math.max(unit2.endTime - unit2.startTime, 1e-3);
-            const sungMix = sung ? 1 : isCurrent ? clamp0119((now - unit2.startTime) / span) : 0;
+            const span3 = Math.max(unit2.endTime - unit2.startTime, 1e-3);
+            const sungMix = sung ? 1 : isCurrent ? clamp0119((now - unit2.startTime) / span3) : 0;
             lightVals[i4] = stepEnvelope(lightVals[i4], isCurrent ? 1 : 0, 14, 4.5, delta);
             const gradientEnergy = resolveGradientEnergy(now, unit2) * gradientStrength;
             baseMat.opacity = Math.min(
@@ -119603,6 +119675,3389 @@ function __mpStylesBundle() {
       }
     });
   
+    // src/folia/utils/whenIdle.ts
+    var whenIdle;
+    var init_whenIdle = __esm({
+      "src/folia/utils/whenIdle.ts"() {
+        whenIdle = (run, timeout = 500) => {
+          if (typeof window.requestIdleCallback !== "function") {
+            const timer = window.setTimeout(run, 50);
+            return () => window.clearTimeout(timer);
+          }
+          const idle = window.requestIdleCallback(run, { timeout });
+          return () => window.cancelIdleCallback(idle);
+        };
+      }
+    });
+  
+    // src/folia/components/visualizer/metaphor/metaphorShapes.ts
+    var METAPHOR_SHAPE_STRIDE, METAPHOR_SHAPE_CAPACITY, METAPHOR_DYNAMIC_RESERVE, PLAN_LIMIT, METAPHOR_SHAPE_BLOB, METAPHOR_SHAPE_RING, METAPHOR_SHAPE_BAR, METAPHOR_SHAPE_ARC, METAPHOR_SHAPE_WAVE, TAU16, MAX_FLOW, staticMetaphorShape, make, stageOf, outsidePoint, planMetaphorShapes, joinMetaphorShapes, putMetaphorShape, writeMetaphorShapes, METAPHOR_COLLISION_APPROACH, METAPHOR_COLLISION_LIFE, TRAIL_DOTS, TRAIL_GAP, planMetaphorCollisions, writeMetaphorCollisions, PAIR_LIFE, writeMetaphorPairs;
+    var init_metaphorShapes = __esm({
+      "src/folia/components/visualizer/metaphor/metaphorShapes.ts"() {
+        METAPHOR_SHAPE_STRIDE = 10;
+        METAPHOR_SHAPE_CAPACITY = 1024;
+        METAPHOR_DYNAMIC_RESERVE = 384;
+        PLAN_LIMIT = 80;
+        METAPHOR_SHAPE_BLOB = 0;
+        METAPHOR_SHAPE_RING = 1;
+        METAPHOR_SHAPE_BAR = 2;
+        METAPHOR_SHAPE_ARC = 3;
+        METAPHOR_SHAPE_WAVE = 4;
+        TAU16 = Math.PI * 2;
+        MAX_FLOW = 2;
+        staticMetaphorShape = (shape2, patch) => ({
+          shape: shape2,
+          x: 0,
+          y: 0,
+          sx: 1,
+          sy: 1,
+          param: 0,
+          born: 0,
+          rot: 0,
+          ink: 0,
+          tone: 0,
+          accent: 0,
+          ampX: 0,
+          ampY: 0,
+          w1: 0,
+          w2: 0,
+          p1: 0,
+          p2: 0,
+          parent: -1,
+          orbit: 0,
+          orbitSpeed: 0,
+          steady: false,
+          pulse: 0,
+          ...patch
+        });
+        make = (rng, shape2, patch) => ({
+          shape: shape2,
+          x: 0,
+          y: 0,
+          sx: 1,
+          sy: 1,
+          param: 0,
+          born: 0,
+          rot: 0,
+          ink: 0,
+          tone: 0,
+          accent: 0,
+          // 漂一个来回要四十秒到一百秒
+          ampX: 0,
+          ampY: 0,
+          w1: 0.06 + rng() * 0.1,
+          w2: 0.06 + rng() * 0.1,
+          p1: rng() * TAU16,
+          p2: rng() * TAU16,
+          parent: -1,
+          orbit: 0,
+          orbitSpeed: 0,
+          steady: false,
+          pulse: 0,
+          ...patch
+        });
+        stageOf = (bounds) => {
+          const halfW = (bounds.x1 - bounds.x0) / 2;
+          const halfH = (bounds.y1 - bounds.y0) / 2;
+          return { halfW, halfH, reach: Math.max(halfW, halfH, 2) };
+        };
+        outsidePoint = (stage2, rng, pad, far) => {
+          const angle = rng() * TAU16;
+          const cos = Math.cos(angle);
+          const sin = Math.sin(angle);
+          const edge = Math.min((stage2.halfW + pad) / Math.max(1e-3, Math.abs(cos)), (stage2.halfH + pad) / Math.max(1e-3, Math.abs(sin)));
+          const radius = edge + rng() * far;
+          return { x: cos * radius, y: sin * radius };
+        };
+        planMetaphorShapes = (bounds, rng, amount, interlude) => {
+          const shapes = [];
+          const stage2 = stageOf(bounds);
+          const { halfW, halfH, reach } = stage2;
+          const scale = amount * (interlude ? 1.5 : 1);
+          const count = (base) => Math.round(base * scale + rng() * 0.6 * Math.min(1, scale));
+          const span3 = (min, max) => min + rng() * (max - min);
+          const around = (min, max) => {
+            const angle = rng() * TAU16;
+            const radius = span3(min, max);
+            return { x: Math.cos(angle) * radius * (halfW / reach + 0.6), y: Math.sin(angle) * radius * (halfH / reach + 0.6) };
+          };
+          for (let index = count(4); index > 0; index -= 1) {
+            const radius = span3(0.5, 1.4) * reach;
+            shapes.push(make(rng, METAPHOR_SHAPE_BLOB, {
+              ...around(reach * 0.5, reach * 2.4),
+              sx: radius,
+              sy: radius,
+              tone: span3(0.5, 1),
+              ampX: span3(0.3, 1.2),
+              ampY: span3(0.3, 1),
+              pulse: 0.5
+            }));
+          }
+          for (let index = interlude ? Math.min(2, count(1.2)) : count(3); index > 0; index -= 1) {
+            const radius = (interlude ? span3(0.1, 0.24) : span3(0.25, 0.7)) * reach;
+            const ampX = span3(0.2, 0.9);
+            const ampY = span3(0.2, 0.8);
+            const place = interlude ? around(reach * 0.2, reach * 1.6) : outsidePoint(stage2, rng, radius * 1.4 + 0.2 + Math.max(ampX, ampY) * MAX_FLOW, reach);
+            const parent = shapes.length;
+            shapes.push(make(rng, METAPHOR_SHAPE_BLOB, { ...place, sx: radius, sy: radius, ink: 1, tone: 0.6, ampX, ampY, pulse: 1 }));
+            for (let drop = 2 + Math.floor(rng() * 2); drop > 0; drop -= 1) {
+              const small2 = radius * span3(0.12, 0.3);
+              shapes.push(make(rng, METAPHOR_SHAPE_BLOB, {
+                sx: small2,
+                sy: small2,
+                ink: 1,
+                parent,
+                orbit: radius * span3(0.55, 0.85),
+                orbitSpeed: (rng() < 0.5 ? -1 : 1) * span3(0.08, 0.22),
+                pulse: 0.4
+              }));
+            }
+          }
+          if (!interlude) {
+            for (let index = count(4); index > 0; index -= 1) {
+              const radius = span3(0.18, 0.45);
+              const side = Math.floor(rng() * 4);
+              const along = span3(-1, 1);
+              const out = span3(0.35, 0.9);
+              shapes.push(make(rng, METAPHOR_SHAPE_BLOB, {
+                x: side < 2 ? along * halfW : (side === 2 ? -1 : 1) * (halfW + out),
+                y: side < 2 ? (side === 0 ? -1 : 1) * (halfH + out) : along * halfH,
+                sx: radius,
+                sy: radius,
+                ink: 1,
+                ampX: span3(0.1, 0.45),
+                ampY: span3(0.1, 0.45),
+                pulse: 0.8
+              }));
+            }
+          }
+          for (let index = count(1.6); index > 0; index -= 1) {
+            const radius = span3(0.9, 1.5) * Math.min(1.6, Math.max(0.45, Math.min(halfW, halfH) * 0.9));
+            shapes.push(make(rng, METAPHOR_SHAPE_BLOB, {
+              x: span3(-0.9, 0.9) * halfW,
+              y: span3(-0.9, 0.9) * halfH,
+              sx: radius,
+              sy: radius,
+              accent: 1,
+              tone: 0.4,
+              ampX: span3(0.3, 0.9) * Math.min(1.5, halfW),
+              ampY: span3(0.2, 0.6) * Math.min(1.5, halfH),
+              pulse: 1
+            }));
+          }
+          for (let index = count(0.8); index > 0; index -= 1) {
+            const radius = span3(0.5, 1.5) * reach;
+            const accent = rng() < 0.35;
+            shapes.push(make(rng, METAPHOR_SHAPE_RING, {
+              ...around(0, reach * 2),
+              sx: radius,
+              sy: radius,
+              ink: accent ? 0 : 1,
+              accent: accent ? 1 : 0,
+              ampX: span3(0, 0.4),
+              ampY: span3(0, 0.4)
+            }));
+          }
+          return shapes.slice(0, PLAN_LIMIT);
+        };
+        joinMetaphorShapes = (...groups) => {
+          const joined = [];
+          for (const group2 of groups) {
+            const base = joined.length;
+            for (const shape2 of group2) joined.push(shape2.parent >= 0 && base > 0 ? { ...shape2, parent: shape2.parent + base } : shape2);
+          }
+          return joined;
+        };
+        putMetaphorShape = (out, count, shape2, x4, y4, sx2, sy2, rot, ink, tone, accent, param = 0) => {
+          if (count >= METAPHOR_SHAPE_CAPACITY) return count;
+          const at3 = count * METAPHOR_SHAPE_STRIDE;
+          out[at3] = x4;
+          out[at3 + 1] = y4;
+          out[at3 + 2] = sx2;
+          out[at3 + 3] = sy2;
+          out[at3 + 4] = rot;
+          out[at3 + 5] = ink;
+          out[at3 + 6] = tone;
+          out[at3 + 7] = accent;
+          out[at3 + 8] = shape2;
+          out[at3 + 9] = param;
+          return count + 1;
+        };
+        writeMetaphorShapes = (shapes, time, audio, flow, out, since = Number.POSITIVE_INFINITY, limit = METAPHOR_SHAPE_CAPACITY - METAPHOR_DYNAMIC_RESERVE) => {
+          let count = 0;
+          const xs4 = [];
+          const ys4 = [];
+          for (const shape2 of shapes) {
+            if (count >= limit) break;
+            let x4 = shape2.x + shape2.ampX * flow * Math.sin(time * shape2.w1 + shape2.p1);
+            let y4 = shape2.y + shape2.ampY * flow * Math.cos(time * shape2.w2 + shape2.p2);
+            if (shape2.orbit > 0) {
+              const angle = time * shape2.orbitSpeed + shape2.p1;
+              const radius = shape2.steady ? shape2.orbit : shape2.orbit * (0.8 + 0.35 * Math.sin(time * 0.3 + shape2.p2));
+              x4 = (shape2.parent >= 0 ? xs4[shape2.parent] : x4) + Math.cos(angle) * radius;
+              y4 = (shape2.parent >= 0 ? ys4[shape2.parent] : y4) + Math.sin(angle) * radius;
+            }
+            xs4.push(x4);
+            ys4.push(y4);
+            if (shape2.born > since) continue;
+            const swell = 1 + shape2.pulse * (0.06 * Math.sin(time * 0.4 + shape2.p2) + 0.14 * audio);
+            count = putMetaphorShape(out, count, shape2.shape, x4, y4, shape2.sx * swell, shape2.sy * swell, shape2.rot, shape2.ink, shape2.tone, shape2.accent, shape2.param);
+          }
+          return count;
+        };
+        METAPHOR_COLLISION_APPROACH = 2.6;
+        METAPHOR_COLLISION_LIFE = 6.5;
+        TRAIL_DOTS = 5;
+        TRAIL_GAP = 0.3;
+        planMetaphorCollisions = (bounds, rng, times2, amount, interlude) => {
+          if (amount <= 0) return [];
+          const stage2 = stageOf(bounds);
+          const span3 = (min, max) => min + rng() * (max - min);
+          return times2.map((time) => {
+            const unit2 = Math.max(1, stage2.reach * 0.32) * span3(0.8, 1.2);
+            const place = interlude ? { x: span3(-0.5, 0.5) * stage2.halfW, y: span3(-0.5, 0.5) * stage2.halfH } : outsidePoint(stage2, rng, unit2 * 0.9, stage2.reach * 0.5);
+            const total = Math.max(3, Math.round(span3(5, 9) * Math.min(1.5, amount)));
+            const fragments = [];
+            for (let index = 0; index < total; index += 1) {
+              const size = span3(0.05, 0.15);
+              fragments.push({
+                dir: rng() * TAU16,
+                curl: (rng() < 0.5 ? -1 : 1) * span3(0.5, 1.2) * (0.16 / (size + 0.04)),
+                range: unit2 * span3(1.2, 3.2),
+                size: unit2 * size,
+                life: span3(3.5, METAPHOR_COLLISION_LIFE)
+              });
+            }
+            return { time, ...place, angle: rng() * TAU16, unit: unit2, fragments };
+          });
+        };
+        writeMetaphorCollisions = (collisions, time, out, offset) => {
+          let count = offset;
+          for (const hit of collisions) {
+            const since = time - hit.time;
+            if (since < -METAPHOR_COLLISION_APPROACH || since >= METAPHOR_COLLISION_LIFE) continue;
+            const cos = Math.cos(hit.angle);
+            const sin = Math.sin(hit.angle);
+            if (since < 0) {
+              for (let dot = 0; dot <= 3; dot += 1) {
+                const u4 = 1 + since / METAPHOR_COLLISION_APPROACH - dot * 0.035;
+                if (u4 < 0) continue;
+                const left = hit.unit * 5 * (1 - u4 * u4 * u4);
+                const radius = hit.unit * (dot === 0 ? 0.22 : 0.13 - dot * 0.025);
+                count = putMetaphorShape(out, count, METAPHOR_SHAPE_BLOB, hit.x + cos * left, hit.y + sin * left, radius, radius, 0, 1, 0.3, 0);
+                count = putMetaphorShape(out, count, METAPHOR_SHAPE_BLOB, hit.x - cos * left, hit.y - sin * left, radius, radius, 0, 1, 0.3, 0);
+              }
+              continue;
+            }
+            const burst2 = hit.unit * 0.95 * Math.exp(-since * 1.6);
+            if (burst2 > hit.unit * 0.04) count = putMetaphorShape(out, count, METAPHOR_SHAPE_BLOB, hit.x, hit.y, burst2, burst2, 0, 1, 0.8, 0);
+            if (since < 4) {
+              const ring = hit.unit * (0.35 + 2.6 * (1 - Math.exp(-since * 0.55)));
+              count = putMetaphorShape(out, count, METAPHOR_SHAPE_RING, hit.x, hit.y, ring, ring, 0, since < 2.2 ? 1 : 0, 1, 0);
+            }
+            for (const fragment5 of hit.fragments) {
+              for (let dot = 0; dot <= TRAIL_DOTS; dot += 1) {
+                const age = since - dot * TRAIL_GAP;
+                if (age < 0 || age >= fragment5.life) continue;
+                const travelled = fragment5.range * (1 - Math.exp(-age * 0.6));
+                const angle = fragment5.dir + fragment5.curl * travelled / hit.unit;
+                const fade = 1 - age / fragment5.life;
+                const radius = fragment5.size * fade * (dot === 0 ? 1 : 0.6 - dot * 0.07);
+                count = putMetaphorShape(out, count, METAPHOR_SHAPE_BLOB, hit.x + Math.cos(angle) * travelled, hit.y + Math.sin(angle) * travelled, radius, radius, 0, 1, 0.25, 0);
+              }
+            }
+          }
+          return count;
+        };
+        PAIR_LIFE = 3.6;
+        writeMetaphorPairs = (glyphs, time, out, offset) => {
+          let count = offset;
+          for (const glyph of glyphs) {
+            const age = time - glyph.t0;
+            if (age < 0 || age >= PAIR_LIFE) continue;
+            const life = age / PAIR_LIFE;
+            const travelled = glyph.size * (0.4 + 1.5 * (1 - Math.exp(-age * 0.7)));
+            const radius = glyph.size * (0.07 + glyph.seed * 0.05) * (1 - life * life);
+            const curl = 0.9 + glyph.seed * 1.4;
+            const ink = glyph.accent ? 0 : 1;
+            const accent = glyph.accent ? 1 : 0;
+            for (const side of [1, -1]) {
+              const angle = glyph.seed * TAU16 + (side > 0 ? 0 : Math.PI) + side * curl * travelled / glyph.size;
+              count = putMetaphorShape(out, count, METAPHOR_SHAPE_BLOB, glyph.x + Math.cos(angle) * travelled, glyph.y + Math.sin(angle) * travelled, radius, radius, 0, ink, 0.3, accent);
+            }
+          }
+          return count;
+        };
+      }
+    });
+  
+    // src/folia/components/visualizer/metaphor/metaphorBeatFx.ts
+    var SNAP_DOWNBEAT, SNAP_BEAT, SNAP_APART, RING_LIFE, STRENGTH_MAX, firstAtOrAfter, nearestBeat, snapMetaphorCollisions, writeMetaphorBeatRings;
+    var init_metaphorBeatFx = __esm({
+      "src/folia/components/visualizer/metaphor/metaphorBeatFx.ts"() {
+        init_clock();
+        init_metaphorShapes();
+        SNAP_DOWNBEAT = 0.9;
+        SNAP_BEAT = 0.3;
+        SNAP_APART = 0.4;
+        RING_LIFE = 2.2;
+        STRENGTH_MAX = 2;
+        firstAtOrAfter = (events, time) => {
+          let low = 0;
+          let high = events.length;
+          while (low < high) {
+            const mid = low + high >> 1;
+            if (events[mid].t < time) low = mid + 1;
+            else high = mid;
+          }
+          return low;
+        };
+        nearestBeat = (events, time, reach, downbeat) => {
+          let best = null;
+          for (let index = firstAtOrAfter(events, time - reach); index < events.length && events[index].t <= time + reach; index += 1) {
+            const event = events[index];
+            if (event.rhythmic === false || downbeat && event.kind !== "downbeat") continue;
+            if (best === null || Math.abs(event.t - time) < Math.abs(best - time)) best = event.t;
+          }
+          return best;
+        };
+        snapMetaphorCollisions = (collisions, events, earliest = Number.NEGATIVE_INFINITY) => {
+          if (events.length === 0) return [...collisions];
+          const taken = [];
+          return collisions.map((hit) => {
+            const free = (time2) => time2 !== null && time2 >= earliest && taken.every((other) => Math.abs(other - time2) >= SNAP_APART);
+            const bar = nearestBeat(events, hit.time, SNAP_DOWNBEAT, true);
+            const beat = nearestBeat(events, hit.time, SNAP_BEAT, false);
+            const time = free(bar) ? bar : free(beat) ? beat : hit.time;
+            taken.push(time);
+            return time === hit.time ? hit : { ...hit, time };
+          });
+        };
+        writeMetaphorBeatRings = (collisions, events, time, shift, strength, trackScale, out, offset) => {
+          let count = offset;
+          if (collisions.length === 0 || strength <= 0) return count;
+          const scale = Math.min(STRENGTH_MAX, strength);
+          for (let index = firstAtOrAfter(events, time - RING_LIFE); index < events.length && events[index].t <= time; index += 1) {
+            const event = events[index];
+            const gain = resolveBeatFxAccentGain(event, trackScale);
+            if (gain <= 0) continue;
+            const at3 = event.t + shift;
+            let site = null;
+            for (const hit of collisions) {
+              const since = at3 - hit.time;
+              if (since < -METAPHOR_COLLISION_APPROACH || since >= METAPHOR_COLLISION_LIFE) continue;
+              if (!site || Math.abs(since) < Math.abs(at3 - site.time)) site = hit;
+            }
+            if (!site || Math.abs(at3 - site.time) < 0.05) continue;
+            const age = time - event.t;
+            const fade = 1 - age / RING_LIFE;
+            const reach = (event.kind === "downbeat" ? 1.5 : 1) * (0.5 + 0.9 * gain) * scale;
+            const radius = site.unit * (0.16 + reach * (1 - Math.exp(-age * 1.1)));
+            count = putMetaphorShape(out, count, METAPHOR_SHAPE_RING, site.x, site.y, radius, radius, 0, age < 0.25 ? 1 : 0, fade, 0);
+          }
+          return count;
+        };
+      }
+    });
+  
+    // src/folia/components/visualizer/metaphor/metaphorProgram.ts
+    var METAPHOR_PREROLL, METAPHOR_TAIL, INTERLUDE_MIN, MIN_SHOT, MIN_CUE, LOOP_SECONDS, INTERLUDE_SEGMENT, INTERLUDE_SPLIT, INTERLUDE_HORIZON, INTENSITY_PACE, SAME_ONSET, SCREEN_ANGLES, CJK3, pick2, FIRST_SHOT, MIDDLE_SHOT, INTERLUDE_SHOT, span, sign, shotPose, makeShot, planCuts, lineShots, interludeShots, pickComposition, pickTransition, sungLines, compileMetaphorProgram, findMetaphorCue, resolveMetaphorCueTime, findMetaphorShot;
+    var init_metaphorProgram = __esm({
+      "src/folia/components/visualizer/metaphor/metaphorProgram.ts"() {
+        init_visualizerSeedHash();
+        METAPHOR_PREROLL = 0.6;
+        METAPHOR_TAIL = 2;
+        INTERLUDE_MIN = 2.4;
+        MIN_SHOT = 0.6;
+        MIN_CUE = 0.15;
+        LOOP_SECONDS = 48;
+        INTERLUDE_SEGMENT = 24;
+        INTERLUDE_SPLIT = 36;
+        INTERLUDE_HORIZON = 720;
+        INTENSITY_PACE = { calm: 0.75, normal: 1, chaotic: 1.3 };
+        SAME_ONSET = 0.3;
+        SCREEN_ANGLES = [0.26, 0.52, 0.79, 1.31];
+        CJK3 = /[぀-ヿ㐀-鿿가-힯ｦ-ﾟ]/u;
+        pick2 = (rng, weights, avoid) => {
+          const entries = Object.entries(weights).filter(([key, weight]) => weight > 0 && key !== avoid);
+          const pool = entries.length > 0 ? entries : Object.entries(weights);
+          const total = pool.reduce((sum, [, weight]) => sum + weight, 0);
+          let roll = rng() * total;
+          for (const [key, weight] of pool) {
+            roll -= weight;
+            if (roll <= 0) return key;
+          }
+          return pool[pool.length - 1][0];
+        };
+        FIRST_SHOT = { wide: 3, close: 2, dutch: 1.5, void: 0.8, follow: 1.5 };
+        MIDDLE_SHOT = { close: 3, follow: 2, macro: 2, dutch: 1.5, wide: 1, void: 0.6 };
+        INTERLUDE_SHOT = { void: 3, macro: 2, pullback: 1.5, wide: 1.5, dutch: 1 };
+        span = (rng, min, max) => min + rng() * (max - min);
+        sign = (rng) => rng() < 0.5 ? -1 : 1;
+        shotPose = (kind, rng) => {
+          switch (kind) {
+            case "wide":
+              return { roll: span(rng, -0.05, 0.05), offsetX: 0, offsetY: 0 };
+            case "close":
+              return { roll: span(rng, -0.07, 0.07), offsetX: span(rng, -0.08, 0.08), offsetY: span(rng, -0.05, 0.05) };
+            case "follow":
+              return { roll: span(rng, -0.03, 0.03), offsetX: 0, offsetY: 0 };
+            case "macro":
+              return { roll: sign(rng) * span(rng, 0.25, 0.6), offsetX: span(rng, -0.12, 0.12), offsetY: span(rng, -0.12, 0.12) };
+            case "dutch":
+              return { roll: sign(rng) * span(rng, 0.2, 0.4), offsetX: span(rng, -0.1, 0.1), offsetY: 0 };
+            case "void":
+              return { roll: span(rng, -0.04, 0.04), offsetX: sign(rng) * span(rng, 0.18, 0.3), offsetY: sign(rng) * span(rng, 0.1, 0.22) };
+            case "pullback":
+              return { roll: span(rng, -0.1, 0.1), offsetX: 0, offsetY: 0 };
+            case "pushin":
+              return { roll: span(rng, -0.12, 0.12), offsetX: 0, offsetY: 0 };
+          }
+        };
+        makeShot = (context, start, end, kind) => {
+          const { rng } = context;
+          const chance = context.negative ? context.chorus ? 0.34 : 0.2 : 0;
+          const roll = rng();
+          const invert2 = context.inverted < 2 && roll < chance;
+          context.inverted = invert2 ? context.inverted + 1 : 0;
+          context.lastKind = kind;
+          let angle = SCREEN_ANGLES[Math.floor(rng() * SCREEN_ANGLES.length)];
+          if (angle === context.lastAngle) angle = SCREEN_ANGLES[(SCREEN_ANGLES.indexOf(angle) + 1) % SCREEN_ANGLES.length];
+          context.lastAngle = angle;
+          return { start, end, kind, ...shotPose(kind, rng), invert: invert2, screenAngle: angle, seed: rng() };
+        };
+        planCuts = (start, end, count, onsets) => {
+          const cuts = [];
+          const spacing = (end - start) / count;
+          for (let index = 1; index < count; index += 1) {
+            const ideal = start + spacing * index;
+            const near = onsets.reduce((best, onset) => Math.abs(onset - ideal) < Math.abs(best - ideal) ? onset : best, Number.POSITIVE_INFINITY);
+            const at3 = Math.abs(near - ideal) <= spacing * 0.4 ? near : ideal;
+            const previous = cuts.length > 0 ? cuts[cuts.length - 1] : start;
+            if (at3 - previous >= MIN_SHOT && end - at3 >= MIN_SHOT) cuts.push(at3);
+          }
+          return cuts;
+        };
+        lineShots = (context, cue, line2, pace) => {
+          const duration = cue.end - cue.start;
+          const count = Math.max(1, Math.min(7, Math.round(duration * pace * (context.chorus ? 1.25 : 1) / 2.6)));
+          const onsets = line2.words.map((word) => word.startTime).filter((time) => time > cue.start + MIN_SHOT && time < cue.end - MIN_SHOT);
+          const edges = [cue.start, ...planCuts(cue.start, cue.end, count, onsets), cue.end];
+          return edges.slice(0, -1).map((start, index) => {
+            const end = edges[index + 1];
+            const last = index === edges.length - 2;
+            let weights = index === 0 ? FIRST_SHOT : MIDDLE_SHOT;
+            if (index === 0 && cue.transition === "smash") return makeShot(context, start, end, "pushin");
+            if (last && index > 0 && end - start >= 1.4) weights = { ...weights, pullback: 5 };
+            if (context.chorus) weights = { ...weights, macro: (weights.macro ?? 0) + 1.5, dutch: (weights.dutch ?? 0) + 1 };
+            return makeShot(context, start, end, pick2(context.rng, weights, context.lastKind));
+          });
+        };
+        interludeShots = (context, start, end, pace) => {
+          const shots = [];
+          let at3 = start;
+          while (end - at3 > 0.01) {
+            const length = span(context.rng, 4.5, 8) / pace;
+            const next = end - (at3 + length) < 2.5 ? end : at3 + length;
+            shots.push(makeShot(context, at3, next, pick2(context.rng, INTERLUDE_SHOT, context.lastKind)));
+            at3 = next;
+          }
+          return shots;
+        };
+        pickComposition = (rng, text, previous) => {
+          const chars = Array.from(text.replace(/\s+/gu, ""));
+          const cjk = chars.filter((char) => CJK3.test(char)).length / Math.max(1, chars.length);
+          const words = cjk > 0.5 ? chars.length / 2 : text.trim().split(/\s+/u).length;
+          return pick2(rng, {
+            block: 2,
+            justify: words >= 3 ? 3 : 0,
+            stair: chars.length >= 6 ? 2 : 0,
+            hero: words >= 2 ? 2.5 : 0,
+            column: cjk > 0.7 && chars.length >= 2 && chars.length <= 16 ? 2 : 0,
+            scatter: words >= 3 ? 1.5 : 0
+          }, previous);
+        };
+        pickTransition = (rng, enabled, intoChorus) => {
+          if (!enabled) return "cut";
+          return intoChorus ? pick2(rng, { flood: 3, smash: 3, cut: 1.5 }) : pick2(rng, { cut: 5.5, flood: 1.5, smash: 1.2 });
+        };
+        sungLines = (lines) => {
+          const kept = [];
+          lines.map((line2, lineIndex) => ({ line: line2, lineIndex })).filter(({ line: line2 }) => /[\p{L}\p{N}]/u.test(line2.fullText) && Number.isFinite(line2.startTime)).sort((a4, b4) => a4.line.startTime - b4.line.startTime || a4.lineIndex - b4.lineIndex).forEach((entry) => {
+            const previous = kept.at(-1);
+            if (!previous || entry.line.startTime - previous.line.startTime >= SAME_ONSET) kept.push(entry);
+          });
+          return kept;
+        };
+        compileMetaphorProgram = (lines, options) => {
+          const rng = createVisualizerRng(`metaphor:${options.seed}`);
+          const composeRng = createVisualizerRng(`metaphor:${options.seed}:compose`);
+          const transitionRng = createVisualizerRng(`metaphor:${options.seed}:transition`);
+          const splitRng = createVisualizerRng(`metaphor:${options.seed}:split`);
+          const pace = options.cutPace * (INTENSITY_PACE[options.intensity] ?? 1);
+          const context = { rng, negative: options.negative, chorus: false, inverted: 0, lastKind: null, lastAngle: -1 };
+          const cues = [];
+          const title = options.title?.trim() ?? "";
+          const pushInterludeCue = (start, end, text, loop = 0) => {
+            context.chorus = false;
+            const shotsEnd = loop > 0 ? start + loop : end;
+            cues.push({
+              lineIndex: -1,
+              start,
+              end,
+              singStart: start,
+              singEnd: end,
+              composition: "block",
+              shots: interludeShots(context, start, shotsEnd, pace),
+              transition: cues.length === 0 ? "cut" : pickTransition(transitionRng, options.transitions, false),
+              chorus: false,
+              text,
+              loop
+            });
+          };
+          const pushInterlude = (start, end, text) => {
+            const endless = !Number.isFinite(end);
+            const stop = endless ? start + INTERLUDE_HORIZON : end;
+            const length = stop - start;
+            const count = length > INTERLUDE_SPLIT ? Math.round(length / INTERLUDE_SEGMENT) : 1;
+            let from = start;
+            for (let index = 1; index <= count; index += 1) {
+              const to3 = index === count ? stop : start + length * index / count + (splitRng() - 0.5) * 6;
+              pushInterludeCue(from, to3, index === 1 ? text : "");
+              from = to3;
+            }
+            if (endless) pushInterludeCue(stop, Number.POSITIVE_INFINITY, "", LOOP_SECONDS);
+          };
+          const sung = sungLines(lines);
+          if (sung.length === 0) {
+            pushInterlude(0, Number.POSITIVE_INFINITY, title);
+            return { cues };
+          }
+          let cursor = 0;
+          let composition = null;
+          sung.forEach(({ line: line2, lineIndex }, order) => {
+            const begin = Math.max(cursor, line2.startTime - METAPHOR_PREROLL);
+            if (begin - cursor >= INTERLUDE_MIN || order === 0 && begin - cursor >= 1.2) {
+              pushInterlude(cursor, begin, order === 0 ? title : "");
+              cursor = begin;
+            }
+            const start = cursor;
+            const next = sung.at(order + 1)?.line;
+            const singEnd = Number.isFinite(line2.endTime) ? Math.max(line2.endTime, line2.startTime + 0.2) : line2.startTime + 0.2;
+            const hold = singEnd + METAPHOR_TAIL;
+            const nextBegin = next ? next.startTime - METAPHOR_PREROLL : Number.POSITIVE_INFINITY;
+            const end = nextBegin - hold >= INTERLUDE_MIN ? hold : Math.max(nextBegin, start);
+            if (end - start < MIN_CUE) return;
+            const chorus = Boolean(line2.isChorus);
+            const transition = cues.length === 0 ? "cut" : pickTransition(transitionRng, options.transitions, chorus && !context.chorus);
+            context.chorus = chorus;
+            composition = pickComposition(composeRng, line2.fullText, composition);
+            const cue = {
+              lineIndex,
+              start,
+              end,
+              singStart: line2.startTime,
+              singEnd,
+              composition,
+              shots: [],
+              transition,
+              chorus,
+              text: "",
+              loop: 0
+            };
+            cue.shots = lineShots(context, cue, line2, pace);
+            cues.push(cue);
+            cursor = end;
+          });
+          pushInterlude(cursor, Number.POSITIVE_INFINITY, "");
+          return { cues };
+        };
+        findMetaphorCue = (program, time) => {
+          const { cues } = program;
+          let low = 0;
+          let high = cues.length - 1;
+          while (low < high) {
+            const middle = low + high + 1 >> 1;
+            if (cues[middle].start <= time) low = middle;
+            else high = middle - 1;
+          }
+          return low;
+        };
+        resolveMetaphorCueTime = (cue, time) => cue.loop > 0 ? cue.start + ((time - cue.start) % cue.loop + cue.loop) % cue.loop : time;
+        findMetaphorShot = (cue, cueTime) => {
+          const { shots } = cue;
+          for (let index = shots.length - 1; index > 0; index -= 1) {
+            if (shots[index].start <= cueTime) return shots[index];
+          }
+          return shots[0];
+        };
+      }
+    });
+  
+    // src/folia/components/visualizer/metaphor/metaphorCamera.ts
+    var METAPHOR_FOV, METAPHOR_EMPTY_STAGE, clamp0120, lerp5, easeOutCubic9, rectFocus, wordIndexAt, emptyFocus, wordFocus, glyphAt, glyphFocus, macroWord, macroFollowWord, fitDistance, stepAt, wobble, WIDE_MARGIN, PULLBACK_STEPS, PUSHIN_STEPS, MACRO_MARGIN, CLOSE_MARGIN, MACRO_FOLLOW_ROLL, PUSHIN_BEAT, plannedPose, KEEP_OUT, KEEP_IN, MIN_SHIFT, LOOK_AHEAD, MIN_SUNG, sungUnitAt, frame2, fitsWithin, placeTarget, fitShift, checkpoints, tracks, trackFor, shiftPose, outside, need, advance, resolveMetaphorPose, resolveMetaphorStillPose, FLOOD_IN, FLOOD_OUT, resolveMetaphorTransitionFx, resolveMetaphorReveal, resolveMetaphorMelt;
+    var init_metaphorCamera = __esm({
+      "src/folia/components/visualizer/metaphor/metaphorCamera.ts"() {
+        init_metaphorProgram();
+        METAPHOR_FOV = 30;
+        METAPHOR_EMPTY_STAGE = { x0: -4.5, y0: -2.6, x1: 4.5, y1: 2.6 };
+        clamp0120 = (value) => Math.min(1, Math.max(0, value));
+        lerp5 = (from, to3, amount) => from + (to3 - from) * amount;
+        easeOutCubic9 = (u4) => 1 - (1 - u4) ** 3;
+        rectFocus = (rect) => ({
+          x: (rect.x0 + rect.x1) / 2,
+          y: (rect.y0 + rect.y1) / 2,
+          width: Math.max(1.6, rect.x1 - rect.x0),
+          height: Math.max(1.2, rect.y1 - rect.y0)
+        });
+        wordIndexAt = (layout, time) => {
+          let found = 0;
+          let latest = Number.NEGATIVE_INFINITY;
+          layout.words.forEach((word, index) => {
+            if (word.t0 <= time && word.t0 >= latest) {
+              latest = word.t0;
+              found = index;
+            }
+          });
+          return found;
+        };
+        emptyFocus = (bounds, seed) => {
+          const width = bounds.x1 - bounds.x0;
+          const height = bounds.y1 - bounds.y0;
+          return {
+            x: bounds.x0 + width * (0.2 + 0.6 * seed),
+            y: bounds.y0 + height * (0.2 + 0.6 * (seed * 7.31 % 1)),
+            width: width * 0.3,
+            height: height * 0.3
+          };
+        };
+        wordFocus = (layout, time, seed) => layout.words.length === 0 ? emptyFocus(layout.bounds, seed) : rectFocus(layout.words[wordIndexAt(layout, time)]);
+        glyphAt = (layout, time) => {
+          let found = layout.glyphs[0];
+          for (const glyph of layout.glyphs) {
+            if (glyph.t0 <= time && glyph.t0 >= found.t0) found = glyph;
+          }
+          return found;
+        };
+        glyphFocus = (layout, time, seed) => {
+          if (layout.glyphs.length === 0) return emptyFocus(layout.bounds, seed);
+          const found = glyphAt(layout, time);
+          return { x: found.x, y: found.y, width: found.size * 0.9, height: found.size * 0.9 };
+        };
+        macroWord = (layout, shot) => layout.glyphs.length === 0 ? -1 : glyphAt(layout, shot.start).word;
+        macroFollowWord = (layout, shot, time) => {
+          const anchor = macroWord(layout, shot);
+          if (anchor < 0) return -1;
+          const current = wordIndexAt(layout, time);
+          return current !== anchor && layout.words[current].t0 > layout.words[anchor].t0 ? current : -1;
+        };
+        fitDistance = (focus, margin, aspect) => Math.max(focus.height / 2, focus.width / (2 * Math.max(0.2, aspect))) * margin / Math.tan(METAPHOR_FOV * Math.PI / 360);
+        stepAt = (shot, layout, time, steps) => {
+          const onsets = [...new Set(layout.words.map((word) => word.t0))].filter((onset) => onset > shot.start + 0.3 && onset < shot.end - 0.3).sort((a4, b4) => a4 - b4);
+          const times2 = [];
+          if (onsets.length >= steps) {
+            for (let index = 0; index < steps; index += 1) times2.push(onsets[Math.floor(index * onsets.length / steps)]);
+          } else {
+            for (let index = 1; index <= steps; index += 1) times2.push(shot.start + (shot.end - shot.start) * index / (steps + 1));
+          }
+          return times2.filter((at3) => at3 <= time).length;
+        };
+        wobble = (time, phase) => Math.sin(time * 0.23 + phase) * 0.6 + Math.sin(time * 0.37 + phase * 2.3) * 0.4;
+        WIDE_MARGIN = 1.1;
+        PULLBACK_STEPS = 3;
+        PUSHIN_STEPS = 3;
+        MACRO_MARGIN = 0.8;
+        CLOSE_MARGIN = 1.3;
+        MACRO_FOLLOW_ROLL = 0.12;
+        PUSHIN_BEAT = 0.16;
+        plannedPose = ({ shot, layout, time, aspect, motion: motion2 }) => {
+          const u4 = clamp0120((time - shot.start) / Math.max(1e-3, shot.end - shot.start));
+          const creep = 1 - 0.035 * motion2 * u4;
+          const whole = rectFocus(layout.bounds);
+          let focus = whole;
+          let distance2;
+          let { roll } = shot;
+          switch (shot.kind) {
+            case "wide":
+              distance2 = fitDistance(whole, WIDE_MARGIN, aspect) * creep;
+              break;
+            case "close":
+              focus = wordFocus(layout, shot.start, shot.seed);
+              distance2 = fitDistance(focus, CLOSE_MARGIN, aspect) * creep;
+              break;
+            case "follow":
+              focus = wordFocus(layout, time, shot.seed);
+              distance2 = fitDistance(focus, 1.45, aspect);
+              break;
+            case "macro": {
+              const following = macroFollowWord(layout, shot, time);
+              if (following >= 0) {
+                focus = rectFocus(layout.words[following]);
+                distance2 = fitDistance(focus, CLOSE_MARGIN, aspect) * creep;
+                roll *= MACRO_FOLLOW_ROLL;
+                break;
+              }
+              focus = glyphFocus(layout, shot.start, shot.seed);
+              distance2 = fitDistance(focus, MACRO_MARGIN, aspect) * creep;
+              roll += 0.03 * motion2 * (u4 - 0.5);
+              break;
+            }
+            case "dutch":
+              distance2 = fitDistance(whole, 1.1, aspect) * creep;
+              break;
+            case "void":
+              distance2 = fitDistance(whole, 1.85, aspect) * (2 - creep);
+              break;
+            case "pullback": {
+              const near = wordFocus(layout, shot.start, shot.seed);
+              const out = stepAt(shot, layout, time, PULLBACK_STEPS) / PULLBACK_STEPS;
+              focus = { x: lerp5(near.x, whole.x, out), y: lerp5(near.y, whole.y, out), width: whole.width, height: whole.height };
+              distance2 = lerp5(fitDistance(near, 1.15, aspect), fitDistance(whole, 1.4, aspect), out);
+              break;
+            }
+            case "pushin": {
+              const near = wordFocus(layout, shot.start, shot.seed);
+              const into = Math.min(PUSHIN_STEPS, Math.floor(Math.max(0, time - shot.start) / PUSHIN_BEAT)) / PUSHIN_STEPS;
+              focus = { x: lerp5(whole.x, near.x, into), y: lerp5(whole.y, near.y, into), width: near.width, height: near.height };
+              distance2 = lerp5(fitDistance(whole, 3.2, aspect), fitDistance(near, 1.3, aspect), into) * creep;
+              break;
+            }
+          }
+          const visible = 2 * distance2 * Math.tan(METAPHOR_FOV * Math.PI / 360);
+          const phase = shot.seed * 40;
+          const drift = 8e-3 * motion2 * visible;
+          return {
+            x: focus.x - shot.offsetX * visible + wobble(time, phase) * drift,
+            y: focus.y - shot.offsetY * visible + wobble(time, phase + 11) * drift,
+            distance: distance2,
+            roll: roll + wobble(time, phase + 23) * 4e-3 * motion2,
+            fov: METAPHOR_FOV
+          };
+        };
+        KEEP_OUT = 0.97;
+        KEEP_IN = 0.9;
+        MIN_SHIFT = 0.06;
+        LOOK_AHEAD = /* @__PURE__ */ new Set(["close", "pushin"]);
+        MIN_SUNG = 0.3;
+        sungUnitAt = (units, at3) => {
+          let found = null;
+          for (const unit2 of units) {
+            if (unit2.t0 <= at3 && (!found || unit2.t0 >= found.t0)) found = unit2;
+          }
+          return found && at3 < Math.max(found.t1, found.t0 + MIN_SUNG) ? found : null;
+        };
+        frame2 = (pose, rect, aspect, inner) => {
+          const halfHeight = pose.distance * Math.tan(pose.fov * Math.PI / 360);
+          const half = [halfHeight * aspect * inner, halfHeight * inner];
+          const cos = Math.cos(pose.roll);
+          const sin = Math.sin(pose.roll);
+          const low = [Infinity, Infinity];
+          const high = [-Infinity, -Infinity];
+          for (const x4 of [rect.x0, rect.x1]) {
+            for (const y4 of [rect.y0, rect.y1]) {
+              const dx2 = x4 - pose.x;
+              const dy2 = y4 - pose.y;
+              const along = [dx2 * cos + dy2 * sin, -dx2 * sin + dy2 * cos];
+              for (const axis of [0, 1]) {
+                low[axis] = Math.min(low[axis], along[axis]);
+                high[axis] = Math.max(high[axis], along[axis]);
+              }
+            }
+          }
+          return { half, low, high };
+        };
+        fitsWithin = (pose, rect, aspect, inner) => {
+          const { half, low, high } = frame2(pose, rect, aspect, inner);
+          return high[0] - low[0] <= 2 * half[0] && high[1] - low[1] <= 2 * half[1];
+        };
+        placeTarget = (shot, order, unit2, poses, aspect) => {
+          if (!LOOK_AHEAD.has(shot.kind)) return unit2;
+          let target = unit2;
+          for (let index = order.indexOf(unit2) + 1; index < order.length; index += 1) {
+            const next = order[index];
+            const grown = {
+              x0: Math.min(target.x0, next.x0),
+              y0: Math.min(target.y0, next.y0),
+              x1: Math.max(target.x1, next.x1),
+              y1: Math.max(target.y1, next.y1)
+            };
+            if (!poses.every((pose) => fitsWithin(pose, grown, aspect, KEEP_IN))) break;
+            target = grown;
+          }
+          return target;
+        };
+        fitShift = (pose, unit2, aspect, inner, out) => {
+          const { half, low, high } = frame2(pose, unit2, aspect, inner);
+          const shift = [0, 0];
+          for (const axis of [0, 1]) {
+            const size = high[axis] - low[axis];
+            const full = half[axis] / inner;
+            if (size > 2 * full) {
+              const room = half[axis] * 0.5;
+              const center = (low[axis] + high[axis]) / 2;
+              shift[axis] = center > room ? center - room : center < -room ? center + room : 0;
+            } else {
+              const limit = Math.max(half[axis], size / 2);
+              shift[axis] = high[axis] > limit ? high[axis] - limit : low[axis] < -limit ? low[axis] + limit : 0;
+            }
+          }
+          out.x = shift[0];
+          out.y = shift[1];
+          return out;
+        };
+        checkpoints = (shot, units) => {
+          const times2 = units.map((unit2) => unit2.t0);
+          if (shot.kind === "pullback") {
+            for (let step = 1; step <= PULLBACK_STEPS; step += 1) {
+              times2.push(shot.start + (shot.end - shot.start) * step / (PULLBACK_STEPS + 1));
+            }
+          }
+          if (shot.kind === "pushin") times2.push(shot.start + PUSHIN_STEPS * PUSHIN_BEAT);
+          const after = [...new Set(times2)].filter((at3) => at3 > shot.start).sort((a4, b4) => a4 - b4);
+          return [shot.start, ...after];
+        };
+        tracks = /* @__PURE__ */ new WeakMap();
+        trackFor = (input) => {
+          const { shot, layout, time, aspect, motion: motion2 } = input;
+          const track = tracks.get(layout);
+          if (track && track.shot === shot && track.aspect === aspect && track.motion === motion2 && time >= (track.next > 0 ? track.times[track.next - 1] : shot.start)) return track;
+          const units = layout.words;
+          const anchor = shot.kind === "macro" ? macroWord(layout, shot) : -1;
+          const fresh = { shot, aspect, motion: motion2, units, skip: anchor >= 0 ? units[anchor] : null, order: [...units].sort((a4, b4) => a4.t0 - b4.t0), times: checkpoints(shot, units), next: 0, still: null, shiftX: 0, shiftY: 0 };
+          tracks.set(layout, fresh);
+          return fresh;
+        };
+        shiftPose = (pose, shiftX, shiftY) => {
+          if (shiftX === 0 && shiftY === 0) return pose;
+          const cos = Math.cos(pose.roll);
+          const sin = Math.sin(pose.roll);
+          return { ...pose, x: pose.x + shiftX * cos - shiftY * sin, y: pose.y + shiftX * sin + shiftY * cos };
+        };
+        outside = (pose, unit2, aspect, out) => {
+          fitShift(pose, unit2, aspect, KEEP_OUT, out);
+          return out.x !== 0 || out.y !== 0;
+        };
+        need = { x: 0, y: 0 };
+        advance = (track, input) => {
+          const { shot, aspect } = input;
+          const at3 = track.times[track.next];
+          track.next += 1;
+          const still = plannedPose({ ...input, time: at3, motion: 0 });
+          const previous = track.still;
+          track.still = still;
+          if (previous && (still.x !== previous.x || still.y !== previous.y || still.distance !== previous.distance)) {
+            track.shiftX = 0;
+            track.shiftY = 0;
+          }
+          const unit2 = sungUnitAt(track.units, at3);
+          if (!unit2 || unit2 === track.skip) return;
+          const planned = plannedPose({ ...input, time: at3 });
+          const until = Math.min(track.times[track.next] ?? shot.end, Math.max(unit2.t1, unit2.t0 + MIN_SUNG), shot.end) - 1e-3;
+          const later = until > at3 ? plannedPose({ ...input, time: until }) : planned;
+          if (!outside(shiftPose(planned, track.shiftX, track.shiftY), unit2, aspect, need) && !outside(shiftPose(later, track.shiftX, track.shiftY), unit2, aspect, need)) return;
+          fitShift(planned, placeTarget(shot, track.order, unit2, [planned, later], aspect), aspect, KEEP_IN, need);
+          if (outside(shiftPose(later, need.x, need.y), unit2, aspect, { x: 0, y: 0 })) fitShift(later, unit2, aspect, KEEP_IN, need);
+          const visible = 2 * planned.distance * Math.tan(planned.fov * Math.PI / 360) * Math.min(1, aspect);
+          if (Math.hypot(need.x - track.shiftX, need.y - track.shiftY) < MIN_SHIFT * visible) return;
+          track.shiftX = need.x;
+          track.shiftY = need.y;
+        };
+        resolveMetaphorPose = (input) => {
+          const pose = plannedPose(input);
+          const { shot, layout, time } = input;
+          if (time < shot.start || layout.words.length === 0 && layout.glyphs.length === 0) return pose;
+          const track = trackFor(input);
+          while (track.next < track.times.length && track.times[track.next] <= time) advance(track, input);
+          return shiftPose(pose, track.shiftX, track.shiftY);
+        };
+        resolveMetaphorStillPose = (layout, aspect) => {
+          const whole = rectFocus(layout.bounds);
+          return { x: whole.x, y: whole.y, distance: fitDistance(whole, WIDE_MARGIN, aspect), roll: 0, fov: METAPHOR_FOV };
+        };
+        FLOOD_IN = 0.7;
+        FLOOD_OUT = 0.9;
+        resolveMetaphorTransitionFx = (program, cueIndex, time, out) => {
+          out.flood = 0;
+          const cue = program.cues[cueIndex];
+          const since = time - cue.start;
+          if (since >= 0 && cue.transition === "flood" && since < FLOOD_OUT) out.flood = 1.15 * (1 - easeOutCubic9(since / FLOOD_OUT));
+          if (cueIndex + 1 < program.cues.length) {
+            const next = program.cues[cueIndex + 1];
+            const until = next.start - time;
+            if (next.transition === "flood" && until < FLOOD_IN) out.flood = Math.max(out.flood, 1.15 * (1 - until / FLOOD_IN) ** 2);
+          }
+          return out;
+        };
+        resolveMetaphorReveal = (cue, time) => clamp0120((time - cue.start) / 0.5 + (cue.lineIndex < 0 ? 1 : 0));
+        resolveMetaphorMelt = (cue, time) => {
+          if (cue.lineIndex < 0 || cue.end - cue.singEnd < METAPHOR_TAIL * 0.6) return 0;
+          const from = Math.max(cue.singEnd + 0.3, cue.end - 1.5);
+          return clamp0120((time - from) / Math.max(0.05, cue.end - from));
+        };
+      }
+    });
+  
+    // src/folia/components/visualizer/metaphor/metaphorFigures.ts
+    var METAPHOR_FIGURE_KINDS, FIGURE_LIMIT, BACKDROP_LIMIT, TAU17, STROKE, BLOB_CORE, ARC_AT, WAVE_AMP, Pen, span2, choose, shuffle, drawOrbit, drawStarmap, drawLattice, drawCell, drawMolecule, drawDetector, drawFeynman, drawPaths, FORMULAS, drawDraft, drawShower, drawDecay, spiral, drawBubble, drawSpectrum, drawPenguin, drawBox, drawCollider, drawPotential, drawRunning, drawCherenkov, DRAW, TONE_MIX, TONE_HEAVY, drawMetaphorFigure, STAGE_SLOTS, FIGURE_REACH, WIDE_MARGIN2, FRAME_SPILL, freeCells, planMetaphorFigures, pad2, timecode, planMetaphorBackdrop, layoutMetaphorNotes;
+    var init_metaphorFigures = __esm({
+      "src/folia/components/visualizer/metaphor/metaphorFigures.ts"() {
+        init_metaphorShapes();
+        METAPHOR_FIGURE_KINDS = [
+          "orbit",
+          "starmap",
+          "lattice",
+          "cell",
+          "molecule",
+          "detector",
+          "feynman",
+          "paths",
+          "draft",
+          // 高能物理的草稿图
+          "shower",
+          "decay",
+          "bubble",
+          "spectrum",
+          "penguin",
+          "box",
+          "collider",
+          "potential",
+          "running",
+          "cherenkov"
+        ];
+        FIGURE_LIMIT = 240;
+        BACKDROP_LIMIT = 48;
+        TAU17 = Math.PI * 2;
+        STROKE = 0.016;
+        BLOB_CORE = 0.55;
+        ARC_AT = 0.9;
+        WAVE_AMP = 0.75;
+        Pen = class {
+          constructor(cx2, cy2, scale, rot, delay, mix7 = { ink: 1, tone: 0, accent: 0 }, heavy = 1) {
+            this.cx = cx2;
+            this.cy = cy2;
+            this.scale = scale;
+            this.rot = rot;
+            this.delay = delay;
+            this.mix = mix7;
+            this.heavy = heavy;
+            this.cos = Math.cos(rot);
+            this.sin = Math.sin(rot);
+          }
+          cx;
+          cy;
+          scale;
+          rot;
+          delay;
+          mix;
+          heavy;
+          shapes = [];
+          notes = [];
+          cos;
+          sin;
+          stroke = 0;
+          at(x4, y4) {
+            return [this.cx + (x4 * this.cos - y4 * this.sin) * this.scale, this.cy + (x4 * this.sin + y4 * this.cos) * this.scale];
+          }
+          /** 三笔一组，一组比上一组晚 0.2 秒。 */
+          born() {
+            const born = this.delay + Math.floor(this.stroke / 3) * 0.2;
+            this.stroke += 1;
+            return born;
+          }
+          line(x03, y02, x13, y12, dashes = 0, weight = 1) {
+            const [ax2, ay2] = this.at(x03, y02);
+            const [bx2, by2] = this.at(x13, y12);
+            this.shapes.push(staticMetaphorShape(METAPHOR_SHAPE_BAR, {
+              x: (ax2 + bx2) / 2,
+              y: (ay2 + by2) / 2,
+              sx: Math.hypot(bx2 - ax2, by2 - ay2) / 2,
+              sy: STROKE * weight * this.heavy,
+              rot: Math.atan2(by2 - ay2, bx2 - ax2),
+              param: dashes,
+              born: this.born(),
+              ...this.mix
+            }));
+          }
+          /** 两点之间的波浪线：halfWaves 个半波（两头都落在点上），amp 是振幅。 */
+          wave(x03, y02, x13, y12, halfWaves, amp) {
+            const [ax2, ay2] = this.at(x03, y02);
+            const [bx2, by2] = this.at(x13, y12);
+            this.shapes.push(staticMetaphorShape(METAPHOR_SHAPE_WAVE, {
+              x: (ax2 + bx2) / 2,
+              y: (ay2 + by2) / 2,
+              sx: Math.hypot(bx2 - ax2, by2 - ay2) / 2,
+              sy: amp * this.scale / WAVE_AMP + STROKE * 3,
+              rot: Math.atan2(by2 - ay2, bx2 - ax2),
+              param: halfWaves,
+              born: this.born(),
+              ...this.mix,
+              tone: this.mix.tone + (this.heavy > 1 ? 0.2 : 0)
+            }));
+          }
+          /** 圆弧：圆心、半径、弧的中点方向和半张角（默认整圆）。 */
+          arc(x4, y4, radius, mid = 0, half = Math.PI, weight = 1) {
+            const [cx2, cy2] = this.at(x4, y4);
+            const size = radius * this.scale / ARC_AT;
+            this.shapes.push(staticMetaphorShape(METAPHOR_SHAPE_ARC, {
+              x: cx2,
+              y: cy2,
+              sx: size,
+              sy: weight * this.heavy,
+              rot: mid + this.rot,
+              param: Math.min(1, half / Math.PI),
+              born: this.born(),
+              ...this.mix
+            }));
+          }
+          dot(x4, y4, radius) {
+            const [cx2, cy2] = this.at(x4, y4);
+            const size = radius * this.scale / BLOB_CORE;
+            this.shapes.push(staticMetaphorShape(METAPHOR_SHAPE_BLOB, { x: cx2, y: cy2, sx: size, sy: size, born: this.born(), ...this.mix }));
+          }
+          /** 绕着一个点匀速转的点（行星）。 */
+          orbiter(x4, y4, orbit, radius, speed, phase) {
+            const [cx2, cy2] = this.at(x4, y4);
+            const size = radius * this.scale / BLOB_CORE;
+            this.shapes.push(staticMetaphorShape(METAPHOR_SHAPE_BLOB, {
+              x: cx2,
+              y: cy2,
+              sx: size,
+              sy: size,
+              orbit: orbit * this.scale,
+              orbitSpeed: speed,
+              p1: phase,
+              steady: true,
+              born: this.born(),
+              ...this.mix
+            }));
+          }
+          /** 带箭头的线：箭头在线上 at 处，朝终点。 */
+          arrow(x03, y02, x13, y12, at3 = 0.55) {
+            this.line(x03, y02, x13, y12);
+            const angle = Math.atan2(y12 - y02, x13 - x03);
+            const hx2 = x03 + (x13 - x03) * at3;
+            const hy2 = y02 + (y12 - y02) * at3;
+            for (const side of [0.45, -0.45]) {
+              this.line(hx2, hy2, hx2 - Math.cos(angle + side) * 0.11, hy2 - Math.sin(angle + side) * 0.11);
+            }
+          }
+          note(text, x4, y4, size, align = 0, rot = 0) {
+            const [ax2, ay2] = this.at(x4, y4);
+            this.notes.push({ text, x: ax2, y: ay2, size: size * this.scale, rot: rot + this.rot, align, born: this.born() });
+          }
+        };
+        span2 = (rng, min, max) => min + rng() * (max - min);
+        choose = (rng, items) => items[Math.min(items.length - 1, Math.floor(rng() * items.length))];
+        shuffle = (rng, items) => {
+          const list = [...items];
+          for (let index = list.length - 1; index > 0; index -= 1) {
+            const other = Math.floor(rng() * (index + 1));
+            [list[index], list[other]] = [list[other], list[index]];
+          }
+          return list;
+        };
+        drawOrbit = (pen, rng) => {
+          const rings2 = 3 + Math.floor(rng() * 2);
+          pen.dot(0, 0, 0.085);
+          for (let index = 0; index < rings2; index += 1) {
+            const radius = 0.3 + index * 0.7 / (rings2 - 1);
+            pen.arc(0, 0, radius);
+            pen.orbiter(0, 0, radius, span2(rng, 0.03, 0.055), (rng() < 0.85 ? 1 : -1) * 0.1 / radius ** 1.5, rng() * TAU17);
+          }
+          const angle = span2(rng, 0.2, 1.2);
+          pen.line(0, 0, Math.cos(angle), Math.sin(angle), 9);
+          pen.arc(0, 0, 0.16, angle / 2, angle / 2);
+          pen.note(choose(rng, ["T\xB2 \u221D a\xB3", "a = 1.52 AU", "e = 0.0167", "v\xB2 = GM/r"]), Math.cos(angle) * 1.08, Math.sin(angle) * 1.08, 0.15);
+          pen.arc(span2(rng, -0.4, 0.4), span2(rng, 0.9, 1.3), 1.5, -Math.PI / 2, 0.55);
+        };
+        drawStarmap = (pen, rng) => {
+          const stars = [];
+          for (let tries = 0; stars.length < 7 && tries < 60; tries += 1) {
+            const angle = rng() * TAU17;
+            const radius = Math.sqrt(rng()) * 0.85;
+            const x4 = Math.cos(angle) * radius;
+            const y4 = Math.sin(angle) * radius;
+            if (stars.every(([sx2, sy2]) => Math.hypot(sx2 - x4, sy2 - y4) > 0.32)) stars.push([x4, y4]);
+          }
+          stars.sort((a4, b4) => a4[0] - b4[0]);
+          stars.forEach(([x4, y4], index) => {
+            pen.dot(x4, y4, span2(rng, 0.03, 0.07));
+            if (index > 0) pen.line(stars[index - 1][0], stars[index - 1][1], x4, y4);
+          });
+          const [named, crossed] = [stars[1] ?? stars[0], stars.at(-1) ?? stars[0]];
+          pen.arc(named[0], named[1], 0.14);
+          pen.note(choose(rng, ["\u03B1", "\u03B2", "\u03B3", "\u03B4"]), named[0] + 0.18, named[1] + 0.14, 0.17);
+          for (const [dx2, dy2] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+            pen.line(crossed[0] + dx2 * 0.1, crossed[1] + dy2 * 0.1, crossed[0] + dx2 * 0.24, crossed[1] + dy2 * 0.24);
+          }
+          const mid = span2(rng, 0.9, 2.2);
+          pen.arc(0, 0, 1.08, mid, 0.5);
+          for (let tick = -2; tick <= 2; tick += 1) {
+            const angle = mid + tick * 0.22;
+            pen.line(Math.cos(angle) * 1.08, Math.sin(angle) * 1.08, Math.cos(angle) * 1.16, Math.sin(angle) * 1.16);
+          }
+          pen.note(choose(rng, ["\u03B4 \u221205\xB0 23\u2032", "RA 05h 35m", "z = 0.0073", "d = 4.2 ly"]), -0.95, -1.05, 0.14);
+        };
+        drawLattice = (pen, rng) => {
+          const gamma = choose(rng, [Math.PI / 3, Math.PI / 2, 1.3]);
+          const pitch = 0.46;
+          const bx2 = Math.cos(gamma) * pitch;
+          const by2 = Math.sin(gamma) * pitch;
+          const at3 = (column, row) => [(column - 1.5) * pitch + (row - 1) * bx2, (row - 1) * by2];
+          for (let row = 0; row < 3; row += 1) {
+            for (let column = 0; column < 4; column += 1) {
+              const [x4, y4] = at3(column, row);
+              if (column < 3) pen.line(x4, y4, ...at3(column + 1, row));
+              if (row < 2) pen.line(x4, y4, ...at3(column, row + 1));
+              pen.dot(x4, y4, 0.045);
+            }
+          }
+          const [ox2, oy2] = at3(1, 0);
+          pen.line(ox2, oy2, ...at3(2, 0), 0, 2.2);
+          pen.line(ox2, oy2, ...at3(1, 1), 0, 2.2);
+          pen.note("a", ox2 + pitch / 2, oy2 - 0.14, 0.16, 0.5);
+          pen.note("b", ox2 + bx2 / 2 - 0.14, oy2 + by2 / 2, 0.16, 0.5);
+          for (let column = 0; column < 3; column += 1) {
+            const [x4, y4] = at3(column, 1);
+            pen.arc(x4 + (pitch + bx2) / 2, y4 + by2 / 2, 0.05);
+          }
+          pen.note(choose(rng, ["n\u03BB = 2d sin\u03B8", "a = 5.43 \xC5", "(1 1 1)", "G \xB7 R = 2\u03C0n"]), -0.9, -0.82, 0.15);
+        };
+        drawCell = (pen, rng) => {
+          const half = 0.52;
+          const front = [[-half - 0.2, -half - 0.14], [half - 0.2, -half - 0.14], [half - 0.2, half - 0.14], [-half - 0.2, half - 0.14]];
+          const back = front.map(([x4, y4]) => [x4 + 0.44, y4 + 0.32]);
+          for (let index = 0; index < 4; index += 1) {
+            const next = (index + 1) % 4;
+            pen.line(...front[index], ...front[next]);
+            pen.line(...back[index], ...back[next], index === 0 || index === 3 ? 7 : 0);
+            pen.line(...front[index], ...back[index], index === 0 ? 5 : 0);
+            pen.dot(...front[index], 0.055);
+            pen.dot(...back[index], 0.045);
+          }
+          const faceCentred = rng() < 0.5;
+          if (faceCentred) {
+            for (const face of [front, back]) pen.arc((face[0][0] + face[2][0]) / 2, (face[0][1] + face[2][1]) / 2, 0.06);
+            for (const index of [0, 1, 2, 3]) {
+              const next = (index + 1) % 4;
+              pen.arc((front[index][0] + back[next][0]) / 2, (front[index][1] + back[next][1]) / 2, 0.05);
+            }
+          } else {
+            pen.dot(0.02, 0.02, 0.075);
+            pen.line(...front[0], ...back[2], 9);
+          }
+          pen.note(faceCentred ? "fcc" : "bcc", -half - 0.2, half + 0.38, 0.18);
+          pen.note(choose(rng, ["a = 3.61 \xC5", "a = 2.87 \xC5", "[1 0 0]", "Z = 4"]), -half - 0.2, -half - 0.36, 0.14);
+        };
+        drawMolecule = (pen, rng) => {
+          if (rng() < 0.55) {
+            const vertex3 = (index, radius) => [Math.cos(Math.PI / 6 + index * Math.PI / 3) * radius, Math.sin(Math.PI / 6 + index * Math.PI / 3) * radius];
+            for (let index = 0; index < 6; index += 1) {
+              pen.line(...vertex3(index, 0.5), ...vertex3(index + 1, 0.5));
+              if (index % 2 === 0) {
+                const [ax2, ay2] = vertex3(index, 0.39);
+                const [bx2, by2] = vertex3(index + 1, 0.39);
+                pen.line(ax2 + (bx2 - ax2) * 0.12, ay2 + (by2 - ay2) * 0.12, bx2 + (ax2 - bx2) * 0.12, by2 + (ay2 - by2) * 0.12);
+              }
+            }
+            const groups = shuffle(rng, ["OH", "NH\u2082", "CH\u2083", "Cl", "COOH"]);
+            shuffle(rng, [0, 1, 2, 3, 4, 5]).slice(0, 1 + Math.floor(rng() * 2)).forEach((index, order) => {
+              const [x4, y4] = vertex3(index, 0.5);
+              const [ex2, ey2] = vertex3(index, 0.86);
+              pen.line(x4, y4, ex2, ey2);
+              pen.note(groups[order], ...vertex3(index, 1.02), 0.16, 0.5);
+            });
+            pen.note(choose(rng, ["C\u2086H\u2086", "sp\xB2", "\u03C0", "1.39 \xC5"]), 0, -1.05, 0.15, 0.5);
+            return;
+          }
+          const [arms, angle, formula] = choose(rng, [[2, 104.5, "H\u2082O"], [3, 120, "BF\u2083"], [4, 109.5, "CH\u2084"], [2, 180, "CO\u2082"]]);
+          const spread = arms === 2 ? angle * Math.PI / 180 : TAU17 / arms;
+          const start = Math.PI / 2 - (arms === 2 ? spread / 2 : 0);
+          pen.dot(0, 0, 0.13);
+          for (let index = 0; index < arms; index += 1) {
+            const direction = start + index * spread;
+            pen.line(Math.cos(direction) * 0.14, Math.sin(direction) * 0.14, Math.cos(direction) * 0.62, Math.sin(direction) * 0.62, 0, 1.6);
+            pen.dot(Math.cos(direction) * 0.7, Math.sin(direction) * 0.7, 0.08);
+          }
+          if (angle < 180) {
+            pen.arc(0, 0, 0.3, start + spread / 2, spread / 2);
+            pen.note(`${angle}\xB0`, Math.cos(start + spread / 2) * 0.42, Math.sin(start + spread / 2) * 0.42, 0.13, 0.5);
+          }
+          pen.note(formula, 0, -0.95, 0.18, 0.5);
+        };
+        drawDetector = (pen, rng) => {
+          pen.arc(0, 0, 0.32);
+          pen.arc(0, 0, 0.62);
+          pen.arc(0, 0, 1, 0, Math.PI, 1.6);
+          pen.dot(0, 0, 0.035);
+          for (let track = 5 + Math.floor(rng() * 4); track > 0; track -= 1) {
+            const bend = span2(rng, 0.55, 2.4);
+            const direction = rng() * TAU17;
+            const side = rng() < 0.5 ? 1 : -1;
+            const reach = rng() < 0.3 ? 0.62 : 1;
+            const centre = direction + side * Math.PI / 2;
+            const half = Math.asin(Math.min(1, reach / (2 * bend)));
+            pen.arc(Math.cos(centre) * bend, Math.sin(centre) * bend, bend, centre + Math.PI + side * half, half);
+          }
+          const jets = [rng() * TAU17, rng() * TAU17];
+          for (let tower = 7 + Math.floor(rng() * 4); tower > 0; tower -= 1) {
+            const angle = choose(rng, jets) + span2(rng, -0.35, 0.35);
+            const height = span2(rng, 0.05, 0.3);
+            pen.line(Math.cos(angle) * 1.04, Math.sin(angle) * 1.04, Math.cos(angle) * (1.04 + height), Math.sin(angle) * (1.04 + height), 0, 2.4);
+          }
+          pen.note(choose(rng, ["\u221As = 13 TeV", "pT > 20 GeV", "|\u03B7| < 2.5", "B = 3.8 T"]), -1, -1.3, 0.14);
+        };
+        drawFeynman = (pen, rng) => {
+          const variant = Math.floor(rng() * 3);
+          if (variant === 0) {
+            const [inA, inB, boson, outA, outB] = choose(rng, [["e\u207B", "e\u207A", "\u03B3", "\u03BC\u207B", "\u03BC\u207A"], ["u", "d", "W", "e", "\u03BD"], ["q", "q", "g", "t", "t"]]);
+            pen.arrow(-1, 0.6, -0.35, 0);
+            pen.arrow(-0.35, 0, -1, -0.6);
+            pen.wave(-0.35, 0, 0.35, 0, 7, 0.07);
+            pen.arrow(0.35, 0, 1, 0.6);
+            pen.arrow(1, -0.6, 0.35, 0);
+            pen.dot(-0.35, 0, 0.04);
+            pen.dot(0.35, 0, 0.04);
+            pen.note(inA, -1.02, 0.78, 0.17, 0.5);
+            pen.note(inB, -1.02, -0.78, 0.17, 0.5);
+            pen.note(boson, 0, 0.22, 0.17, 0.5);
+            pen.note(outA, 1.02, 0.78, 0.17, 0.5);
+            pen.note(outB, 1.02, -0.78, 0.17, 0.5);
+          } else if (variant === 1) {
+            for (const y4 of [0.45, -0.45]) {
+              pen.arrow(-1, y4, 0, y4);
+              pen.arrow(0, y4, 1, y4);
+              pen.dot(0, y4, 0.04);
+            }
+            pen.wave(0, 0.45, 0, -0.45, 9, 0.07);
+            pen.note("e\u207B", -1.02, 0.64, 0.17, 0.5);
+            pen.note("p", -1.02, -0.66, 0.17, 0.5);
+            pen.note("\u03B3", 0.2, 0, 0.17, 0.5);
+            pen.note("\u2212ie \u03B3\u03BC", 0.2, 0.68, 0.13);
+          } else {
+            pen.wave(-1, 0, -0.4, 0, 7, 0.07);
+            pen.arc(0, 0, 0.4);
+            pen.wave(0.4, 0, 1, 0, 7, 0.07);
+            pen.dot(-0.4, 0, 0.04);
+            pen.dot(0.4, 0, 0.04);
+            pen.line(0, 0.4, -0.1, 0.46);
+            pen.line(0, 0.4, -0.1, 0.34);
+            pen.line(0, -0.4, 0.1, -0.34);
+            pen.line(0, -0.4, 0.1, -0.46);
+            pen.note("\u03B3", -0.72, 0.2, 0.17, 0.5);
+            pen.note("k", 0, 0.6, 0.15, 0.5);
+            pen.note("O(\u03B1\xB2)", 0.5, -0.66, 0.14);
+          }
+          pen.line(-0.9, -1, 0.9, -1, 0, 0.8);
+          pen.line(0.9, -1, 0.8, -0.95, 0, 0.8);
+          pen.line(0.9, -1, 0.8, -1.05, 0, 0.8);
+          pen.note("t", 1, -1, 0.14);
+        };
+        drawPaths = (pen, rng) => {
+          pen.dot(-0.9, 0, 0.06);
+          pen.dot(0.9, 0, 0.06);
+          pen.line(-0.9, 0, 0.9, 0, 0, 1.5);
+          for (let halfWaves = 1; halfWaves <= 6; halfWaves += 1) pen.wave(-0.9, 0, 0.9, 0, halfWaves, span2(rng, 0.12, 0.6) / Math.sqrt(halfWaves));
+          pen.note("A", -1.08, 0, 0.17, 0.5);
+          pen.note("B", 1.08, 0, 0.17, 0.5);
+          pen.note(choose(rng, ["Z = \u222BD\u03C6 exp(iS/\u0127)", "\u03B4S = 0", "S = \u222B L dt", "\u27E8B|A\u27E9 = \u03A3 exp(iS/\u0127)"]), -0.9, -0.85, 0.15);
+        };
+        FORMULAS = [
+          "E\xB2 = p\xB2c\xB2 + m\xB2c\u2074",
+          "S = \u222B L d\u2074x",
+          "\u2207\xB7E = \u03C1/\u03B5\u2080",
+          "\u0394x \u0394p \u2265 \u0127/2",
+          "r = 2GM/c\xB2",
+          "1/(p\xB2 \u2212 m\xB2 + i\u03B5)",
+          "\u222B d\u2074k/(2\u03C0)\u2074",
+          "\u03B1 \u2248 1/137",
+          "\u03A3 1/n\xB2 = \u03C0\xB2/6",
+          "H \u03C8 = E \u03C8",
+          "\u2202\u03BC F\u03BC\u03BD = J\u03BD",
+          "T = 2.725 K",
+          "F = G m\u2081m\u2082/r\xB2",
+          "dS \u2265 0",
+          "\u03B2 = \u221211 + 2n/3"
+        ];
+        drawDraft = (pen, rng) => {
+          const lines = shuffle(rng, FORMULAS).slice(0, 4);
+          const struck = Math.floor(rng() * 2);
+          const boxed = 3;
+          lines.forEach((text, row) => {
+            const y4 = 0.85 - row * 0.3;
+            const width = Array.from(text).length * 0.085;
+            pen.note(text, -1, y4, 0.16);
+            if (row === struck) pen.line(-1.04, y4 - 0.03, -1 + width + 0.04, y4 + 0.04);
+            if (row === 2) pen.line(-1, y4 - 0.12, -1 + width, y4 - 0.12);
+            if (row === boxed) {
+              const [x03, x13, y02, y12] = [-1.08, -1 + width + 0.08, y4 - 0.14, y4 + 0.14];
+              pen.line(x03, y02, x13, y02);
+              pen.line(x13, y02, x13, y12);
+              pen.line(x13, y12, x03, y12);
+              pen.line(x03, y12, x03, y02);
+            }
+          });
+          const [ox2, oy2] = [-0.2, -1.1];
+          pen.line(ox2, oy2, ox2 + 1.2, oy2);
+          pen.line(ox2, oy2, ox2, oy2 + 0.62);
+          const peak = span2(rng, 0.45, 0.8);
+          for (let index = 0; index < 11; index += 1) {
+            const x4 = 0.08 + index * 0.1;
+            const offset = (x4 - peak) / 0.11;
+            pen.dot(ox2 + x4, oy2 + 0.06 + 0.5 / (1 + offset * offset) + span2(rng, -0.025, 0.025), 0.022);
+          }
+          pen.line(ox2 + peak, oy2, ox2 + peak, oy2 + 0.6, 7);
+          pen.note(choose(rng, ["m = 125 GeV", "\u0393", "m\u2080", "\u03C3(E)"]), ox2 + peak + 0.06, oy2 + 0.64, 0.13);
+          pen.note(choose(rng, ["\u2234", "= 0 ?", "\u2192 \u221E", "+ h.c.", "QED"]), 0.55, 0.55, 0.2);
+        };
+        drawShower = (pen, rng) => {
+          pen.arrow(-1.05, 0, -0.6, 0);
+          pen.note("e\u207B", -1.05, 0.16, 0.16);
+          let layer = [{ x: -0.6, y: 0, photon: false }];
+          for (let generation = 0; generation < 4; generation += 1) {
+            const spread = 0.42 / 2 ** generation;
+            const next = [];
+            if (generation > 0) pen.line(layer[0].x, -0.95, layer[0].x, 0.95, 11);
+            for (const node2 of layer) {
+              pen.dot(node2.x, node2.y, 0.022);
+              for (const side of [1, -1]) {
+                const child = { x: node2.x + 0.38, y: node2.y + side * spread * span2(rng, 0.8, 1.15), photon: node2.photon ? false : side > 0 };
+                if (child.photon) pen.wave(node2.x, node2.y, child.x, child.y, 5, 0.028);
+                else pen.line(node2.x, node2.y, child.x, child.y);
+                next.push(child);
+              }
+            }
+            layer = next;
+          }
+          pen.note("X\u2080", -0.22, -1.08, 0.15, 0.5);
+          pen.note(choose(rng, ["N \u2248 2\u207F", "E/2\u207F < Ec", "tmax \u221D ln E"]), 0.2, 1.1, 0.14);
+        };
+        drawDecay = (pen, rng) => {
+          const [parent, boson, a4, b4, c4, d4, tail] = choose(rng, [
+            ["H", "Z", "\u03BC\u207A", "\u03BC\u207B", "e\u207A", "e\u207B", "m = 125 GeV"],
+            ["H", "W", "\u2113", "\u03BD", "q", "q", "BR \u2248 21%"],
+            ["t t", "W", "b", "\u2113\u03BD", "b", "jj", "m = 173 GeV"]
+          ]);
+          pen.dot(-0.95, 0, 0.07);
+          pen.line(-0.95, 0, -0.4, 0, 5);
+          pen.dot(-0.4, 0, 0.035);
+          pen.note(parent, -0.95, 0.2, 0.18, 0.5);
+          const leaves = [[a4, b4], [c4, d4]];
+          [1, -1].forEach((side, branch) => {
+            const y4 = side * 0.52;
+            pen.wave(-0.4, 0, 0.2, y4, 7, 0.045);
+            pen.dot(0.2, y4, 0.035);
+            pen.note(boson, -0.16, y4 * 0.5 + side * 0.2, 0.16, 0.5);
+            [1, -1].forEach((fork, leaf) => {
+              const end = y4 + fork * 0.3;
+              pen.arrow(0.2, y4, 0.9, end);
+              pen.note(leaves[branch][leaf], 1.04, end, 0.16, 0.5);
+            });
+          });
+          pen.note(tail, -1, -1, 0.14);
+        };
+        spiral = (pen, x4, y4, radius, shrink, direction, flip) => {
+          for (let turn2 = 0; turn2 < 5 && radius - turn2 * shrink > 0.03; turn2 += 1) {
+            const centre = x4 + direction * (radius - (turn2 % 2 === 0 ? 0 : shrink));
+            pen.arc(centre, y4, radius - turn2 * shrink, (turn2 % 2 === 0 ? 1 : -1) * flip * (Math.PI / 2), Math.PI / 2);
+          }
+        };
+        drawBubble = (pen, rng) => {
+          const [vx2, vy2] = [span2(rng, -0.15, 0.15), span2(rng, -0.25, 0.05)];
+          pen.line(-1.1, vy2 - 0.25, vx2, vy2, 9);
+          pen.dot(vx2, vy2, 0.03);
+          spiral(pen, vx2, vy2, span2(rng, 0.3, 0.42), 0.07, -1, 1);
+          spiral(pen, vx2, vy2, span2(rng, 0.36, 0.5), 0.085, 1, -1);
+          for (let track = 2 + Math.floor(rng() * 2); track > 0; track -= 1) {
+            const angle = span2(rng, -0.5, 0.5);
+            pen.line(vx2, vy2, vx2 + Math.cos(angle) * 1.1, vy2 + Math.sin(angle) * 1.1);
+          }
+          for (let bubble = 0; bubble < 7; bubble += 1) pen.dot(-0.95 + bubble * (0.2 - bubble * 0.012), 0.75 + bubble * 0.03, 0.02);
+          for (const [cx2, cy2] of [[-0.85, -0.85], [0.85, 0.8]]) {
+            pen.line(cx2 - 0.1, cy2, cx2 + 0.1, cy2);
+            pen.line(cx2, cy2 - 0.1, cx2, cy2 + 0.1);
+          }
+          pen.note("\u03B3 \u2192 e\u207Ae\u207B", vx2 - 0.5, vy2 - 0.62, 0.15);
+          pen.note(choose(rng, ["B = 2 T", "p = 0.3 B r", "\u039B \u2192 p \u03C0\u207B"]), 0.3, -1, 0.14);
+        };
+        drawSpectrum = (pen, rng) => {
+          const [ox2, oy2] = [-0.9, -0.8];
+          pen.line(ox2, oy2, 1, oy2);
+          pen.line(ox2, oy2, ox2, 0.85);
+          const peak = 6 + Math.floor(rng() * 4);
+          const bins = 14;
+          const width = 1.8 / bins;
+          for (let bin = 0; bin < bins; bin += 1) {
+            const offset = (bin - peak) / 0.9;
+            const height = 1.35 * Math.exp(-bin * 0.2) + 0.3 * Math.exp(-offset * offset) + 0.05;
+            const x4 = ox2 + 0.05 + bin * width;
+            pen.line(x4, oy2 + height, x4 + width, oy2 + height);
+            const point = oy2 + height + span2(rng, -0.06, 0.06);
+            pen.dot(x4 + width / 2, point, 0.022);
+            pen.line(x4 + width / 2, point - 0.07, x4 + width / 2, point + 0.07);
+          }
+          const px2 = ox2 + 0.05 + (peak + 0.5) * width;
+          pen.line(px2, oy2, px2, oy2 + 0.95, 7);
+          pen.note(choose(rng, ["125", "91.2", "3.1"]), px2, oy2 - 0.14, 0.14, 0.5);
+          pen.note(choose(rng, ["m(\u03B3\u03B3)  GeV", "m(\u03BC\u03BC)  GeV", "m(4\u2113)  GeV"]), 1, oy2 - 0.14, 0.14, 1);
+          pen.note("Events", ox2 - 0.14, 0.85, 0.14, 1, Math.PI / 2);
+          pen.note(choose(rng, ["5\u03C3", "S/\u221AB", "\u03C7\xB2/ndf = 1.1"]), px2 + 0.12, oy2 + 1.02, 0.16);
+        };
+        drawPenguin = (pen, rng) => {
+          pen.arrow(-1.05, 0.15, -0.45, 0.15);
+          pen.arrow(-0.45, 0.15, 0.45, 0.15, 0.3);
+          pen.arrow(0.45, 0.15, 1.05, 0.15);
+          pen.arc(0, 0.15, 0.45, Math.PI / 2, Math.PI / 2);
+          pen.dot(-0.45, 0.15, 0.035);
+          pen.dot(0.45, 0.15, 0.035);
+          pen.dot(0, 0.15, 0.035);
+          pen.wave(0, 0.15, 0, -0.5, 9, 0.05);
+          pen.dot(0, -0.5, 0.035);
+          pen.arrow(0, -0.5, 0.75, -0.3);
+          pen.arrow(0.75, -0.8, 0, -0.5);
+          pen.note("b", -1.05, 0.33, 0.17, 0.5);
+          pen.note("s", 1.05, 0.33, 0.17, 0.5);
+          pen.note("W", 0, 0.76, 0.17, 0.5);
+          pen.note(choose(rng, ["t", "u, c, t"]), -0.22, 0.02, 0.14, 0.5);
+          pen.note("g", 0.18, -0.2, 0.16, 0.5);
+          pen.note("q", 0.88, -0.28, 0.15, 0.5);
+          pen.note("q", 0.88, -0.84, 0.15, 0.5);
+          pen.note(choose(rng, ["b \u2192 s g", "Vtb V*ts", "O(GF \u03B1s)"]), -1, -0.95, 0.14);
+        };
+        drawBox = (pen, rng) => {
+          const [meson, upper, lower] = choose(rng, [["K\u2070", "s", "d"], ["B\u2070", "b", "d"], ["D\u2070", "c", "u"]]);
+          pen.arrow(-1.05, 0.38, -0.42, 0.38);
+          pen.arrow(-0.42, 0.38, 0.42, 0.38);
+          pen.arrow(0.42, 0.38, 1.05, 0.38);
+          pen.arrow(1.05, -0.38, 0.42, -0.38);
+          pen.arrow(0.42, -0.38, -0.42, -0.38);
+          pen.arrow(-0.42, -0.38, -1.05, -0.38);
+          pen.wave(-0.42, 0.38, -0.42, -0.38, 7, 0.05);
+          pen.wave(0.42, 0.38, 0.42, -0.38, 7, 0.05);
+          for (const x4 of [-0.42, 0.42]) {
+            pen.dot(x4, 0.38, 0.035);
+            pen.dot(x4, -0.38, 0.035);
+          }
+          pen.note(upper, -0.75, 0.56, 0.16, 0.5);
+          pen.note(lower, -0.75, -0.58, 0.16, 0.5);
+          pen.note(lower, 0.75, 0.56, 0.16, 0.5);
+          pen.note(upper, 0.75, -0.58, 0.16, 0.5);
+          pen.note("u, c, t", 0, 0.56, 0.13, 0.5);
+          pen.note("W", -0.62, 0, 0.16, 0.5);
+          pen.note("W", 0.62, 0, 0.16, 0.5);
+          pen.note(meson, -1.25, 0, 0.18, 0.5);
+          pen.note(choose(rng, ["\u0394m", "\u0394F = 2", "\u03B5 \u2248 2.2\xD710\u207B\xB3"]), -0.3, -1, 0.15);
+        };
+        drawCollider = (pen, rng) => {
+          pen.arc(0.15, 0.1, 0.85, 0, Math.PI, 1.4);
+          pen.arc(0.15, 0.1, 0.79);
+          pen.arc(-0.52, -0.68, 0.27);
+          pen.arc(-0.92, -0.9, 0.1);
+          pen.line(-1.3, -1.02, -1, -0.96, 0, 2.2);
+          pen.line(-0.84, -0.84, -0.72, -0.86);
+          pen.line(-0.33, -0.49, -0.42, -0.52);
+          const turn2 = rng() * 0.6;
+          for (let point = 0; point < 4; point += 1) {
+            const angle = turn2 + point * Math.PI / 2;
+            const [cos, sin] = [Math.cos(angle), Math.sin(angle)];
+            pen.dot(0.15 + cos * 0.82, 0.1 + sin * 0.82, 0.05);
+            pen.line(0.15 + cos * 0.7, 0.1 + sin * 0.7, 0.15 + cos * 0.95, 0.1 + sin * 0.95, 0, 1.6);
+            pen.note(`IP${[1, 2, 5, 8][point]}`, 0.15 + cos * 1.12, 0.1 + sin * 1.12, 0.13, 0.5);
+          }
+          for (const [angle, radius, way] of [[turn2 + 0.8, 0.85, 1], [turn2 + 0.8 + Math.PI, 0.79, -1]]) {
+            const [x4, y4] = [0.15 + Math.cos(angle) * radius, 0.1 + Math.sin(angle) * radius];
+            const along = angle + way * Math.PI / 2;
+            for (const side of [0.5, -0.5]) pen.line(x4, y4, x4 - Math.cos(along + side) * 0.12, y4 - Math.sin(along + side) * 0.12);
+          }
+          pen.note(choose(rng, ["27 km", "C = 26.7 km", "2808 bunches"]), 0.15, 0.1, 0.16, 0.5);
+          pen.note(choose(rng, ["\u221As = 13.6 TeV", "L = 2\xD710\xB3\u2074", "B = 8.3 T"]), 0.15, -0.14, 0.13, 0.5);
+          pen.note("LINAC", -1.3, -1.18, 0.12);
+        };
+        drawPotential = (pen, rng) => {
+          const curve = (x4) => 3.2 * (x4 * x4 - 0.5) ** 2 - 0.6;
+          pen.line(-1.15, -0.78, 1.15, -0.78);
+          pen.line(0, -0.9, 0, 0.9);
+          const steps = 22;
+          for (let step = 0; step < steps; step += 1) {
+            const x03 = -1.05 + step * 2.1 / steps;
+            const x13 = -1.05 + (step + 1) * 2.1 / steps;
+            pen.line(x03, curve(x03), x13, curve(x13), 0, 1.3);
+          }
+          const side = rng() < 0.5 ? 1 : -1;
+          const valley = side * Math.SQRT1_2;
+          pen.arc(0, curve(0) + 0.07, 0.06);
+          pen.dot(valley, curve(valley) + 0.07, 0.065);
+          pen.line(side * 0.1, curve(0) + 0.02, valley - side * 0.12, curve(valley) + 0.24, 6);
+          pen.line(valley, -0.78, valley, curve(valley), 5);
+          pen.note("V(\u03C6)", 0.08, 0.92, 0.16);
+          pen.note("\u03C6", 1.2, -0.92, 0.16, 0.5);
+          pen.note("v", valley, -0.92, 0.15, 0.5);
+          pen.note(choose(rng, ["v = 246 GeV", "\u03BC\xB2 < 0", "V = \u03BC\xB2\u03C6\xB2 + \u03BB\u03C6\u2074", "mH\xB2 = 2\u03BBv\xB2"]), -1.1, -1.12, 0.14);
+        };
+        drawRunning = (pen, rng) => {
+          const [ox2, oy2] = [-0.9, -0.8];
+          pen.line(ox2, oy2, 1.05, oy2);
+          pen.line(ox2, oy2, ox2, 0.85);
+          for (let tick = 1; tick <= 6; tick += 1) pen.line(ox2 + tick * 0.28, oy2, ox2 + tick * 0.28, oy2 + (tick % 2 === 0 ? 0.08 : 0.05));
+          const meet = span2(rng, 0.5, 0.7);
+          const gap = rng() < 0.5 ? 0.09 : 0.02;
+          const starts = [0.62, 0.05, -0.5];
+          starts.forEach((start, index) => {
+            const end = -0.02 + (index - 1) * -gap;
+            const slope = (end - start) / (meet - ox2);
+            pen.line(ox2, start, 1, start + slope * (1 - ox2), 0, index === 2 ? 1.6 : 1);
+            pen.note(`\u03B1${["\u2081", "\u2082", "\u2083"][index]}\u207B\xB9`, ox2 + 0.08, start + 0.13, 0.15);
+          });
+          pen.line(meet, oy2, meet, 0.6, 9);
+          pen.note(choose(rng, ["10\xB9\u2076 GeV", "MGUT", "\u039B"]), meet, oy2 - 0.14, 0.14, 0.5);
+          pen.note("log Q", 1.05, oy2 - 0.14, 0.14, 1);
+          pen.note(choose(rng, ["\u03B2\u2080 = 11 \u2212 2n/3", "d\u03B1/d ln Q = \u03B2(\u03B1)", "SUSY ?"]), 0, 0.92, 0.14);
+        };
+        drawCherenkov = (pen, rng) => {
+          const sine = span2(rng, 0.42, 0.6);
+          const angle = Math.asin(sine);
+          pen.arrow(-1.1, 0, 1.05, 0, 0.92);
+          for (let wave2 = 0; wave2 < 6; wave2 += 1) {
+            const x4 = -0.85 + wave2 * 0.3;
+            pen.arc(x4, 0, (0.9 - x4) * sine);
+            pen.dot(x4, 0, 0.02);
+          }
+          const reach = 1.75 * Math.cos(angle);
+          for (const side of [1, -1]) {
+            pen.line(0.9, 0, 0.9 - Math.cos(angle) * reach, side * Math.sin(angle) * reach, 0, 1.5);
+            const [fx2, fy2] = [0.9 - Math.cos(angle) * reach * 0.55, side * Math.sin(angle) * reach * 0.55];
+            pen.wave(fx2, fy2, fx2 + Math.sin(angle) * 0.5, fy2 + side * Math.cos(angle) * 0.5, 6, 0.035);
+          }
+          pen.arc(0.9, 0, 0.3, Math.PI - angle / 2, angle / 2);
+          pen.note("\u03B8", 0.5, 0.1, 0.15, 0.5);
+          pen.note("cos \u03B8 = 1/n\u03B2", -1.1, -1.12, 0.15);
+          pen.note(choose(rng, ["\u03B2 > 1/n", "n = 1.33", "v > c/n"]), 0.35, 1.02, 0.14);
+        };
+        DRAW = {
+          orbit: drawOrbit,
+          starmap: drawStarmap,
+          lattice: drawLattice,
+          cell: drawCell,
+          molecule: drawMolecule,
+          detector: drawDetector,
+          feynman: drawFeynman,
+          paths: drawPaths,
+          draft: drawDraft,
+          shower: drawShower,
+          decay: drawDecay,
+          bubble: drawBubble,
+          spectrum: drawSpectrum,
+          penguin: drawPenguin,
+          box: drawBox,
+          collider: drawCollider,
+          potential: drawPotential,
+          running: drawRunning,
+          cherenkov: drawCherenkov
+        };
+        TONE_MIX = { ink: 0, tone: 0.75, accent: 0 };
+        TONE_HEAVY = 2.6;
+        drawMetaphorFigure = (kind, rng, x4 = 0, y4 = 0, scale = 1, rot = 0, delay = 0, toned = false) => {
+          const pen = toned ? new Pen(x4, y4, scale, rot, delay, TONE_MIX, TONE_HEAVY) : new Pen(x4, y4, scale, rot, delay);
+          DRAW[kind](pen, rng);
+          if (toned) return { shapes: pen.shapes, notes: [] };
+          return { shapes: pen.shapes, notes: pen.notes };
+        };
+        STAGE_SLOTS = [[-0.72, 0.3], [0.72, -0.3], [0, -0.1]];
+        FIGURE_REACH = 1.35;
+        WIDE_MARGIN2 = 1.1;
+        FRAME_SPILL = 1.15;
+        freeCells = (halfW, halfH, aspect, rng) => {
+          const frameH = Math.max(halfH, 0.6, Math.max(halfW, 0.8) / aspect) * WIDE_MARGIN2 * FRAME_SPILL;
+          const frameW = frameH * aspect;
+          const cell = Math.min(5, Math.max(2.4, Math.min(frameW, frameH) / 1.1));
+          const columns = Math.max(1, Math.round(frameW * 2 / cell));
+          const rows = Math.max(1, Math.round(frameH * 2 / cell));
+          const cellW = frameW * 2 / columns;
+          const cellH = frameH * 2 / rows;
+          const cells2 = [];
+          for (let row = 0; row < rows; row += 1) {
+            for (let column = 0; column < columns; column += 1) {
+              const x03 = -frameW + column * cellW;
+              const y02 = -frameH + row * cellH;
+              if (x03 < halfW + 0.15 && x03 + cellW > -halfW - 0.15 && y02 < halfH + 0.15 && y02 + cellH > -halfH - 0.15) continue;
+              cells2.push({ x: x03 + cellW / 2, y: y02 + cellH / 2, scale: Math.min(2.4, Math.min(cellW, cellH) / (2 * FIGURE_REACH)) });
+            }
+          }
+          return shuffle(rng, cells2);
+        };
+        planMetaphorFigures = (bounds, rng, amount, interlude, aspect = 1.6) => {
+          const figures = { shapes: [], notes: [] };
+          if (amount <= 0) return figures;
+          const halfW = (bounds.x1 - bounds.x0) / 2;
+          const halfH = (bounds.y1 - bounds.y0) / 2;
+          const reach = Math.max(halfW, halfH, 2);
+          const cells2 = interlude ? [] : freeCells(halfW, halfH, Math.min(4, Math.max(0.25, aspect)), rng);
+          const wanted = cells2.length > 0 ? cells2.length * 0.5 * Math.min(1.5, amount) + rng() * 0.6 : 1.6 * amount + rng() * 0.9;
+          const total = interlude ? Math.min(STAGE_SLOTS.length, 1 + Math.round(amount)) : Math.min(4, Math.max(1, Math.round(wanted)));
+          const kinds = shuffle(rng, METAPHOR_FIGURE_KINDS);
+          const sides = shuffle(rng, [0, 1, 2, 3]);
+          const under = drawMetaphorFigure(
+            kinds[total],
+            rng,
+            span2(rng, -0.35, 0.35) * halfW,
+            span2(rng, -0.35, 0.35) * halfH,
+            reach * (interlude ? 0.6 : 0.85) * span2(rng, 0.85, 1.2),
+            span2(rng, -0.3, 0.3),
+            0,
+            true
+          );
+          figures.shapes.push(...under.shapes);
+          for (let index = 0; index < total; index += 1) {
+            let scale = (interlude ? 1.2 : Math.min(2, Math.max(1, reach * 0.36))) * span2(rng, 0.85, 1.15);
+            let x4;
+            let y4;
+            if (interlude) {
+              const [slotX, slotY] = STAGE_SLOTS[index % STAGE_SLOTS.length];
+              x4 = slotX * halfW + span2(rng, -0.25, 0.25);
+              y4 = slotY * halfH + span2(rng, -0.3, 0.3);
+            } else if (index < cells2.length) {
+              const cell = cells2[index];
+              const fit = span2(rng, 0.7, 0.95);
+              scale = Math.max(0.8, cell.scale * fit);
+              x4 = cell.x + span2(rng, -1, 1) * cell.scale * (1 - fit) * FIGURE_REACH;
+              y4 = cell.y + span2(rng, -1, 1) * cell.scale * (1 - fit) * FIGURE_REACH;
+            } else {
+              const out = scale * FIGURE_REACH + 0.2;
+              const side = sides[index];
+              const along = span2(rng, -0.7, 0.7);
+              x4 = side < 2 ? along * halfW : (side === 2 ? -1 : 1) * (halfW + out);
+              y4 = side < 2 ? (side === 0 ? 1 : -1) * (halfH + out) : along * halfH;
+            }
+            const figure = drawMetaphorFigure(kinds[index % kinds.length], rng, x4, y4, scale, span2(rng, -0.12, 0.12), 0.3 + index * 0.7);
+            figures.shapes.push(...figure.shapes);
+            figures.notes.push(...figure.notes);
+          }
+          figures.shapes.length = Math.min(figures.shapes.length, FIGURE_LIMIT);
+          return figures;
+        };
+        pad2 = (value) => String(Math.max(0, Math.floor(value))).padStart(2, "0");
+        timecode = (seconds) => `${pad2(seconds / 60)}:${pad2(seconds % 60)}`;
+        planMetaphorBackdrop = (bounds, rng, amount, interlude, info) => {
+          const halfW = (bounds.x1 - bounds.x0) / 2;
+          const halfH = (bounds.y1 - bounds.y0) / 2;
+          const reach = Math.max(halfW, halfH, 2);
+          const shapes = [];
+          const tone = (shape2, patch) => shapes.push(staticMetaphorShape(shape2, { ink: 0, accent: 0, ...patch }));
+          if (amount > 0) {
+            const layer = choose(rng, ["band", "band", "grid", "arcs", "dots", "plain"]);
+            if (layer === "band") {
+              const upright = rng() < 0.3;
+              const half = (upright ? halfW : halfH) * span2(rng, 0.3, 0.75);
+              const shift = (upright ? halfW : halfH) * span2(rng, -0.7, 0.7);
+              tone(METAPHOR_SHAPE_BAR, {
+                x: upright ? shift : 0,
+                y: upright ? 0 : shift,
+                sx: reach * 9,
+                sy: half,
+                tone: span2(rng, 0.3, 0.5),
+                rot: (upright ? Math.PI / 2 : 0) + (rng() < 0.4 ? span2(rng, -0.2, 0.2) : 0)
+              });
+            } else if (layer === "grid") {
+              const pitch = Math.max(1, reach / 3.5);
+              const columns = Math.min(7, Math.ceil((halfW + pitch * 2) / pitch));
+              const rows = Math.min(5, Math.ceil((halfH + pitch * 2) / pitch));
+              for (let column = -columns; column <= columns; column += 1) {
+                tone(METAPHOR_SHAPE_BAR, { x: column * pitch, sx: rows * pitch, sy: 0.022, rot: Math.PI / 2, tone: column === 0 ? 0.8 : 0.4 });
+              }
+              for (let row = -rows; row <= rows; row += 1) {
+                tone(METAPHOR_SHAPE_BAR, { y: row * pitch, sx: columns * pitch, sy: 0.022, tone: row === 0 ? 0.8 : 0.4 });
+              }
+            } else if (layer === "arcs") {
+              const cx2 = (rng() < 0.5 ? -1 : 1) * (halfW + reach * 0.6);
+              const cy2 = (rng() < 0.5 ? -1 : 1) * (halfH + reach * 0.4);
+              for (let ring = 1; ring <= 5; ring += 1) {
+                tone(METAPHOR_SHAPE_ARC, { x: cx2, y: cy2, sx: reach * 0.7 * ring / ARC_AT, sy: 2.5, param: 1, tone: 0.55 });
+              }
+            } else if (layer === "dots") {
+              const pitch = Math.max(0.9, reach / 3);
+              const skew = rng() < 0.5 ? 0.5 : 0;
+              for (let row = -2; row <= 2; row += 1) {
+                for (let column = -3; column <= 3; column += 1) {
+                  tone(METAPHOR_SHAPE_BLOB, { x: (column + (row % 2 === 0 ? 0 : skew)) * pitch, y: row * pitch * 0.87, sx: 0.2, sy: 0.2, tone: 1 });
+                }
+              }
+            }
+          }
+          shapes.length = Math.min(shapes.length, BACKDROP_LIMIT);
+          if (interlude) return { shapes, notes: [] };
+          const pen = new Pen(0, 0, 1, 0, 0);
+          const furniture = choose(rng, ["rules", "rules", "crop", "margin", "none"]);
+          const left = -halfW - 0.1;
+          const right = halfW + 0.1;
+          const size = Math.min(0.34, Math.max(0.2, reach * 0.07));
+          if (furniture === "rules") {
+            pen.line(left, halfH + 0.3, right, halfH + 0.3, 0, 2.6);
+            pen.line(left, -halfH - 0.3, right, -halfH - 0.3);
+            pen.note(pad2(info.index), left, halfH + 0.3 + size * 0.95, size);
+            pen.note(timecode(info.time), right, -halfH - 0.3 - size * 0.95, size, 1);
+          } else if (furniture === "crop") {
+            for (const sx2 of [-1, 1]) {
+              for (const sy2 of [-1, 1]) {
+                const x4 = sx2 * (halfW + 0.3);
+                const y4 = sy2 * (halfH + 0.3);
+                pen.line(x4 + sx2 * 0.12, y4, x4 + sx2 * 0.5, y4);
+                pen.line(x4, y4 + sy2 * 0.12, x4, y4 + sy2 * 0.5);
+              }
+            }
+            pen.note(`${pad2(info.index)} \u2014 ${timecode(info.time)}`, 0, -halfH - 0.3 - size * 1.1, size, 0.5);
+          } else if (furniture === "margin") {
+            const x4 = left - 0.3;
+            pen.line(x4, -halfH, x4, halfH, 0, 1.8);
+            for (let tick = 0; tick <= 4; tick += 1) {
+              const y4 = -halfH + tick * halfH / 2;
+              pen.line(x4, y4, x4 + (tick % 2 === 0 ? 0.22 : 0.12), y4);
+            }
+            pen.note(`${pad2(info.index)} / ${timecode(info.time)}`, x4 - size * 0.9, halfH, size, 1, Math.PI / 2);
+          }
+          return { shapes: [...shapes, ...pen.shapes], notes: pen.notes };
+        };
+        layoutMetaphorNotes = (notes, measure) => {
+          const glyphs = [];
+          for (const note of notes) {
+            const chars = Array.from(note.text);
+            const advances = chars.map((char) => measure(char) * note.size);
+            const total = advances.reduce((sum, advance2) => sum + advance2, 0);
+            const cos = Math.cos(note.rot);
+            const sin = Math.sin(note.rot);
+            let pen = -total * note.align;
+            chars.forEach((char, index) => {
+              const along = pen + advances[index] / 2;
+              pen += advances[index];
+              if (char.trim() === "") return;
+              glyphs.push({ char, x: note.x + along * cos, y: note.y + along * sin, size: note.size, rot: note.rot, born: note.born });
+            });
+          }
+          return glyphs;
+        };
+      }
+    });
+  
+    // src/folia/components/visualizer/metaphor/metaphorGlyphs.ts
+    var METAPHOR_GLYPH_EM, PAD, METAPHOR_GLYPH_CELL, METAPHOR_GLYPH_WORLD, CELL2, BASELINE, TIGHT_RADIUS, WIDE_RADIUS, WIDE_GAIN, DENSE_WEIGHT, DENSE_WIDE, DENSE_CHAR, CACHE_LIMIT, METAPHOR_NOTE_PREFIX, NOTE_FONT, ATLAS_COLUMNS, blurLines, blur, MetaphorGlyphSource, buildMetaphorAtlas;
+    var init_metaphorGlyphs = __esm({
+      "src/folia/components/visualizer/metaphor/metaphorGlyphs.ts"() {
+        METAPHOR_GLYPH_EM = 72;
+        PAD = 28;
+        METAPHOR_GLYPH_CELL = METAPHOR_GLYPH_EM + PAD * 2;
+        METAPHOR_GLYPH_WORLD = METAPHOR_GLYPH_CELL / METAPHOR_GLYPH_EM;
+        CELL2 = METAPHOR_GLYPH_CELL;
+        BASELINE = 0.86;
+        TIGHT_RADIUS = 1;
+        WIDE_RADIUS = 6;
+        WIDE_GAIN = 1.5;
+        DENSE_WEIGHT = 500;
+        DENSE_WIDE = 0.6;
+        DENSE_CHAR = /[\u2E80-\u2FDF\u3040-\u30FF\u3400-\u4DBF\u4E00-\u9FFF\uAC00-\uD7AF\uF900-\uFAFF]/u;
+        CACHE_LIMIT = 400;
+        METAPHOR_NOTE_PREFIX = "";
+        NOTE_FONT = `italic 500 ${METAPHOR_GLYPH_EM}px "Cambria Math", "STIX Two Math", Cambria, Georgia, "Times New Roman", serif`;
+        ATLAS_COLUMNS = 8;
+        blurLines = (source, target, radius, step, lineStep) => {
+          const window2 = radius * 2 + 1;
+          for (let line2 = 0; line2 < CELL2; line2 += 1) {
+            const base = line2 * lineStep;
+            let sum = 0;
+            for (let index = 0; index <= radius; index += 1) sum += source[base + index * step];
+            for (let index = 0; index < CELL2; index += 1) {
+              target[base + index * step] = sum / window2;
+              const add = index + radius + 1;
+              const drop = index - radius;
+              if (add < CELL2) sum += source[base + add * step];
+              if (drop >= 0) sum -= source[base + drop * step];
+            }
+          }
+        };
+        blur = (buffer, scratch, radius) => {
+          for (let pass = 0; pass < 3; pass += 1) {
+            blurLines(buffer, scratch, radius, 1, CELL2);
+            blurLines(scratch, buffer, radius, CELL2, 1);
+          }
+        };
+        MetaphorGlyphSource = class {
+          canvas = document.createElement("canvas");
+          context;
+          cells = /* @__PURE__ */ new Map();
+          advances = /* @__PURE__ */ new Map();
+          work = new Float32Array(CELL2 * CELL2);
+          wide = new Float32Array(CELL2 * CELL2);
+          scratch = new Float32Array(CELL2 * CELL2);
+          font = "";
+          denseFont = "";
+          constructor(stack, weight) {
+            this.canvas.width = CELL2;
+            this.canvas.height = CELL2;
+            const context = this.canvas.getContext("2d", { willReadFrequently: true });
+            if (!context) throw new Error("2D canvas is unavailable");
+            this.context = context;
+            this.setFont(stack, weight);
+          }
+          /** 换字体或字重：变了返回 true，缓存作废。 */
+          setFont(stack, weight) {
+            const font = `${weight} ${METAPHOR_GLYPH_EM}px ${stack}`;
+            if (font === this.font) return false;
+            this.font = font;
+            this.denseFont = `${Math.min(weight, DENSE_WEIGHT)} ${METAPHOR_GLYPH_EM}px ${stack}`;
+            this.clear();
+            return true;
+          }
+          clear() {
+            this.cells.clear();
+            this.advances.clear();
+          }
+          /** 主题字体加载好了没有（没好时画的是回退字体）。 */
+          fontReady() {
+            try {
+              return document.fonts.check(this.font);
+            } catch {
+              return true;
+            }
+          }
+          /** 一个字的步进宽度，字高的倍数。 */
+          measure = (char) => this.advance(char, char, this.font);
+          /** 注记的一个字的步进宽度。 */
+          measureNote = (char) => this.advance(METAPHOR_NOTE_PREFIX + char, char, NOTE_FONT);
+          advance(key, char, font) {
+            let advance2 = this.advances.get(key);
+            if (advance2 === void 0) {
+              this.context.font = font;
+              advance2 = Math.max(0.2, this.context.measureText(char).width / METAPHOR_GLYPH_EM);
+              if (this.advances.size >= CACHE_LIMIT * 2) this.advances.clear();
+              this.advances.set(key, advance2);
+            }
+            return advance2;
+          }
+          /** 一个字的一格：CELL × CELL，每像素两个字节（紧、宽）。key 是字本身，或者 METAPHOR_NOTE_PREFIX 加字。 */
+          cell(key) {
+            const cached = this.cells.get(key);
+            if (cached) return cached;
+            const { context, work, wide, scratch } = this;
+            const note = key.startsWith(METAPHOR_NOTE_PREFIX);
+            const char = note ? key.slice(METAPHOR_NOTE_PREFIX.length) : key;
+            const dense = !note && DENSE_CHAR.test(char);
+            const wideGain = dense ? WIDE_GAIN * DENSE_WIDE : WIDE_GAIN;
+            context.clearRect(0, 0, CELL2, CELL2);
+            context.font = note ? NOTE_FONT : dense ? this.denseFont : this.font;
+            context.textAlign = "center";
+            context.textBaseline = "alphabetic";
+            context.fillStyle = "#fff";
+            context.fillText(char, CELL2 / 2, PAD + METAPHOR_GLYPH_EM * BASELINE);
+            const pixels = context.getImageData(0, 0, CELL2, CELL2).data;
+            for (let index = 0; index < work.length; index += 1) {
+              work[index] = pixels[index * 4 + 3] / 255;
+              wide[index] = work[index];
+            }
+            blur(work, scratch, TIGHT_RADIUS);
+            blur(wide, scratch, WIDE_RADIUS);
+            const cell = new Uint8Array(CELL2 * CELL2 * 2);
+            for (let index = 0; index < work.length; index += 1) {
+              cell[index * 2] = Math.round(Math.min(1, work[index]) * 255);
+              cell[index * 2 + 1] = Math.round(Math.min(1, wide[index] * wideGain) * 255);
+            }
+            if (this.cells.size >= CACHE_LIMIT) this.cells.clear();
+            this.cells.set(key, cell);
+            return cell;
+          }
+        };
+        buildMetaphorAtlas = (source, chars) => {
+          const unique = Array.from(new Set(chars));
+          const columns = Math.max(1, Math.min(ATLAS_COLUMNS, unique.length));
+          const rows = Math.max(1, Math.ceil(unique.length / columns));
+          const width = columns * CELL2;
+          const height = rows * CELL2;
+          const data = new Uint8Array(width * height * 4);
+          const rects = /* @__PURE__ */ new Map();
+          unique.forEach((char, order) => {
+            const column = order % columns;
+            const row = Math.floor(order / columns);
+            const cell = source.cell(char);
+            for (let y4 = 0; y4 < CELL2; y4 += 1) {
+              let to3 = ((row * CELL2 + y4) * width + column * CELL2) * 4;
+              let from = y4 * CELL2 * 2;
+              for (let x4 = 0; x4 < CELL2; x4 += 1) {
+                data[to3] = cell[from];
+                data[to3 + 1] = cell[from + 1];
+                data[to3 + 3] = 255;
+                to3 += 4;
+                from += 2;
+              }
+            }
+            rects.set(char, [column / columns, row / rows, (column + 1) / columns, (row + 1) / rows]);
+          });
+          return { data, width, height, rects };
+        };
+      }
+    });
+  
+    // src/folia/components/visualizer/metaphor/metaphorLayout.ts
+    var SPACE_ONLY, LINE_HEIGHT, buildMetaphorTokens, buildMetaphorTextTokens, clamp20, tokenAdvance, wrapRows, rowWidth2, placeRows2, FLAT, placeBlock, placeStair, placeHero, placeScatter, JUSTIFY_MAX, placeJustify, COLUMN_MAX, COLUMN_PITCH2, COLUMN_GAP, buildMetaphorLayout;
+    var init_metaphorLayout = __esm({
+      "src/folia/components/visualizer/metaphor/metaphorLayout.ts"() {
+        init_graphemeTiming();
+        init_wordSegmentation();
+        SPACE_ONLY = /^\s+$/u;
+        LINE_HEIGHT = 1.14;
+        buildMetaphorTokens = (line2) => {
+          const timeline = buildLineGraphemeTimeline(line2);
+          const tokens = [];
+          let cursor = 0;
+          for (const part of segmentLyricWords(line2)) {
+            const count = splitLyricGraphemes(part.segment).length;
+            const chars = timeline.slice(cursor, cursor + count).map((item) => ({ char: item.char, t0: item.startTime, t1: item.endTime }));
+            cursor += count;
+            if (chars.length === 0) continue;
+            tokens.push({ text: part.segment, chars, wordLike: part.isWordLike, space: SPACE_ONLY.test(part.segment) });
+          }
+          if (cursor < timeline.length) {
+            const rest = timeline.slice(cursor).map((item) => ({ char: item.char, t0: item.startTime, t1: item.endTime }));
+            const last = tokens.at(-1);
+            if (last) last.chars.push(...rest);
+            else tokens.push({ text: rest.map((item) => item.char).join(""), chars: rest, wordLike: true, space: false });
+          }
+          return tokens;
+        };
+        buildMetaphorTextTokens = (text, time) => segmentTextWords(text).map((part) => ({
+          text: part.segment,
+          chars: splitLyricGraphemes(part.segment).map((char) => ({ char, t0: time, t1: time })),
+          wordLike: part.isWordLike,
+          space: SPACE_ONLY.test(part.segment)
+        })).filter((token) => token.chars.length > 0);
+        clamp20 = (value, min, max) => Math.min(max, Math.max(min, value));
+        tokenAdvance = (token, measure) => token.chars.reduce((sum, item) => sum + measure(item.char), 0);
+        wrapRows = (tokens, widths, maxWidth) => {
+          const rows = [];
+          let row = [];
+          let width = 0;
+          tokens.forEach((token, index) => {
+            if (row.length === 0 && token.space) return;
+            if (row.length > 0 && !token.space && width + widths[index] > maxWidth) {
+              rows.push(row);
+              row = [];
+              width = 0;
+            }
+            row.push(index);
+            width += widths[index];
+          });
+          if (row.length > 0) rows.push(row);
+          return rows.map((indices) => {
+            const trimmed = [...indices];
+            while (trimmed.length > 0 && tokens[trimmed[trimmed.length - 1]].space) trimmed.pop();
+            return trimmed;
+          }).filter((indices) => indices.length > 0);
+        };
+        rowWidth2 = (row, widths, sizes) => row.reduce((sum, index) => sum + widths[index] * sizes[index], 0);
+        placeRows2 = (rows, input, widths, sizes, rowLeft, tokenRot) => {
+          const placed = [];
+          let top = 0;
+          rows.forEach((row, rowIndex) => {
+            const height = Math.max(...row.map((index) => sizes[index])) * LINE_HEIGHT;
+            let x4 = rowLeft(rowWidth2(row, widths, sizes), rowIndex);
+            for (const index of row) {
+              const width = widths[index] * sizes[index];
+              placed.push({ token: input.tokens[index], index, x: x4, y: top - height / 2, size: sizes[index], rot: tokenRot(index), width });
+              x4 += width;
+            }
+            top -= height;
+          });
+          return placed;
+        };
+        FLAT = () => 0;
+        placeBlock = (input, widths, total) => {
+          const sizes = widths.map(() => 1);
+          const rows = wrapRows(input.tokens, widths, clamp20(Math.sqrt(total * 2.2), 3.5, 11));
+          return placeRows2(rows, input, widths, sizes, (width) => -width / 2, FLAT);
+        };
+        placeStair = (input, widths, total) => {
+          const sizes = widths.map(() => 1);
+          const rows = wrapRows(input.tokens, widths, clamp20(Math.sqrt(total * 1.4), 3, 8));
+          const step = 0.7 + input.rng() * 0.6;
+          return placeRows2(rows, input, widths, sizes, (_width, rowIndex) => rowIndex * step, FLAT);
+        };
+        placeHero = (input, widths, total) => {
+          const { tokens } = input;
+          let hero = -1;
+          tokens.forEach((token, index) => {
+            if (token.wordLike && (hero < 0 || widths[index] >= widths[hero])) hero = index;
+          });
+          if (hero < 0) return placeBlock(input, widths, total);
+          const heroSize = clamp20(7 / Math.max(widths[hero], 0.5), 1.6, 3);
+          const heroWidth = widths[hero] * heroSize;
+          const sizes = widths.map((_4, index) => index === hero ? heroSize : 1);
+          const sideWidth = Math.max(heroWidth, 4.5);
+          const before = wrapRows(tokens.slice(0, hero), widths.slice(0, hero), sideWidth);
+          const after = wrapRows(tokens.slice(hero + 1), widths.slice(hero + 1), sideWidth).map((row) => row.map((index) => index + hero + 1));
+          const rows = [...before, [hero], ...after];
+          return placeRows2(rows, input, widths, sizes, (width, rowIndex) => rowIndex <= before.length ? 0 : heroWidth - width, FLAT);
+        };
+        placeScatter = (input, widths, total) => {
+          const sizes = input.tokens.map((token) => token.wordLike ? 0.8 + input.rng() * 0.8 : 1);
+          const scaled2 = widths.map((width, index) => width * sizes[index]);
+          const rows = wrapRows(input.tokens, scaled2, clamp20(Math.sqrt(total * 2), 3.5, 9));
+          const rots = input.tokens.map((token) => token.space ? 0 : (input.rng() - 0.5) * 0.18);
+          const shifts = rows.map(() => (input.rng() - 0.5) * 2.2);
+          return placeRows2(rows, input, widths, sizes, (width, rowIndex) => -width / 2 + shifts[rowIndex], (index) => rots[index]);
+        };
+        JUSTIFY_MAX = 2.6;
+        placeJustify = (input, widths, total) => {
+          const rows = wrapRows(input.tokens, widths, clamp20(Math.sqrt(total * 1.5), 3, 8));
+          const unit2 = widths.map(() => 1);
+          const rowWidths = rows.map((row) => rowWidth2(row, widths, unit2));
+          const target = Math.max(...rowWidths);
+          const sizes = [...unit2];
+          rows.forEach((row, rowIndex) => {
+            const size = clamp20(target / Math.max(0.5, rowWidths[rowIndex]), 1, JUSTIFY_MAX);
+            for (const index of row) sizes[index] = size;
+          });
+          return placeRows2(rows, input, widths, sizes, (width, rowIndex) => rowIndex % 2 === 0 ? -target / 2 : target / 2 - width, FLAT);
+        };
+        COLUMN_MAX = 6;
+        COLUMN_PITCH2 = 1.08;
+        COLUMN_GAP = 1.3;
+        buildMetaphorLayout = (input) => {
+          const { tokens, measure, rng } = input;
+          const widths = tokens.map((token) => tokenAdvance(token, measure));
+          const total = widths.reduce((sum, width) => sum + width, 0);
+          const glyphs = [];
+          const words = [];
+          const tints = tokens.map((token, index) => token.space ? null : input.tints?.[index] ?? null);
+          const accents = tokens.map((token, index) => !token.space && (tints[index] !== null || Boolean(input.isAccent?.(token.text.trim()))));
+          const pushWord = (slots, accent, tint = null) => {
+            if (slots.length === 0) return;
+            const word = words.length;
+            const rect = { x0: Infinity, y0: Infinity, x1: -Infinity, y1: -Infinity, t0: Infinity, t1: -Infinity };
+            for (const slot of slots) {
+              rect.x0 = Math.min(rect.x0, slot.x - slot.half);
+              rect.x1 = Math.max(rect.x1, slot.x + slot.half);
+              rect.y0 = Math.min(rect.y0, slot.y - slot.size * 0.55);
+              rect.y1 = Math.max(rect.y1, slot.y + slot.size * 0.55);
+              rect.t0 = Math.min(rect.t0, slot.t0);
+              rect.t1 = Math.max(rect.t1, slot.t1);
+              glyphs.push({ char: slot.char, x: slot.x, y: slot.y, size: slot.size, rot: slot.rot, t0: slot.t0, t1: slot.t1, word, accent, tint, seed: rng() });
+            }
+            words.push(rect);
+          };
+          if (input.composition === "column") {
+            const cells2 = tokens.flatMap((token, index) => token.space ? [] : token.chars.map((item) => ({ item, index })));
+            const columns = Math.max(1, Math.ceil(cells2.length / COLUMN_MAX));
+            const perColumn = Math.ceil(cells2.length / columns);
+            const byToken = /* @__PURE__ */ new Map();
+            cells2.forEach(({ item, index }, order) => {
+              const column = Math.floor(order / perColumn);
+              const slot = { ...item, x: -column * COLUMN_GAP, y: -(order % perColumn) * COLUMN_PITCH2 - column * 0.5, size: 1, rot: 0, half: 0.5 };
+              const list = byToken.get(index);
+              if (list) list.push(slot);
+              else byToken.set(index, [slot]);
+            });
+            byToken.forEach((slots, index) => pushWord(slots, accents[index], tints[index]));
+          } else {
+            const place = { block: placeBlock, stair: placeStair, hero: placeHero, scatter: placeScatter, justify: placeJustify }[input.composition];
+            for (const placed of place(input, widths, total)) {
+              if (placed.token.space) continue;
+              const centerX = placed.x + placed.width / 2;
+              const cos = Math.cos(placed.rot);
+              const sin = Math.sin(placed.rot);
+              let pen = placed.x;
+              const slots = placed.token.chars.map((item) => {
+                const advance2 = measure(item.char) * placed.size;
+                const dx2 = pen + advance2 / 2 - centerX;
+                pen += advance2;
+                return { ...item, x: centerX + dx2 * cos, y: placed.y + dx2 * sin, size: placed.size, rot: placed.rot, half: advance2 / 2 };
+              });
+              pushWord(slots, accents[placed.index], tints[placed.index]);
+            }
+          }
+          if (words.length === 0) {
+            return { composition: input.composition, glyphs, words, bounds: { x0: -1, y0: -0.5, x1: 1, y1: 0.5 } };
+          }
+          const bounds = words.reduce((box, word) => ({
+            x0: Math.min(box.x0, word.x0),
+            y0: Math.min(box.y0, word.y0),
+            x1: Math.max(box.x1, word.x1),
+            y1: Math.max(box.y1, word.y1)
+          }), { x0: Infinity, y0: Infinity, x1: -Infinity, y1: -Infinity });
+          const cx2 = (bounds.x0 + bounds.x1) / 2;
+          const cy2 = (bounds.y0 + bounds.y1) / 2;
+          for (const glyph of glyphs) {
+            glyph.x -= cx2;
+            glyph.y -= cy2;
+          }
+          for (const word of words) {
+            word.x0 -= cx2;
+            word.x1 -= cx2;
+            word.y0 -= cy2;
+            word.y1 -= cy2;
+          }
+          return { composition: input.composition, glyphs, words, bounds: { x0: bounds.x0 - cx2, y0: bounds.y0 - cy2, x1: bounds.x1 - cx2, y1: bounds.y1 - cy2 } };
+        };
+      }
+    });
+  
+    // src/folia/utils/textMeasureCache.ts
+    var rememberBounded2;
+    var init_textMeasureCache2 = __esm({
+      "src/folia/utils/textMeasureCache.ts"() {
+        rememberBounded2 = (cache2, key, value, limit) => {
+          if (!cache2.has(key) && cache2.size >= limit) {
+            const oldest = cache2.keys().next();
+            if (!oldest.done) cache2.delete(oldest.value);
+          }
+          cache2.set(key, value);
+          return value;
+        };
+      }
+    });
+  
+    // src/folia/utils/colorMix.ts
+    var isFiniteChannel2, readColor2, parsedColors2, PARSED_COLOR_LIMIT2, parseColor2, parseColorChannels2;
+    var init_colorMix2 = __esm({
+      "src/folia/utils/colorMix.ts"() {
+        init_textMeasureCache2();
+        isFiniteChannel2 = (value) => Number.isFinite(value);
+        readColor2 = (normalizedColor) => {
+          if (!normalizedColor) return "fallback";
+          if (normalizedColor.startsWith("#")) {
+            const hex = normalizedColor.slice(1);
+            const parse = (value) => Number.parseInt(value, 16);
+            if (/^[0-9a-fA-F]{3}$/.test(hex)) {
+              return {
+                r: parse(hex[0] + hex[0]),
+                g: parse(hex[1] + hex[1]),
+                b: parse(hex[2] + hex[2])
+              };
+            }
+            if (/^[0-9a-fA-F]{6}$/.test(hex)) {
+              return {
+                r: parse(hex.slice(0, 2)),
+                g: parse(hex.slice(2, 4)),
+                b: parse(hex.slice(4, 6))
+              };
+            }
+            return "fallback";
+          }
+          const rgbMatch = normalizedColor.match(/^rgba?\(([^)]+)\)$/);
+          if (rgbMatch) {
+            const [r4, g4, b4] = rgbMatch[1].split(",").slice(0, 3).map((part) => Number.parseFloat(part.trim()));
+            if ([r4, g4, b4].every(isFiniteChannel2)) {
+              return { r: r4, g: g4, b: b4 };
+            }
+            return "fallback";
+          }
+          return "passthrough";
+        };
+        parsedColors2 = /* @__PURE__ */ new Map();
+        PARSED_COLOR_LIMIT2 = 512;
+        parseColor2 = (color) => {
+          const normalized = typeof color === "string" ? color.trim() : "";
+          let parsed = parsedColors2.get(normalized);
+          if (parsed === void 0) {
+            parsed = rememberBounded2(parsedColors2, normalized, readColor2(normalized), PARSED_COLOR_LIMIT2);
+          }
+          return { normalized, parsed };
+        };
+        parseColorChannels2 = (color) => {
+          const { parsed } = parseColor2(color);
+          return typeof parsed === "string" ? null : { ...parsed };
+        };
+      }
+    });
+  
+    // src/folia/components/visualizer/metaphor/metaphorPalette.ts
+    var FALLBACK, read, luma, mix6, distance, awayFromPaper, resolveMetaphorKeywordColor, resolveMetaphorPalette;
+    var init_metaphorPalette = __esm({
+      "src/folia/components/visualizer/metaphor/metaphorPalette.ts"() {
+        init_colorMix2();
+        FALLBACK = { paper: [0.06, 0.06, 0.07], ink: [0.95, 0.94, 0.9], accent: [0.9, 0.3, 0.2], tone: [0.5, 0.5, 0.52] };
+        read = (color, fallback) => {
+          const channels = parseColorChannels2(color);
+          return channels ? [channels.r / 255, channels.g / 255, channels.b / 255] : fallback;
+        };
+        luma = (color) => 0.2126 * color[0] + 0.7152 * color[1] + 0.0722 * color[2];
+        mix6 = (from, to3, amount) => [
+          from[0] + (to3[0] - from[0]) * amount,
+          from[1] + (to3[1] - from[1]) * amount,
+          from[2] + (to3[2] - from[2]) * amount
+        ];
+        distance = (a4, b4) => Math.hypot(a4[0] - b4[0], a4[1] - b4[1], a4[2] - b4[2]);
+        awayFromPaper = (color, paper, ink, min) => {
+          let out = color;
+          for (let amount = 0.2; distance(out, paper) < min && amount <= 0.7; amount += 0.1) out = mix6(color, ink, amount);
+          return out;
+        };
+        resolveMetaphorKeywordColor = (color, palette) => {
+          const channels = parseColorChannels2(color);
+          if (!channels) return palette.accent;
+          return awayFromPaper([channels.r / 255, channels.g / 255, channels.b / 255], palette.paper, palette.ink, 0.25);
+        };
+        resolveMetaphorPalette = (theme, flip = false) => {
+          let paper = read(theme.backgroundColor, FALLBACK.paper);
+          let ink = read(theme.primaryColor, FALLBACK.ink);
+          if (Math.abs(luma(ink) - luma(paper)) < 0.18) ink = luma(paper) > 0.5 ? [0.08, 0.08, 0.09] : [0.95, 0.94, 0.9];
+          if (flip) [paper, ink] = [ink, paper];
+          const tone = awayFromPaper(read(theme.secondaryColor, FALLBACK.tone), paper, ink, 0.22);
+          let accent = awayFromPaper(read(theme.accentColor, FALLBACK.accent), paper, ink, 0.25);
+          if (distance(accent, ink) < 0.25) accent = mix6(paper, ink, 0.42);
+          return { paper, ink, accent, tone };
+        };
+      }
+    });
+  
+    // src/folia/components/visualizer/metaphor/metaphorShaders.ts
+    var METAPHOR_GLYPH_VERTEX, METAPHOR_GLYPH_FRAGMENT, METAPHOR_SHAPE_VERTEX, METAPHOR_SHAPE_FRAGMENT, METAPHOR_DEVELOP_VERTEX, METAPHOR_DEVELOP_FRAGMENT;
+    var init_metaphorShaders = __esm({
+      "src/folia/components/visualizer/metaphor/metaphorShaders.ts"() {
+        METAPHOR_GLYPH_VERTEX = /* glsl */
+        `
+  attribute vec2 aOffset;
+  attribute vec2 aTime;
+  attribute vec3 aMeta;
+  attribute vec3 aTint;
+  uniform float uTime;
+  uniform float uMelt;
+  uniform float uPop;
+  varying vec2 vUv;
+  varying vec2 vTime;
+  varying vec3 vMeta;
+  varying vec2 vWorld;
+  varying vec2 vQuad;
+  varying vec3 vTint;
+  
+  void main() {
+      float dt = uTime - aTime.x;
+      float on = step(0.0, dt);
+      // \u5F00\u5531\u7684\u4E00\u4E0B\u9F13\u8D77\u6765\uFF0C\u6162\u6162\u6536\u56DE\u53BB\uFF1B\u8FD8\u6CA1\u5531\u5230\u7684\u7565\u5C0F\u4E00\u70B9
+      float scale = mix(0.94, 1.0 + uPop * 0.18 * exp(-max(dt, 0.0) * 2.2), on);
+      vec3 p = position;
+      // \u5316\u5F00\uFF1A\u5404\u81EA\u671D\u81EA\u5DF1\u7684\u65B9\u5411\u6563\u51FA\u53BB\uFF08\u4E0D\u662F\u5F80\u4E0B\u6DCC\uFF09
+      float away = aMeta.x * 6.2832;
+      p.xy += vec2(cos(away), sin(away)) * uMelt * uMelt * (0.4 + fract(aMeta.x * 7.31) * 0.9) * aMeta.z;
+      scale *= 1.0 + uMelt * 0.25;
+      p.xy += aOffset * scale;
+      vUv = uv;
+      vTime = aTime;
+      vMeta = aMeta;
+      vTint = aTint;
+      vWorld = (modelMatrix * vec4(p, 1.0)).xy;
+      // \u8FD9\u4E00\u683C\u91CC\u7684\u4F4D\u7F6E\uFF08-1..1\uFF09\uFF1A\u56DB\u4E2A\u89D2\u6309\u5DE6\u4E0B\u3001\u53F3\u4E0B\u3001\u53F3\u4E0A\u3001\u5DE6\u4E0A\u7684\u987A\u5E8F\u6392
+      int corner = gl_VertexID - (gl_VertexID / 4) * 4;
+      vQuad = vec2(corner == 0 || corner == 3 ? -1.0 : 1.0, corner < 2 ? -1.0 : 1.0);
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0);
+  }
+  `;
+        METAPHOR_GLYPH_FRAGMENT = /* glsl */
+        `
+  uniform sampler2D uAtlas;
+  uniform float uTime;
+  uniform float uReveal;
+  uniform float uMelt;
+  uniform float uShakeTime;
+  uniform float uWobble;
+  varying vec2 vUv;
+  varying vec2 vTime;
+  varying vec3 vMeta;
+  varying vec2 vWorld;
+  varying vec2 vQuad;
+  varying vec3 vTint;
+  layout(location = 1) out highp vec4 outTint;
+  
+  // \u6CE8\u8BB0\u7684\u5B57\u6BD4\u7EBF\u7EC6\uFF0C\u6296\u5F97\u6BD4\u7EBF\u5C0F\u4E00\u70B9\uFF0C\u4E0D\u7136\u7B14\u753B\u4F1A\u65AD
+  const float NOTE_SHAKE = 0.6;
+  // \u6CE8\u8BB0\u5468\u56F4\u90A3\u5708\u7F51\u70B9\u5F80\u5916\u63A2\u591A\u8FDC\uFF08\u4E16\u754C\u5355\u4F4D\uFF09\u3002\u5B57\u672C\u8EAB\u7684\u90A3\u56E2\u6A21\u7CCA\u5728\u753B\u9762\u4E0A\u53EA\u6709\u4E00\u4E24\u4E2A\u50CF\u7D20\uFF0C\u6BD4\u4E00\u9897\u7F51\u70B9\u8FD8\u5C0F\uFF0C\u5F97\u5F80\u5916\u591A\u53D6\u51E0\u4E0B
+  const float NOTE_FRINGE = 0.05;
+  
+  void main() {
+      // \u6CE8\u8BB0\uFF08\u7ED3\u675F\u65F6\u95F4\u662F\u4E2A\u5F88\u5927\u7684\u8D1F\u6570\uFF09\u548C\u7EBF\u7A3F\u662F\u540C\u4E00\u652F\u7B14\u5199\u7684\uFF1A\u7528\u7EBF\u7A3F\u90A3\u5F20\u4E16\u754C\u4F4D\u79FB\u573A\u628A\u53D6\u6837\u4F4D\u7F6E\u63A8\u6B6A\uFF08\u548C METAPHOR_SHAPE_FRAGMENT \u91CC\u7684\u662F\u540C\u4E00\u4E2A\u5F0F\u5B50\uFF09\u3002
+      float note = step(vTime.y, -10000.0);
+      vec2 w = vWorld;
+      vec2 shake = vec2(sin(w.y * 1.7 + uShakeTime * 0.35) + sin(w.x * 0.9 - uShakeTime * 0.2), sin(w.x * 1.3 - uShakeTime * 0.3) + sin(w.y * 1.1 + uShakeTime * 0.25)) * 0.5
+          + 0.32 * vec2(sin(w.y * 7.1 + w.x * 2.3 + uShakeTime * 0.6), sin(w.x * 6.3 - w.y * 1.9 - uShakeTime * 0.5))
+          + 0.12 * vec2(sin(w.y * 37.0 + w.x * 17.0) + sin(w.x * 53.0), sin(w.x * 41.0 - w.y * 13.0) + sin(w.y * 59.0));
+      shake *= uWobble * NOTE_SHAKE * note;
+      // \u4E16\u754C\u91CC\u7684\u4F4D\u79FB\u6362\u6210\u8D34\u56FE\u5750\u6807\u7684\u4F4D\u79FB\uFF1A\u7528\u5C4F\u5E55\u4E0A\u76F8\u90BB\u50CF\u7D20\u7684\u5DEE\u89E3\u51FA\u6765\uFF0C\u5B57\u8F6C\u4E86\u89D2\u5EA6\u4E5F\u5BF9
+      vec2 wx = dFdx(vWorld);
+      vec2 wy = dFdy(vWorld);
+      float det = wx.x * wy.y - wx.y * wy.x;
+      float inv = abs(det) > 1e-12 ? 1.0 / det : 0.0;
+      vec2 ux = dFdx(vUv);
+      vec2 uy = dFdy(vUv);
+      vec2 qx = dFdx(vQuad);
+      vec2 qy = dFdy(vQuad);
+      vec2 step2 = vec2(shake.x * wy.y - shake.y * wy.x, shake.y * wx.x - shake.x * wx.y) * inv;
+      vec2 uv = vUv + ux * step2.x + uy * step2.y;
+      vec2 s = texture2D(uAtlas, uv).rg;
+      float fringe = 0.0;
+      if (note > 0.5) {
+          // \u7ED5\u4E00\u5708\u53D6\u516D\u4E0B\u5BBD\u901A\u9053\uFF0C\u53D6\u6700\u6D53\u7684\uFF1A\u5B57\u5468\u56F4\u5C31\u6709\u4E86\u548C\u7EBF\u4E24\u8FB9\u4E00\u6837\u5BBD\u7684\u4E00\u5708\u3002\u63A2\u51FA\u8FD9\u4E00\u683C\u7684\u4E0D\u7B97\uFF08\u90A3\u8FB9\u662F\u56FE\u96C6\u91CC\u522B\u7684\u5B57\uFF09
+          for (int i = 0; i < 6; i++) {
+              float a = float(i) * 1.0472 + 0.3;
+              vec2 o = vec2(cos(a), sin(a)) * NOTE_FRINGE;
+              vec2 k = vec2(o.x * wy.y - o.y * wy.x, o.y * wx.x - o.x * wx.y) * inv;
+              vec2 q = vQuad + qx * k.x + qy * k.y;
+              float inside = step(max(abs(q.x), abs(q.y)), 1.0);
+              fringe = max(fringe, textureLod(uAtlas, uv + ux * k.x + uy * k.y, 0.0).g * inside);
+          }
+      }
+      float dt = uTime - vTime.x;
+      float on = step(0.0, dt);
+      float age = max(dt, 0.0);
+      // \u58A8\u51DD\u51FA\u6765\uFF1A\u5148\u662F\u4E00\u56E2\uFF08\u5BBD\u901A\u9053\uFF09\uFF0C\u5F88\u5FEB\u6536\u7D27\u6210\u5B57\u5F62\uFF08\u7D27\u901A\u9053\uFF09
+      float set = on * (1.0 - exp(-age * 4.5));
+      float bulge = on * exp(-age * 1.5);
+      float keep = 1.0 - uMelt;
+      float ink = s.r * set * keep * keep + s.g * (bulge * 1.25 + 0.3 * set + 0.9 * uMelt * set) * keep;
+      // \u6CA1\u5531\u5230\u7684\u5B57\u53EA\u662F\u4E00\u5C42\u7F51\u70B9\u7684\u5F71\u5B50\uFF1B\u5531\u8FC7\u7684\u5B57\u5468\u56F4\u7559\u4E00\u5708\u7F51\u70B9
+      float tone = (s.r * (1.0 - set) * 0.85 + s.g * (0.3 + 0.45 * set)) * uReveal * keep;
+      // \u6CE8\u8BB0\u5230\u65F6\u5019\u76F4\u63A5\u51FA\u73B0\uFF1A\u7EC6\u7684\u58A8\u5B57\uFF0C\u6CA1\u6709\u90A3\u4E00\u56E2\uFF1B\u5B57\u5468\u56F4\u7559\u4E00\u5708\u6DE1\u7684\u7F51\u70B9\uFF0C\u548C\u7EBF\u4E24\u8FB9\u7684\u6BDB\u8FB9\u662F\u4E00\u56DE\u4E8B
+      ink = mix(ink, s.r * on * keep * keep * 1.12, note);
+      tone = mix(tone, min(0.55, max(s.g, fringe) * 1.6) * on * keep, note);
+      gl_FragColor = vec4(ink * (1.0 - vMeta.y), tone, ink * vMeta.y, 1.0);
+      outTint = vec4(vTint * (ink * vMeta.y), ink * vMeta.y);
+  }
+  `;
+        METAPHOR_SHAPE_VERTEX = /* glsl */
+        `
+  attribute vec2 iPos;
+  attribute vec2 iScale;
+  attribute float iRot;
+  attribute vec3 iMix;
+  attribute float iShape;
+  attribute float iParam;
+  varying vec2 vL;
+  varying vec2 vWorld;
+  varying vec2 vTurn;
+  varying vec3 vMix;
+  varying float vShape;
+  varying float vParam;
+  varying vec2 vScale;
+  
+  // \u6BCF\u4E00\u683C\u56DB\u5468\u591A\u7559\u7684\u8FB9\uFF08\u4E16\u754C\u5355\u4F4D\uFF09\uFF1A\u7ED9\u6296\u52A8\u548C\u7EBF\u4E24\u8FB9\u90A3\u5708\u7F51\u70B9\u7559\u5730\u65B9
+  const float MARGIN = 0.2;
+  
+  void main() {
+      // \u5706\u5F27\u90A3\u4E00\u683C\u662F\u6B63\u65B9\u7684\uFF1Asy \u662F\u7EBF\u5BBD\u7684\u500D\u6570\uFF0C\u4E0D\u662F\u534A\u8F74
+      vec2 scale = iShape > 2.5 && iShape < 3.5 ? vec2(iScale.x) : iScale;
+      vec2 local = position.xy * (scale + MARGIN);
+      float c = cos(iRot);
+      float s = sin(iRot);
+      vec2 o = vec2(local.x * c - local.y * s, local.x * s + local.y * c);
+      vL = local;
+      vWorld = iPos + o;
+      vTurn = vec2(c, s);
+      vMix = iMix;
+      vShape = iShape;
+      vParam = iParam;
+      vScale = iScale;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(iPos + o, 0.0, 1.0);
+  }
+  `;
+        METAPHOR_SHAPE_FRAGMENT = /* glsl */
+        `
+  uniform float uTime;
+  uniform float uWobble;
+  uniform vec3 uAccent;
+  layout(location = 1) out highp vec4 outTint;
+  varying vec2 vL;
+  varying vec2 vWorld;
+  varying vec2 vTurn;
+  varying vec3 vMix;
+  varying float vShape;
+  varying float vParam;
+  varying vec2 vScale;
+  
+  // \u7EBF\u7A3F\u7684\u7EBF\u7684\u534A\u5BBD\uFF08\u4E16\u754C\u5355\u4F4D\uFF09\uFF0C\u548C metaphorFigures.ts \u7684 STROKE \u4E00\u81F4
+  const float STROKE = 0.016;
+  // \u7EBF\u4E24\u8FB9\u90A3\u5708\u7F51\u70B9\u6709\u591A\u5BBD
+  const float FRINGE = 0.11;
+  
+  void main() {
+      // \u624B\u6296\uFF1A\u6574\u4E2A\u4E16\u754C\u5171\u7528\u4E00\u5F20\u4F4D\u79FB\u573A\uFF08\u5927\u7684\u6162\u6162\u6643\u3001\u4E2D\u7684\u3001\u7EC6\u788E\u7684\u4E09\u5C42\uFF09\uFF0C\u540C\u4E00\u4E2A\u5730\u65B9\u7684\u7EBF\u548C\u70B9\u632A\u5F97\u4E00\u6837\uFF0C\u63A5\u5934\u4E0D\u4F1A\u6563\u5F00\u3002
+      // \u7EC6\u788E\u7684\u90A3\u5C42\u4E0D\u968F\u65F6\u95F4\u52A8\uFF1A\u5B83\u662F\u7EB8\u7684\u6BDB\u7CD9\uFF0C\u7EBF\u7684\u8FB9\u7F18\u9760\u5B83\u53D8\u6BDB\u3002
+      vec2 w = vWorld;
+      vec2 shake = vec2(sin(w.y * 1.7 + uTime * 0.35) + sin(w.x * 0.9 - uTime * 0.2), sin(w.x * 1.3 - uTime * 0.3) + sin(w.y * 1.1 + uTime * 0.25)) * 0.5
+          + 0.32 * vec2(sin(w.y * 7.1 + w.x * 2.3 + uTime * 0.6), sin(w.x * 6.3 - w.y * 1.9 - uTime * 0.5))
+          + 0.12 * vec2(sin(w.y * 37.0 + w.x * 17.0) + sin(w.x * 53.0), sin(w.x * 41.0 - w.y * 13.0) + sin(w.y * 59.0));
+      shake *= uWobble;
+      // \u4F4D\u79FB\u573A\u662F\u4E16\u754C\u65B9\u5411\u7684\uFF0C\u8F6C\u56DE\u8FD9\u4E00\u683C\u81EA\u5DF1\u7684\u65B9\u5411
+      vec2 L = vL + vec2(shake.x * vTurn.x + shake.y * vTurn.y, shake.y * vTurn.x - shake.x * vTurn.y);
+      float inked = min(1.0, vMix.x + vMix.z);
+      float core;
+      float halo;
+      if (vShape < 0.5) {
+          // \u878D\u7403\uFF1A\u4E2D\u95F4\u9AD8\u3001\u8FB9\u4E0A\u5E73\u6ED1\u843D\u5230 0\uFF0C\u51E0\u4E2A\u6328\u8FD1\u4E86\u76F8\u52A0\u5C31\u8FDE\u6210\u4E00\u7247
+          vec2 q = L / vScale;
+          float k = max(0.0, 1.0 - dot(q, q));
+          core = k * k * k * 1.45;
+          halo = k * k * 0.55;
+          gl_FragColor = vec4(core * vMix.x, k * k * vMix.y * 0.6 + halo * (vMix.x + vMix.z), core * vMix.z, 1.0);
+          outTint = vec4(uAccent * (core * vMix.z), core * vMix.z);
+          return;
+      }
+      if (vShape < 1.5) {
+          // \u5706\u73AF\uFF1A\u4E00\u9053\u7EC6\u7684\u73AF\u5E26
+          float band = abs(length(L / vScale) - 0.88);
+          core = 1.0 - smoothstep(0.012, 0.03, band);
+          halo = 1.0 - smoothstep(0.02, 0.12, band);
+          gl_FragColor = vec4(core * vMix.x, core * vMix.y + halo * 0.35, core * vMix.z, 1.0);
+          outTint = vec4(uAccent * (core * vMix.z), core * vMix.z);
+          return;
+      }
+      // \u7EC6\u7EBF\u3001\u5706\u5F27\u3001\u6CE2\u6D6A\u7EBF\uFF1A\u5148\u7B97\u5230\u7EBF\u7684\u4E2D\u5FC3\u6709\u591A\u8FDC\uFF08d\uFF09\u548C\u7EBF\u7684\u534A\u5BBD\uFF08reach\uFF09
+      float d;
+      float reach = STROKE;
+      float cut = 1.0;
+      if (vShape < 2.5) {
+          // \u7EC6\u7EBF\uFF08\u4E5F\u662F\u7248\u9762\u91CC\u7684\u8272\u5E26\uFF09\uFF1A\u4E00\u4E2A\u957F\u65B9\u5F62\uFF1Bparam \u5927\u4E8E 0 \u65F6\u5207\u6210\u90A3\u4E48\u591A\u6BB5\u865A\u7EBF
+          reach = vScale.y;
+          d = max(abs(L.y), abs(L.x) - vScale.x + reach);
+          if (vParam > 0.5) cut = step(fract((L.x / vScale.x * 0.5 + 0.5) * vParam + 0.25), 0.55);
+      } else if (vShape < 3.5) {
+          // \u5706\u5F27\uFF1A\u7EBF\u5BBD\u6309\u4E16\u754C\u5355\u4F4D\u7B97\uFF0C\u4E0D\u8DDF\u7740\u534A\u5F84\u53D8\u7C97\uFF1B\u53EA\u753B\u8F6C\u89D2\u4E24\u8FB9 param \xD7 \u03C0 \u4EE5\u5185\u7684\u90A3\u4E00\u6BB5
+          reach = STROKE * vScale.y;
+          d = abs(length(L) - 0.9 * vScale.x);
+          cut = step(abs(atan(L.y, L.x)), vParam * 3.14159 + 0.001);
+      } else {
+          // \u6CE2\u6D6A\u7EBF\uFF1Aparam \u4E2A\u534A\u6CE2\uFF0C\u4E24\u5934\u90FD\u843D\u5728\u96F6\u70B9\u4E0A\uFF1B\u5230\u66F2\u7EBF\u7684\u8DDD\u79BB\u6309\u659C\u7387\u6298\u7B97
+          float phase = 1.5708 * vParam * (L.x / vScale.x + 1.0);
+          float amp = vScale.y * 0.75;
+          float slope = amp * cos(phase) * 1.5708 * vParam / vScale.x;
+          d = abs(L.y - amp * sin(phase)) / sqrt(1.0 + slope * slope);
+          cut = step(abs(L.x), vScale.x);
+      }
+      // \u7EBF\u7684\u8FB9\u662F\u4E00\u9053\u7F13\u5761\uFF0C\u4E0D\u662F\u4E00\u5200\u5207\uFF1A\u663E\u5F71\u65F6\u9608\u503C\u88AB\u566A\u70B9\u6405\u8FC7\uFF0C\u7F13\u5761\u4E0A\u5207\u51FA\u6765\u7684\u8FB9\u624D\u662F\u6BDB\u7684
+      float soft = min(reach, STROKE);
+      core = (1.0 - smoothstep(reach - soft * 0.8, reach + soft * 1.4, d)) * cut;
+      // \u58A8\u7EBF\u4E24\u8FB9\u4E00\u5708\u7F51\u70B9\uFF1A\u7EBF\u4E0D\u662F\u5E72\u5E72\u51C0\u51C0\u6D6E\u5728\u7EB8\u4E0A\u7684
+      halo = (1.0 - smoothstep(reach, reach + FRINGE, d)) * cut * max(inked * 0.55, vMix.y * 0.4);
+      gl_FragColor = vec4(core * vMix.x, core * vMix.y + halo, core * vMix.z, 1.0);
+      outTint = vec4(uAccent * (core * vMix.z), core * vMix.z);
+  }
+  `;
+        METAPHOR_DEVELOP_VERTEX = /* glsl */
+        `
+  varying vec2 vUv;
+  
+  void main() {
+      vUv = position.xy * 0.5 + 0.5;
+      gl_Position = vec4(position.xy, 0.0, 1.0);
+  }
+  `;
+        METAPHOR_DEVELOP_FRAGMENT = /* glsl */
+        `
+  uniform sampler2D uField;
+  uniform sampler2D uTint;
+  uniform vec2 uRes;
+  uniform float uPixelRatio;
+  uniform float uTime;
+  uniform float uFlow;
+  uniform float uGrain;
+  uniform float uDot;
+  uniform float uAngle;
+  uniform float uFlood;
+  uniform float uInvert;
+  uniform float uSeed;
+  uniform float uSeeThrough;
+  uniform vec3 uPaper;
+  uniform vec3 uInk;
+  uniform vec3 uAccent;
+  uniform vec3 uTone;
+  varying vec2 vUv;
+  
+  // \u5750\u6807\u662F\u6574\u50CF\u7D20\u3001\u6570\u503C\u5927\uFF1A\u7528\u8FD9\u4E2A\u4E0D\u5E26 sin \u7684\u6563\u5217\uFF0C\u4FBF\u5B9C\u7684\u90A3\u79CD\u5728\u5927\u5750\u6807\u4E0A\u4F1A\u6392\u51FA\u4E00\u5217\u5217\u7AD6\u7EB9
+  float hash(vec2 p) {
+      vec3 q = fract(vec3(p.xyx) * 0.1031);
+      q += dot(q, q.yzx + 33.33);
+      return fract((q.x + q.y) * q.z);
+  }
+  
+  float vnoise(vec2 p) {
+      vec2 i = floor(p);
+      vec2 f = fract(p);
+      f = f * f * (3.0 - 2.0 * f);
+      return mix(mix(hash(i), hash(i + vec2(1.0, 0.0)), f.x), mix(hash(i + vec2(0.0, 1.0)), hash(i + vec2(1.0, 1.0)), f.x), f.y);
+  }
+  
+  void main() {
+      // CSS \u50CF\u7D20\uFF1A\u7F51\u70B9\u3001\u9897\u7C92\u7684\u5927\u5C0F\u4E0D\u8DDF\u7740\u5C4F\u5E55\u7684\u50CF\u7D20\u5BC6\u5EA6\u53D8
+      vec2 frag = vUv * uRes / uPixelRatio;
+      float aspect = uRes.x / uRes.y;
+      vec2 p = vec2(vUv.x * aspect, vUv.y);
+      // \u6D41\u573A\u6BCF\u79D2 8 \u683C\uFF0C\u9897\u7C92\u6BCF\u79D2 6 \u683C
+      float tq = floor(uTime * 8.0) / 8.0;
+      float beat = floor(uTime * 6.0);
+  
+      // \u6D41\u573A\uFF1A\u4E00\u5C42\u5927\u7684\u6162\u6162\u63A8\uFF0C\u4E00\u5C42\u5C0F\u7684\u6296
+      vec2 warp = (vec2(vnoise(p * 3.2 + vec2(0.0, tq * 0.16)), vnoise(p * 3.2 + vec2(17.3, -tq * 0.13))) - 0.5) * 0.024
+          + (vec2(vnoise(p * 9.0 + vec2(tq * 0.3, 3.0)), vnoise(p * 9.0 + vec2(31.7, -tq * 0.27))) - 0.5) * 0.007;
+      warp *= uFlow;
+      warp.x /= aspect;
+      vec2 uv = vUv + warp;
+      vec4 field = texture2D(uField, uv);
+      // \u8FD9\u4E00\u5904\u5F3A\u8C03\u8272\u7684\u58A8\u662F\u4EC0\u4E48\u989C\u8272\uFF08\u5173\u952E\u5B57\u5404\u6709\u5404\u7684\uFF09\uFF1B\u6CA1\u6709\u58A8\u7684\u5730\u65B9\u7528\u4E3B\u9898\u7684\u5F3A\u8C03\u8272
+      vec4 tint = texture2D(uTint, uv);
+      vec3 accentColor = tint.a > 0.002 ? clamp(tint.rgb / tint.a, 0.0, 1.0) : uAccent;
+  
+      // \u9608\u503C\u88AB\u566A\u70B9\u6405\u8FC7\uFF1A\u58A8\u7684\u8FB9\u7F18\u50CF\u7802\u7EB8\u4E0A\u8E6D\u51FA\u6765\u7684
+      float rough = (vnoise(frag * 0.45 + uSeed * 91.0) - 0.5) * 0.16 + (hash(floor(frag * 0.9) + uSeed * 13.0) - 0.5) * 0.08;
+      float threshold = 0.5 + rough * uGrain;
+      float inkField = field.r + uFlood;
+      float inkEdge = max(fwidth(inkField), 0.0001) * 0.75;
+      float ink = smoothstep(threshold - inkEdge, threshold + inkEdge, inkField);
+      float accentEdge = max(fwidth(field.b), 0.0001) * 0.75;
+      float accent = smoothstep(threshold - accentEdge, threshold + accentEdge, field.b);
+  
+      // \u534A\u8C03\uFF1A\u9608\u503C\u4EE5\u4E0B\u7684\u90A3\u5708\u6A21\u7CCA\u3001\u6CA1\u5531\u5230\u7684\u5B57\u3001\u7F51\u70B9\u4E91\u548C\u56DB\u89D2\u7684\u6697\u89D2\uFF0C\u90FD\u753B\u6210\u5927\u5C0F\u4E0D\u4E00\u7684\u5706\u70B9
+      vec2 centered = vUv - 0.5;
+      float vignette = smoothstep(0.42, 1.0, length(centered) * 1.3);
+      float tone = clamp(field.g * 0.9 + (field.r + field.b) * 0.5 + vignette * 0.3, 0.0, 1.0);
+      float ca = cos(uAngle);
+      float sa = sin(uAngle);
+      vec2 grid = vec2(frag.x * ca - frag.y * sa, frag.x * sa + frag.y * ca) / uDot;
+      // \u6700\u6D53\u7684\u5730\u65B9\u5706\u70B9\u4E5F\u53EA\u662F\u521A\u597D\u76F8\u8FDE\uFF0C\u7559\u7740\u683C\u5B50\u95F4\u7684\u7EB8\uFF0C\u4E0D\u7CCA\u6210\u4E00\u7247\u5E73\u7684\u7070
+      float radius = sqrt(tone) * 0.58;
+      float soft = 0.9 / uDot;
+      float dots = (1.0 - smoothstep(radius - soft, radius + soft, length(fract(grid) - 0.5))) * step(0.015, tone);
+  
+      vec3 paper = mix(uPaper, uInk, uInvert);
+      vec3 inkColor = mix(uInk, uPaper, uInvert);
+      vec3 color = mix(paper, mix(paper, uTone, 0.82), dots);
+      color = mix(color, accentColor, accent);
+      // \u5F3A\u8C03\u8272\u878D\u7403\u76D6\u7740\u8FD8\u6CA1\u5531\u5230\u7684\u5B57\u65F6\uFF1A\u5B57\u7684\u7F51\u70B9\u5F71\u5B50\u538B\u5728\u5B83\u4E0A\u9762\uFF0C\u7167\u6837\u770B\u5F97\u89C1
+      color = mix(color, mix(accentColor, inkColor, 0.4), dots * accent * smoothstep(0.85, 1.0, field.g));
+      // \u58A8\u6700\u540E\u753B\uFF1A\u5F3A\u8C03\u8272\u878D\u7403\u6F02\u5230\u5B57\u4E0A\u65F6\uFF0C\u5B57\u538B\u5728\u5B83\u4E0A\u9762\u7167\u6837\u8BFB\u5F97\u51FA\u6765
+      color = mix(color, inkColor, ink);
+  
+      // \u753B\u9762\u56DB\u89D2\u7684\u88C1\u5207\u6807\u8BB0\uFF1A\u9489\u5728\u5C4F\u5E55\u4E0A\uFF0C\u4E0D\u8DDF\u7740\u955C\u5934\u8D70
+      vec2 edge = min(frag, uRes / uPixelRatio - frag);
+      float mark = max(
+          step(abs(edge.x - 18.0), 0.75) * step(18.0, edge.y) * step(edge.y, 34.0),
+          step(abs(edge.y - 18.0), 0.75) * step(18.0, edge.x) * step(edge.x, 34.0));
+      color = mix(color, inkColor, mark * 0.85);
+  
+      // \u7802\u7EB8\uFF1A\u7EC6\u9897\u7C92\u6BCF\u683C\u6362\u4E00\u6B21\uFF0C\u7EB8\u7684\u6591\u9A73\u4E0D\u52A8\uFF0C\u518D\u6492\u4E00\u70B9\u6742\u70B9\uFF08\u7EB8\u4E0A\u662F\u58A8\u8272\u7684\uFF0C\u58A8\u91CC\u662F\u7EB8\u8272\u7684\uFF09
+      float fine = hash(floor(frag / 1.4) + beat * 7.13 + uSeed * 3.0);
+      float mottle = vnoise(frag * 0.12 + uSeed * 50.0);
+      float speck = step(0.988, hash(floor(frag / 2.2) + beat * 3.7 + 0.5));
+      color *= 1.0 + ((fine - 0.5) * 0.22 + (mottle - 0.5) * 0.1) * uGrain;
+      color = mix(color, mix(inkColor, paper, ink), speck * 0.55 * min(uGrain, 1.5));
+  
+      // \u64AD\u653E\u9875\u900F\u660E\u65F6\u7EB8\u4E0D\u753B\uFF1A\u53EA\u7559\u58A8\u3001\u5F3A\u8C03\u8272\u548C\u7F51\u70B9\uFF08\u53CD\u76F8\u7684\u955C\u5934\u6574\u4E2A\u662F\u5B9E\u7684\uFF09
+      float alpha = mix(1.0, max(max(ink, accent), max(max(dots * 0.82, mark), uInvert)), uSeeThrough);
+      gl_FragColor = vec4(clamp(color, 0.0, 1.0) * alpha, alpha);
+  }
+  `;
+      }
+    });
+  
+    // src/folia/components/visualizer/metaphor/createMetaphorRuntime.ts
+    var createMetaphorRuntime_exports = {};
+    __export(createMetaphorRuntime_exports, {
+      MetaphorRuntime: () => MetaphorRuntime
+    });
+    var themeLayoutKey, NOTE_END, DEFAULT_WEIGHT, WOBBLE, PREPARE_LEAD, PREPARE_IDLE_TIMEOUT, DOT_SIZE, DEG6, additive3, MetaphorRuntime;
+    var init_createMetaphorRuntime = __esm({
+      "src/folia/components/visualizer/metaphor/createMetaphorRuntime.ts"() {
+        init_three_esm();
+        init_fontStacks();
+        init_lyricRenderQuality();
+        init_beatEffects();
+        init_beatFxLive();
+        init_whenIdle();
+        init_visualizerSeedHash();
+        init_wordColoring();
+        init_metaphorBeatFx();
+        init_metaphorCamera();
+        init_metaphorFigures();
+        init_metaphorGlyphs();
+        init_metaphorLayout();
+        init_metaphorPalette();
+        init_metaphorProgram();
+        init_metaphorShaders();
+        init_metaphorShapes();
+        themeLayoutKey = (theme) => [
+          resolveThemeFontStack(theme),
+          resolveThemeFontWeight(theme, DEFAULT_WEIGHT),
+          theme.animationIntensity,
+          (theme.wordColors ?? []).map((entry) => `${entry.word}:${entry.color}`).join(",")
+        ].join("|");
+        NOTE_END = -1e5;
+        DEFAULT_WEIGHT = 300;
+        WOBBLE = 0.05;
+        PREPARE_LEAD = 2.5;
+        PREPARE_IDLE_TIMEOUT = 1e3;
+        DOT_SIZE = 7;
+        DEG6 = Math.PI / 180;
+        additive3 = (material) => {
+          material.blending = x;
+          material.blendEquation = y;
+          material.blendSrc = E;
+          material.blendDst = E;
+          material.blendSrcAlpha = E;
+          material.blendDstAlpha = E;
+          material.depthTest = false;
+          material.depthWrite = false;
+          material.transparent = true;
+          material.side = p;
+          return material;
+        };
+        MetaphorRuntime = class _MetaphorRuntime {
+          constructor(options) {
+            this.options = options;
+            this.song = options.song;
+            this.theme = options.theme;
+            this.themeKey = themeLayoutKey(options.theme);
+            this.tuning = options.tuning;
+            this.renderScale = options.renderScale;
+            this.paused = options.paused;
+            this.staticMode = options.staticMode;
+            this.showText = options.showText;
+            this.glyphs = new MetaphorGlyphSource(resolveThemeFontStack(options.theme), resolveThemeFontWeight(options.theme, DEFAULT_WEIGHT));
+            this.fontReady = this.glyphs.fontReady();
+            this.program = this.compile();
+            this.renderer = new ec({ antialias: false, alpha: options.seeThrough, depth: false, stencil: false, powerPreference: "high-performance" });
+            this.renderer.autoClear = false;
+            this.renderer.debug.checkShaderErrors = false;
+            const canvas3 = this.renderer.domElement;
+            canvas3.style.cssText = "position:absolute;inset:0;width:100%;height:100%;display:block;visibility:hidden";
+            options.host.appendChild(canvas3);
+            const floatTarget = this.renderer.extensions.has("EXT_color_buffer_float") || this.renderer.extensions.has("EXT_color_buffer_half_float");
+            this.fieldTarget = new bi(1, 1, {
+              type: floatTarget ? Ut : Et,
+              format: kt,
+              // 第二张是强调色的墨的颜色（metaphorShaders.ts 的 uTint）
+              count: 2,
+              minFilter: Mt,
+              magFilter: Mt,
+              depthBuffer: false,
+              stencilBuffer: false,
+              generateMipmaps: false
+            });
+            this.glyphMaterial = additive3(new Xs({
+              vertexShader: METAPHOR_GLYPH_VERTEX,
+              fragmentShader: METAPHOR_GLYPH_FRAGMENT,
+              uniforms: { uAtlas: { value: null }, uTime: { value: 0 }, uReveal: { value: 1 }, uMelt: { value: 0 }, uPop: { value: 1 }, uShakeTime: { value: 0 }, uWobble: { value: WOBBLE } }
+            }));
+            this.shapeMaterial = additive3(new Xs({
+              vertexShader: METAPHOR_SHAPE_VERTEX,
+              fragmentShader: METAPHOR_SHAPE_FRAGMENT,
+              uniforms: { uTime: { value: 0 }, uWobble: { value: WOBBLE }, uAccent: { value: new Ci() } }
+            }));
+            this.shapeGeometry.setAttribute("position", new _s([-1, -1, 0, 1, -1, 0, 1, 1, 0, -1, 1, 0], 3));
+            this.shapeGeometry.setIndex([0, 1, 2, 0, 2, 3]);
+            this.shapeBuffer = new hm(this.shapeData, METAPHOR_SHAPE_STRIDE);
+            this.shapeBuffer.setUsage(En);
+            this.shapeGeometry.setAttribute("iPos", new oc(this.shapeBuffer, 2, 0));
+            this.shapeGeometry.setAttribute("iScale", new oc(this.shapeBuffer, 2, 2));
+            this.shapeGeometry.setAttribute("iRot", new oc(this.shapeBuffer, 1, 4));
+            this.shapeGeometry.setAttribute("iMix", new oc(this.shapeBuffer, 3, 5));
+            this.shapeGeometry.setAttribute("iShape", new oc(this.shapeBuffer, 1, 8));
+            this.shapeGeometry.setAttribute("iParam", new oc(this.shapeBuffer, 1, 9));
+            this.shapeGeometry.instanceCount = 0;
+            const shapeMesh = new Bs(this.shapeGeometry, this.shapeMaterial);
+            shapeMesh.frustumCulled = false;
+            this.fieldScene.add(shapeMesh);
+            this.developMaterial = new Xs({
+              vertexShader: METAPHOR_DEVELOP_VERTEX,
+              fragmentShader: METAPHOR_DEVELOP_FRAGMENT,
+              blending: m,
+              depthTest: false,
+              depthWrite: false,
+              uniforms: {
+                uField: { value: this.fieldTarget.textures[0] },
+                uTint: { value: this.fieldTarget.textures[1] },
+                uRes: { value: new Jn(1, 1) },
+                uPixelRatio: { value: 1 },
+                uTime: { value: 0 },
+                uFlow: { value: 1 },
+                uGrain: { value: 1 },
+                uDot: { value: DOT_SIZE },
+                uAngle: { value: 0.5 },
+                uFlood: { value: 0 },
+                uInvert: { value: 0 },
+                uSeed: { value: 0 },
+                uSeeThrough: { value: options.seeThrough ? 1 : 0 },
+                uPaper: { value: new Ci() },
+                uInk: { value: new Ci() },
+                uAccent: { value: new Ci() },
+                uTone: { value: new Ci() }
+              }
+            });
+            this.developGeometry.setAttribute("position", new _s([-1, -1, 0, 3, -1, 0, -1, 3, 0], 3));
+            const developMesh = new Bs(this.developGeometry, this.developMaterial);
+            developMesh.frustumCulled = false;
+            this.developScene.add(developMesh);
+            this.applyPalette();
+            canvas3.addEventListener("webglcontextlost", this.handleContextLost);
+            document.fonts.addEventListener("loadingdone", this.handleFontsLoaded);
+            this.resizeObserver = new ResizeObserver(() => this.resize());
+            this.resizeObserver.observe(options.host);
+            this.resize();
+            if (false) {
+              window.__metaphorDebug = {
+                renderAt: (seconds) => {
+                  this.debugTime = seconds;
+                  this.render();
+                  this.requestFrame();
+                },
+                program: () => this.program,
+                shotAt: (seconds) => {
+                  const cueIndex = findMetaphorCue(this.program, seconds);
+                  const cue = this.program.cues[cueIndex];
+                  const shot = findMetaphorShot(cue, resolveMetaphorCueTime(cue, seconds));
+                  return { cue: cueIndex, kind: shot.kind, transition: cue.transition, invert: shot.invert };
+                },
+                runtime: this
+              };
+            }
+          }
+          options;
+          renderer;
+          fieldTarget;
+          fieldScene = new rc();
+          camera = new Js(32, 1, 0.05, 400);
+          developScene = new rc();
+          developCamera = new ba(-1, 1, 1, -1, 0, 1);
+          glyphMaterial;
+          shapeMaterial;
+          developMaterial;
+          shapeData = new Float32Array(METAPHOR_SHAPE_CAPACITY * METAPHOR_SHAPE_STRIDE);
+          shapeBuffer;
+          shapeGeometry = new Mp();
+          developGeometry = new Es();
+          glyphs;
+          sets = /* @__PURE__ */ new Map();
+          fx = { flood: 0 };
+          resizeObserver;
+          program;
+          shown = null;
+          song;
+          theme;
+          themeKey;
+          tuning;
+          renderScale;
+          paused;
+          staticMode;
+          showText;
+          fontReady;
+          width = 0;
+          height = 0;
+          pixelRatio = 1;
+          /** 摆线稿时用的宽高比。 */
+          layoutAspect = 1.6;
+          raf = 0;
+          disposed = false;
+          /** 音量 0..1（起音快、释放慢）；见过大于 1 的值就按 0..255 换算（主播放器是 0..255，预览是 0..1）。 */
+          audio = 0;
+          palette = null;
+          paletteKey = "";
+          audioRaw = false;
+          audioAt = 0;
+          debugTime = null;
+          /** 正在画的 cue。 */
+          current = -1;
+          /** 每拆一次套就加一：等空闲时备的那一套靠它认出自己过时了。 */
+          generation = 0;
+          /** 等着空闲时备的是第几个 cue（-1 是没有），和撤掉它的函数。 */
+          preparing = -1;
+          cancelPrepare = null;
+          /** 建运行时并画好第一帧（换样式的过渡等它）。 */
+          static async create(options) {
+            options.signal.throwIfAborted();
+            const runtime = new _MetaphorRuntime(options);
+            try {
+              if (!runtime.fontReady) await Promise.race([document.fonts.ready, new Promise((resolve) => setTimeout(resolve, 400))]);
+              options.signal.throwIfAborted();
+              runtime.fontReady = runtime.glyphs.fontReady();
+              runtime.render();
+              runtime.renderer.domElement.style.visibility = "";
+              runtime.requestFrame();
+            } catch (error) {
+              runtime.destroy();
+              throw error;
+            }
+            return runtime;
+          }
+          swapSong(song) {
+            this.song = song;
+            this.rebuildProgram();
+          }
+          setTheme(theme) {
+            const key = themeLayoutKey(theme);
+            this.theme = theme;
+            this.applyPalette();
+            if (key !== this.themeKey) {
+              this.themeKey = key;
+              if (this.glyphs.setFont(resolveThemeFontStack(theme), resolveThemeFontWeight(theme, DEFAULT_WEIGHT))) this.fontReady = this.glyphs.fontReady();
+              this.rebuildProgram();
+            }
+            this.requestFrame();
+          }
+          setTuning(tuning) {
+            const previous = this.tuning;
+            this.tuning = tuning;
+            if (previous.cutPace !== tuning.cutPace || previous.negative !== tuning.negative || previous.transitions !== tuning.transitions) this.rebuildProgram();
+            else if (previous.blobs !== tuning.blobs || previous.keywordColors !== tuning.keywordColors) this.clearSets();
+            if (previous.flip !== tuning.flip) this.applyPalette();
+            this.requestFrame();
+          }
+          /** 分辨率倍数变了：就地换画布和墨场的尺寸，不重建上下文。 */
+          setRenderScale(scale) {
+            if (scale === this.renderScale) return;
+            this.renderScale = scale;
+            this.resize();
+          }
+          setShowText(show) {
+            this.showText = show;
+            this.requestFrame();
+          }
+          setPlayback(paused, staticMode) {
+            this.paused = paused;
+            this.staticMode = staticMode;
+            this.requestFrame();
+          }
+          /** 补画一帧（暂停时拖进度）；在跑循环时什么都不做。 */
+          requestFrame() {
+            if (!this.raf && !this.disposed) this.raf = requestAnimationFrame(this.frame);
+          }
+          destroy() {
+            if (this.disposed) return;
+            this.disposed = true;
+            cancelAnimationFrame(this.raf);
+            this.resizeObserver.disconnect();
+            document.fonts.removeEventListener("loadingdone", this.handleFontsLoaded);
+            const canvas3 = this.renderer.domElement;
+            canvas3.removeEventListener("webglcontextlost", this.handleContextLost);
+            this.clearSets();
+            this.shapeGeometry.dispose();
+            this.developGeometry.dispose();
+            this.glyphMaterial.dispose();
+            this.shapeMaterial.dispose();
+            this.developMaterial.dispose();
+            this.fieldTarget.dispose();
+            this.renderer.dispose();
+            this.renderer.forceContextLoss();
+            canvas3.remove();
+            if (false) delete window.__metaphorDebug;
+          }
+          handleContextLost = (event) => {
+            event.preventDefault();
+            if (this.disposed) return;
+            cancelAnimationFrame(this.raf);
+            this.options.onContextLost();
+          };
+          // 别的字体加载完也会触发：只在主题字体刚变成可用时重排（之前画的是回退字体）
+          handleFontsLoaded = () => {
+            if (this.disposed) return;
+            const ready = this.glyphs.fontReady();
+            const arrived = ready && !this.fontReady;
+            this.fontReady = ready;
+            if (!arrived) return;
+            this.glyphs.clear();
+            this.clearSets();
+            this.requestFrame();
+          };
+          compile() {
+            return compileMetaphorProgram(this.song.lines, {
+              seed: this.song.seed,
+              title: this.song.title,
+              cutPace: this.tuning.cutPace,
+              negative: this.tuning.negative,
+              transitions: this.tuning.transitions,
+              intensity: this.theme.animationIntensity
+            });
+          }
+          rebuildProgram() {
+            this.program = this.compile();
+            this.clearSets();
+            this.requestFrame();
+          }
+          applyPalette() {
+            const palette = resolveMetaphorPalette(this.theme, this.tuning.flip);
+            const { uniforms } = this.developMaterial;
+            uniforms.uPaper.value.fromArray(palette.paper);
+            uniforms.uInk.value.fromArray(palette.ink);
+            uniforms.uAccent.value.fromArray(palette.accent);
+            this.shapeMaterial.uniforms.uAccent.value.fromArray(palette.accent);
+            const key = [...palette.paper, ...palette.ink, ...palette.accent].join(",");
+            if (this.palette && key !== this.paletteKey) this.dropSets((set) => set.tinted);
+            this.paletteKey = key;
+            this.palette = palette;
+            uniforms.uTone.value.fromArray(palette.tone);
+          }
+          resize() {
+            const { clientWidth: width, clientHeight: height } = this.options.host;
+            if (width < 1 || height < 1) return;
+            const pixelRatio = resolveLyricPixelRatio(Math.min(2, window.devicePixelRatio || 1), this.renderScale);
+            if (width === this.width && height === this.height && pixelRatio === this.pixelRatio) return;
+            this.width = width;
+            this.height = height;
+            this.pixelRatio = pixelRatio;
+            this.renderer.setPixelRatio(pixelRatio);
+            this.renderer.setSize(width, height, false);
+            const pixelWidth = Math.max(1, Math.round(width * pixelRatio));
+            const pixelHeight = Math.max(1, Math.round(height * pixelRatio));
+            this.fieldTarget.setSize(pixelWidth, pixelHeight);
+            this.developMaterial.uniforms.uRes.value.set(pixelWidth, pixelHeight);
+            this.developMaterial.uniforms.uPixelRatio.value = pixelRatio;
+            this.camera.aspect = width / height;
+            if (Math.abs(Math.log(width / height / this.layoutAspect)) > 0.25) {
+              this.layoutAspect = width / height;
+              this.clearSets();
+            }
+            this.requestFrame();
+          }
+          disposeSet(set) {
+            if (set.mesh) {
+              this.fieldScene.remove(set.mesh);
+              set.mesh.geometry.dispose();
+            }
+            set.texture?.dispose();
+            if (this.shown === set) this.shown = null;
+          }
+          clearSets() {
+            this.dropSets(() => true);
+          }
+          /** 拆掉符合条件的那几套；等着空闲时备的那一套也撤掉（它是按拆之前的样子排的）。 */
+          dropSets(which) {
+            this.sets.forEach((set, index) => {
+              if (!which(set)) return;
+              this.disposeSet(set);
+              this.sets.delete(index);
+            });
+            this.generation += 1;
+            this.cancelPrepare?.();
+            this.cancelPrepare = null;
+            this.preparing = -1;
+          }
+          /**
+           * 等页面空下来再备下一个 cue 的那一套：画字形图集（每个新字一次光栅化、回读和十二遍模糊）不占画帧的时间。
+           * 空闲来之前换了分镜、清过、或者拖走了，就不建了（建了会把正在画的那套挤掉）；来不及备的到时候在画帧里现建。
+           */
+          prepare(cueIndex) {
+            if (this.preparing === cueIndex) return;
+            this.cancelPrepare?.();
+            this.preparing = cueIndex;
+            const generation = this.generation;
+            this.cancelPrepare = whenIdle(() => {
+              this.cancelPrepare = null;
+              this.preparing = -1;
+              if (this.disposed || generation !== this.generation || cueIndex !== this.current + 1 || this.sets.has(cueIndex)) return;
+              this.ensureSet(cueIndex);
+            }, PREPARE_IDLE_TIMEOUT);
+          }
+          /** 一个 cue 的那套东西：排版、图集、几何、融球规划。 */
+          buildSet(cueIndex) {
+            const cue = this.program.cues[cueIndex];
+            const rng = createVisualizerRng(`metaphor:${this.song.seed}:${cueIndex}`);
+            const line2 = cue.lineIndex >= 0 ? this.song.lines[cue.lineIndex] : null;
+            const tokens = line2 ? buildMetaphorTokens(line2) : cue.text ? buildMetaphorTextTokens(cue.text, cue.start - 10) : [];
+            const layout = tokens.some((token) => !token.space) ? buildMetaphorLayout({
+              tokens,
+              composition: cue.composition,
+              measure: this.glyphs.measure,
+              rng,
+              tints: line2 ? this.keywordTints(tokens) : void 0
+            }) : { composition: "block", glyphs: [], words: [], bounds: METAPHOR_EMPTY_STAGE };
+            const interlude = cue.lineIndex < 0;
+            const blobs = planMetaphorShapes(layout.bounds, rng, this.tuning.blobs, interlude);
+            const collisions = planMetaphorCollisions(layout.bounds, rng, this.collisionTimes(cue, layout, rng), this.tuning.blobs, interlude);
+            const backdrop = planMetaphorBackdrop(layout.bounds, rng, this.tuning.blobs, interlude, { index: cue.lineIndex + 1, time: cue.singStart });
+            const figures = planMetaphorFigures(layout.bounds, rng, this.tuning.blobs, interlude, this.layoutAspect);
+            const shapes = joinMetaphorShapes(backdrop.shapes, blobs, figures.shapes);
+            const notes = layoutMetaphorNotes([...backdrop.notes, ...figures.notes], this.glyphs.measureNote);
+            const entries = [
+              ...layout.glyphs.map((glyph) => ({ ...glyph, key: glyph.char })),
+              ...notes.map((note) => ({
+                key: METAPHOR_NOTE_PREFIX + note.char,
+                x: note.x,
+                y: note.y,
+                size: note.size,
+                rot: note.rot,
+                t0: cue.start + note.born,
+                t1: NOTE_END,
+                accent: false,
+                tint: null,
+                seed: rng()
+              }))
+            ];
+            if (entries.length === 0) return { layout, shapes, collisions, mesh: null, texture: null, tinted: false };
+            const atlas = buildMetaphorAtlas(this.glyphs, entries.map((entry) => entry.key));
+            const texture = new Bc(atlas.data, atlas.width, atlas.height, kt, Et);
+            texture.minFilter = Tt;
+            texture.magFilter = Mt;
+            texture.generateMipmaps = true;
+            texture.needsUpdate = true;
+            const count = entries.length;
+            const positions = new Float32Array(count * 12);
+            const offsets = new Float32Array(count * 8);
+            const uvs = new Float32Array(count * 8);
+            const times2 = new Float32Array(count * 8);
+            const metas = new Float32Array(count * 12);
+            const tints = new Float32Array(count * 12);
+            const palette = this.palette ?? resolveMetaphorPalette(this.theme, this.tuning.flip);
+            const tintCache = /* @__PURE__ */ new Map();
+            const tintOf = (color) => {
+              if (!color) return palette.accent;
+              let rgb = tintCache.get(color);
+              if (!rgb) tintCache.set(color, rgb = resolveMetaphorKeywordColor(color, palette));
+              return rgb;
+            };
+            const indices = [];
+            const CORNERS = [[-1, -1], [1, -1], [1, 1], [-1, 1]];
+            entries.forEach((glyph, index) => {
+              const half = glyph.size * METAPHOR_GLYPH_WORLD / 2;
+              const cos = Math.cos(glyph.rot);
+              const sin = Math.sin(glyph.rot);
+              const [u02, v02, u12, v12] = atlas.rects.get(glyph.key) ?? [0, 0, 0, 0];
+              const tint = tintOf(glyph.tint);
+              CORNERS.forEach(([cx2, cy2], corner) => {
+                const vertex3 = index * 4 + corner;
+                positions.set([glyph.x, glyph.y, 0], vertex3 * 3);
+                offsets.set([(cx2 * cos - cy2 * sin) * half, (cx2 * sin + cy2 * cos) * half], vertex3 * 2);
+                uvs.set([cx2 < 0 ? u02 : u12, cy2 > 0 ? v02 : v12], vertex3 * 2);
+                times2.set([glyph.t0, glyph.t1], vertex3 * 2);
+                metas.set([glyph.seed, glyph.accent ? 1 : 0, glyph.size], vertex3 * 3);
+                tints.set(tint, vertex3 * 3);
+              });
+              indices.push(index * 4, index * 4 + 1, index * 4 + 2, index * 4, index * 4 + 2, index * 4 + 3);
+            });
+            const geometry = new Es();
+            geometry.setAttribute("position", new cs(positions, 3));
+            geometry.setAttribute("aOffset", new cs(offsets, 2));
+            geometry.setAttribute("uv", new cs(uvs, 2));
+            geometry.setAttribute("aTime", new cs(times2, 2));
+            geometry.setAttribute("aMeta", new cs(metas, 3));
+            geometry.setAttribute("aTint", new cs(tints, 3));
+            geometry.setIndex(indices);
+            const mesh2 = new Bs(geometry, this.glyphMaterial);
+            mesh2.frustumCulled = false;
+            return { layout, shapes, collisions, mesh: mesh2, texture, tinted: layout.glyphs.some((glyph) => glyph.accent) };
+          }
+          /**
+           * 一句歌词每个 token 的关键字颜色（不是关键字的是 null）。匹配走各样式共用的 wordColoring：中日韩按短语包含、英文按词。
+           * 「关键字着色」关着、主题没有关键字时全是 null。
+           */
+          keywordTints(tokens) {
+            const matchers = prepareWordColorMatchers(this.theme.wordColors, this.tuning.keywordColors);
+            const none = tokens.map(() => null);
+            if (matchers.length === 0) return none;
+            const ranges = buildWordColorRangesFromMatchers(tokens.map((token) => token.text).join(""), matchers);
+            if (ranges.length === 0) return none;
+            let offset = 0;
+            const spans = tokens.map((token, index) => {
+              const span3 = { key: String(index), timed: !token.space, startOffset: offset, endOffset: offset + token.text.length };
+              offset += token.text.length;
+              return span3;
+            });
+            const colors = resolveTokenColorMap(spans, ranges);
+            return tokens.map((_4, index) => colors.get(String(index)) ?? null);
+          }
+          /** 一个 cue 里哪几个时刻对撞：歌词是隔几个词挑一个词的开唱时刻（卡在词上），间奏是隔几秒一次。 */
+          collisionTimes(cue, layout, rng) {
+            if (cue.lineIndex >= 0) {
+              const onsets = [...new Set(layout.words.map((word) => word.t0))].sort((a4, b4) => a4 - b4);
+              const first = Math.floor(rng() * Math.min(3, onsets.length));
+              return onsets.filter((_4, index) => index >= first && (index - first) % 3 === 0).slice(0, 3);
+            }
+            const times2 = [];
+            const end = cue.loop > 0 ? cue.start + cue.loop : cue.end;
+            for (let at3 = cue.start + METAPHOR_COLLISION_APPROACH; at3 < end - METAPHOR_COLLISION_LIFE && times2.length < 12; at3 += 5 + rng() * 4) times2.push(at3);
+            return times2;
+          }
+          /** 挪到拍上的那组对撞。循环的 cue 时间会折回去，对不上拍，不挪。 */
+          snappedCollisions(set, cue, events) {
+            if (cue.loop > 0) return set.collisions;
+            if (set.snapped?.from !== events) {
+              set.snapped = { from: events, collisions: snapMetaphorCollisions(set.collisions, events, cue.start) };
+            }
+            return set.snapped.collisions;
+          }
+          /** 取（没有就建）一个 cue 的那套东西；只留它和前后相邻的。 */
+          ensureSet(cueIndex) {
+            let set = this.sets.get(cueIndex);
+            if (!set) {
+              set = this.buildSet(cueIndex);
+              this.sets.set(cueIndex, set);
+              this.sets.forEach((other, index) => {
+                if (Math.abs(index - cueIndex) > 1) {
+                  this.disposeSet(other);
+                  this.sets.delete(index);
+                }
+              });
+            }
+            return set;
+          }
+          show(set) {
+            if (this.shown === set) return;
+            if (this.shown?.mesh) this.fieldScene.remove(this.shown.mesh);
+            this.shown = set;
+            if (set.mesh) this.fieldScene.add(set.mesh);
+            this.glyphMaterial.uniforms.uAtlas.value = set.texture;
+          }
+          sampleAudio(now) {
+            const raw = this.options.audioPower.get();
+            if (raw > 1) this.audioRaw = true;
+            const level = this.paused || !Number.isFinite(raw) ? 0 : Math.min(1, Math.max(0, this.audioRaw ? raw / 255 : raw));
+            const dt3 = this.audioAt > 0 ? Math.min(0.1, (now - this.audioAt) / 1e3) : 0.016;
+            this.audioAt = now;
+            this.audio += (level - this.audio) * (1 - Math.exp(-dt3 / (level > this.audio ? 0.3 : 0.9)));
+          }
+          aim(pose) {
+            this.camera.fov = pose.fov;
+            this.camera.position.set(pose.x, pose.y, pose.distance);
+            this.camera.rotation.set(0, 0, pose.roll);
+            this.camera.updateProjectionMatrix();
+          }
+          render() {
+            if (this.disposed || !this.width || !this.height) return;
+            const still = this.staticMode;
+            const tuning = this.tuning;
+            const time = this.debugTime ?? this.options.currentTime.get();
+            const safeTime = Number.isFinite(time) ? Math.max(0, time) : 0;
+            const cueIndex = findMetaphorCue(this.program, safeTime);
+            const cue = this.program.cues[cueIndex];
+            this.current = cueIndex;
+            const set = this.ensureSet(cueIndex);
+            this.show(set);
+            const following = cueIndex + 1;
+            if (following < this.program.cues.length && this.program.cues[following].start - safeTime < PREPARE_LEAD && !this.sets.has(following)) this.prepare(following);
+            const cueTime = resolveMetaphorCueTime(cue, safeTime);
+            const shot = findMetaphorShot(cue, cueTime);
+            const fx2 = resolveMetaphorTransitionFx(this.program, cueIndex, safeTime, this.fx);
+            const aspect = this.width / this.height;
+            this.aim(still ? resolveMetaphorStillPose(set.layout, aspect) : resolveMetaphorPose({ shot, layout: set.layout, time: cueTime, aspect, motion: tuning.cameraMotion }));
+            const fluidTime = still ? cue.start : safeTime;
+            this.sampleAudio(performance.now());
+            const audio = still ? 0 : this.audio;
+            const glyph = this.glyphMaterial.uniforms;
+            glyph.uTime.value = safeTime;
+            glyph.uReveal.value = resolveMetaphorReveal(cue, safeTime);
+            glyph.uMelt.value = resolveMetaphorMelt(cue, safeTime);
+            glyph.uPop.value = still ? 0 : 1;
+            if (set.mesh) set.mesh.visible = this.showText;
+            let count = writeMetaphorShapes(set.shapes, fluidTime, audio, tuning.flow, this.shapeData, still ? Number.POSITIVE_INFINITY : safeTime - cue.start);
+            if (!still) {
+              if (this.showText) count = writeMetaphorPairs(set.layout.glyphs, safeTime, this.shapeData, count);
+              const strength = isBeatFxReady() ? getBeatEffectStrength(BEAT_EFFECT_IDS.metaphorAnnihilation) : 0;
+              const events = strength > 0 ? getBeatFxEvents() : null;
+              const collisions = events ? this.snappedCollisions(set, cue, events) : set.collisions;
+              count = writeMetaphorCollisions(collisions, cueTime, this.shapeData, count);
+              if (events) count = writeMetaphorBeatRings(collisions, events, safeTime, cueTime - safeTime, strength, getBeatFxTrackScale(), this.shapeData, count);
+            }
+            this.shapeMaterial.uniforms.uTime.value = Math.floor(fluidTime * 8) / 8;
+            glyph.uShakeTime.value = Math.floor(fluidTime * 8) / 8;
+            glyph.uWobble.value = WOBBLE * tuning.flow;
+            this.shapeMaterial.uniforms.uWobble.value = WOBBLE * tuning.flow;
+            this.shapeGeometry.instanceCount = count;
+            if (count > 0) {
+              this.shapeBuffer.addUpdateRange(0, count * METAPHOR_SHAPE_STRIDE);
+              this.shapeBuffer.needsUpdate = true;
+            }
+            const develop = this.developMaterial.uniforms;
+            develop.uTime.value = fluidTime;
+            develop.uFlow.value = still ? tuning.flow * 0.5 : tuning.flow * (1 + audio * 0.6);
+            develop.uGrain.value = tuning.grain;
+            develop.uDot.value = DOT_SIZE * tuning.halftone;
+            develop.uAngle.value = still ? 30 * DEG6 : shot.screenAngle;
+            develop.uFlood.value = still ? 0 : fx2.flood;
+            develop.uInvert.value = !still && shot.invert ? 1 : 0;
+            develop.uSeed.value = still ? 0.37 : shot.seed;
+            this.renderer.setRenderTarget(this.fieldTarget);
+            this.renderer.setClearColor(0, 0);
+            this.renderer.clear();
+            this.renderer.render(this.fieldScene, this.camera);
+            this.renderer.setRenderTarget(null);
+            this.renderer.render(this.developScene, this.developCamera);
+          }
+          frame = () => {
+            this.raf = 0;
+            if (this.disposed) return;
+            this.render();
+            if (!this.paused && this.debugTime === null) this.raf = requestAnimationFrame(this.frame);
+          };
+        };
+      }
+    });
+  
+    // src/folia/components/visualizer/metaphor/VisualizerMetaphor.tsx
+    var VisualizerMetaphor_exports = {};
+    __export(VisualizerMetaphor_exports, {
+      default: () => VisualizerMetaphor_default
+    });
+    var EMPTY_LINES3, VisualizerMetaphor, VisualizerMetaphor_default;
+    var init_VisualizerMetaphor = __esm({
+      "src/folia/components/visualizer/metaphor/VisualizerMetaphor.tsx"() {
+        init_react_shim();
+        init_i18n();
+        init_fontStacks();
+        init_renderHints();
+        init_pixiRuntimeHost();
+        init_useLyricRenderQuality();
+        init_runtime();
+        init_songHandover();
+        init_subtitleFontSizes();
+        init_VisualizerShell();
+        init_VisualizerSubtitleOverlay();
+        init_jsx_runtime_shim();
+        EMPTY_LINES3 = [];
+        VisualizerMetaphor = (props) => {
+          const {
+            metaphorTuning,
+            currentTime,
+            currentLineIndex,
+            lines,
+            theme,
+            audioPower,
+            audioBands,
+            showText = true,
+            lyricsFontScale = 1,
+            staticMode = false,
+            paused = false,
+            isPreviewMode = false,
+            seed = "metaphor",
+            songTitle,
+            isPlayerChromeHidden = false,
+            hideTranslationSubtitle = false,
+            subtitleOverlayLayout,
+            subtitleTheme,
+            subtitleFontScale,
+            subtitleOverlayOpacity,
+            subtitleOverlayBackground,
+            subtitleUpcomingLyricsBlur
+          } = props;
+          const seeThrough = !isPreviewMode && (props.background?.transparent ?? false);
+          const { t: t4 } = useTranslation();
+          const hostRef = useRef(null);
+          const [runtimeFailed, setRuntimeFailed] = useState(false);
+          const [contextEpoch, setContextEpoch] = useState(0);
+          const renderQuality = useLyricRenderQuality(metaphorTuning.render);
+          const renderScale = isPreviewMode ? 1 : renderQuality.scale;
+          const latestRef = useRef({ theme, paused, showText, staticMode, metaphorTuning, renderScale });
+          latestRef.current = { theme, paused, showText, staticMode, metaphorTuning, renderScale };
+          const committedSong = useVisualizerSongCommit({ seed, lines, currentTime, readyGraceMs: 3e3 });
+          const committedLines = committedSong.isInstrumental ? EMPTY_LINES3 : committedSong.lines;
+          const { activeLine: activeLine2, recentCompletedLine, nextLines } = useVisualizerRuntime({
+            currentTime,
+            currentLineIndex,
+            lines,
+            getLineEndTime: getLineRenderEndTime
+          });
+          const song = useMemo(() => ({
+            seed: committedSong.seed ?? "metaphor",
+            lines: committedLines,
+            title: songTitle ?? ""
+          }), [committedLines, committedSong.seed, songTitle]);
+          const runtimeRef = useVisualizerPixiHost({
+            hostRef,
+            label: "Metaphor",
+            // 只有真正需要新 WebGL 上下文的输入；歌、主题、暂停、静态模式都就地推给运行时。
+            rebuildKey: [currentTime, audioPower, seeThrough, contextEpoch],
+            song,
+            create: async (host, initialSong, signal) => {
+              const { MetaphorRuntime: Runtime } = await Promise.resolve().then(() => (init_createMetaphorRuntime(), createMetaphorRuntime_exports));
+              const latest = latestRef.current;
+              const runtime = await Runtime.create({
+                host,
+                song: initialSong,
+                theme: latest.theme,
+                tuning: latest.metaphorTuning,
+                renderScale: latest.renderScale,
+                currentTime,
+                audioPower,
+                paused: latest.paused,
+                staticMode: latest.staticMode,
+                showText: latest.showText,
+                seeThrough,
+                onContextLost: () => setContextEpoch((epoch) => epoch + 1),
+                signal
+              });
+              const current = latestRef.current;
+              runtime.setTheme(current.theme);
+              runtime.setTuning(current.metaphorTuning);
+              runtime.setRenderScale(current.renderScale);
+              runtime.setShowText(current.showText);
+              runtime.setPlayback(current.paused, current.staticMode);
+              return runtime;
+            },
+            swap: (runtime, nextSong) => runtime.swapSong(nextSong),
+            destroy: (runtime) => runtime.destroy(),
+            onFailedChange: setRuntimeFailed
+          });
+          useEffect(() => {
+            runtimeRef.current?.setTheme(theme);
+          }, [theme, runtimeRef]);
+          useEffect(() => {
+            runtimeRef.current?.setTuning(metaphorTuning);
+          }, [metaphorTuning, runtimeRef]);
+          useEffect(() => {
+            runtimeRef.current?.setRenderScale(renderScale);
+          }, [renderScale, runtimeRef]);
+          useEffect(() => {
+            runtimeRef.current?.setShowText(showText);
+          }, [showText, runtimeRef]);
+          useEffect(() => {
+            runtimeRef.current?.setPlayback(paused, staticMode);
+          }, [paused, staticMode, runtimeRef]);
+          useEffect(() => currentTime.on("change", () => {
+            if (paused) runtimeRef.current?.requestFrame();
+          }), [currentTime, paused, runtimeRef]);
+          const subtitleFontSizes = resolveSubtitleFontSizes(lyricsFontScale);
+          const fallbackText = currentLineIndex >= 0 && currentLineIndex < lines.length ? lines[currentLineIndex].fullText : "";
+          return /* @__PURE__ */ jsxs(
+            VisualizerShell_default,
+            {
+              theme,
+              audioPower,
+              audioBands,
+              sharedProps: props,
+              renderBackground: false,
+              children: [
+                /* @__PURE__ */ jsxs("div", { className: "pointer-events-none absolute inset-0 z-10 overflow-hidden", children: [
+                  /* @__PURE__ */ jsx("div", { ref: hostRef, className: "absolute inset-0", "aria-hidden": "true" }),
+                  runtimeFailed && /* @__PURE__ */ jsx(
+                    "div",
+                    {
+                      className: "absolute inset-0 flex items-center justify-center px-10 text-center",
+                      style: {
+                        color: theme.primaryColor,
+                        fontFamily: resolveThemeFontStack(theme),
+                        fontWeight: resolveThemeFontWeight(theme, 800),
+                        fontSize: `clamp(2rem, ${5.4 * lyricsFontScale}vw, 5.6rem)`
+                      },
+                      children: showText && !committedSong.isInstrumental ? fallbackText || t4("ui.waitingForMusic") : null
+                    }
+                  )
+                ] }),
+                /* @__PURE__ */ jsx(
+                  VisualizerSubtitleOverlay_default,
+                  {
+                    showText,
+                    activeLine: activeLine2,
+                    recentCompletedLine,
+                    nextLines,
+                    theme,
+                    subtitleTheme,
+                    translationFontSize: subtitleFontSizes.translationFontSize,
+                    upcomingFontSize: subtitleFontSizes.upcomingFontSize,
+                    subtitleFontScale,
+                    subtitleOverlayOpacity,
+                    subtitleOverlayBackground,
+                    subtitleUpcomingLyricsBlur,
+                    isPlayerChromeHidden,
+                    hideTranslationSubtitle,
+                    subtitleOverlayLayout
+                  }
+                )
+              ]
+            }
+          );
+        };
+        VisualizerMetaphor_default = VisualizerMetaphor;
+      }
+    });
+  
     // src/folia-build/styles-entry.tsx
     var styles_entry_exports = {};
     __export(styles_entry_exports, {
@@ -119614,6 +123069,7 @@ function __mpStylesBundle() {
       DEFAULT_FUME_TUNING: () => DEFAULT_FUME_TUNING,
       DEFAULT_LUMIERE_TUNING: () => DEFAULT_LUMIERE_TUNING,
       DEFAULT_MACHI_TUNING: () => DEFAULT_MACHI_TUNING,
+      DEFAULT_METAPHOR_TUNING: () => DEFAULT_METAPHOR_TUNING,
       DEFAULT_MONET_TUNING: () => DEFAULT_MONET_TUNING,
       DEFAULT_NEBBIA_TUNING: () => DEFAULT_NEBBIA_TUNING,
       DEFAULT_PARTITA_TUNING: () => DEFAULT_PARTITA_TUNING,
@@ -120519,7 +123975,7 @@ function __mpStylesBundle() {
       { fade: ["fingers"], labelKey: NEBBIA_FADE_LABEL_KEYS.fingers },
       { fade: ["fog", "fingers"], labelKey: "options.nebbiaFadeMix" }
     ];
-    var presetIndex = (presets, pick2, on3) => presets.findIndex((_4, i4) => pick2(i4).join() === on3.join());
+    var presetIndex = (presets, pick3, on3) => presets.findIndex((_4, i4) => pick3(i4).join() === on3.join());
     var entry_default14 = defineVisualizer({
       mode: "nebbia",
       order: 29,
@@ -120668,6 +124124,136 @@ function __mpStylesBundle() {
       ] })
     });
   
+    // src/folia/components/visualizer/metaphor/entry.tsx
+    init_react_shim();
+    init_lucide_react();
+    init_beatEffects();
+  
+    // src/folia/components/visualizer/metaphor/tuning.ts
+    init_lyricRenderQuality();
+    init_tuningDefinition();
+  
+    // src/folia/components/visualizer/metaphor/types.ts
+    init_lyricRenderQuality();
+    var METAPHOR_LIMITS = {
+      cutPace: { min: 0.4, max: 2 },
+      cameraMotion: { min: 0, max: 2 },
+      flow: { min: 0, max: 2 },
+      blobs: { min: 0, max: 2 },
+      halftone: { min: 0.5, max: 2.5 },
+      grain: { min: 0, max: 2 }
+    };
+    var METAPHOR_BOOLEAN_KEYS = ["negative", "flip", "keywordColors", "transitions"];
+    var DEFAULT_METAPHOR_TUNING = {
+      render: DEFAULT_LYRIC_RENDER_OVERRIDE,
+      cutPace: 1,
+      cameraMotion: 1,
+      flow: 1,
+      blobs: 1,
+      halftone: 1,
+      grain: 1,
+      negative: true,
+      flip: false,
+      keywordColors: false,
+      transitions: true
+    };
+  
+    // src/folia/components/visualizer/metaphor/tuning.ts
+    var normalizeMetaphorTuning = (stored) => {
+      const values = stored && typeof stored === "object" ? stored : {};
+      const base = DEFAULT_METAPHOR_TUNING;
+      const numbers = Object.fromEntries(Object.keys(METAPHOR_LIMITS).map((key) => [
+        key,
+        numberWithin(values[key], base[key], METAPHOR_LIMITS[key].min, METAPHOR_LIMITS[key].max)
+      ]));
+      const switches = Object.fromEntries(METAPHOR_BOOLEAN_KEYS.map((key) => [
+        key,
+        typeof values[key] === "boolean" ? values[key] : base[key]
+      ]));
+      return { render: normalizeLyricRenderOverride(values.render), ...numbers, ...switches };
+    };
+    var tuning_default5 = defineVisualizerTuning({
+      mode: "metaphor",
+      defaults: DEFAULT_METAPHOR_TUNING,
+      // What mods may read and write (folium.visualizer.setTuning): the panel's own controls, without what the picture costs.
+      modKeys: {
+        ...Object.fromEntries(Object.entries(METAPHOR_LIMITS).map(([key, { min, max }]) => [key, modNumber(min, max)])),
+        negative: MOD_SWITCH,
+        flip: MOD_SWITCH,
+        keywordColors: MOD_SWITCH,
+        transitions: MOD_SWITCH
+      },
+      settingsKey: "metaphorTuning",
+      settingsSetterKey: "handleSetMetaphorTuning",
+      settingsResetterKey: "handleResetMetaphorTuning",
+      storage: {
+        key: "metaphor_tuning",
+        read: normalizeMetaphorTuning,
+        // 先合并再归一化：设置面板、导入、同步、Folium 走同一套校验。
+        merge: (held, patch) => normalizeMetaphorTuning({ ...held, ...patch }),
+        resetNotice: "notifications.metaphorReset"
+      }
+    });
+  
+    // src/folia/components/visualizer/metaphor/entry.tsx
+    init_jsx_runtime_shim();
+    var VisualizerMetaphor2 = react_shim_default.lazy(() => Promise.resolve().then(() => (init_VisualizerMetaphor(), VisualizerMetaphor_exports)));
+    var MetaphorSettingsPanel = react_shim_default.lazy(() => Promise.resolve().then(() => (init_settings_card(), settings_card_exports)));
+    var entry_default16 = defineVisualizer({
+      mode: "metaphor",
+      order: 29.5,
+      labelKey: "ui.visualizerMetaphor",
+      labelFallback: "\u9690\u55BB",
+      previewSeed: "metaphor",
+      previewStartOffset: 0,
+      // 隐喻：两颗融在一起的墨球，旁边一小滴，底下一排网点
+      glyph: /* @__PURE__ */ jsxs(Fragment2, { children: [
+        /* @__PURE__ */ jsx("path", { d: "M4.5 10.5a4 4 0 0 1 7.2-2.4c.9 1.1 1.9 1.1 2.8.3a3 3 0 1 1 1.2 5c-1.6-.5-2.7.2-3.4 1.4A4 4 0 0 1 4.5 10.5z" }),
+        /* @__PURE__ */ jsx("circle", { cx: "19.5", cy: "6", r: "1", opacity: "0.6" }),
+        /* @__PURE__ */ jsx("path", { d: "M5 20h.01M9 20h.01M13 20h.01M17 20h.01", opacity: "0.5" })
+      ] }),
+      command: {
+        title: "Visualizer: Metaphor",
+        description: "Switch to the Metaphor ink, halftone and hard-cut visualizer",
+        keywords: ["metaphor", "metaball", "halftone", "grain", "fluid ink", "experimental", "hard cut", "\u9690\u55BB", "\u878D\u7403", "\u534A\u8C03", "\u9897\u7C92", "\u5B9E\u9A8C", "\u786C\u5207"]
+      },
+      // 画面自己铺纸：不要共用背景。播放页透明时纸不画（VisualizerMetaphor.tsx 的 seeThrough）。
+      background: false,
+      usesWordSegmentation: true,
+      beatEffects: [
+        {
+          id: BEAT_EFFECT_IDS.metaphorAnnihilation,
+          nameKey: "options.beatEffect_metaphorAnnihilation",
+          descKey: "options.beatEffect_metaphorAnnihilationDesc",
+          source: "beats"
+        }
+      ],
+      // Deliberately unkeyed on the seed: the runtime takes a track change in place (pixiRuntimeHost.ts).
+      render: (props) => /* @__PURE__ */ jsx(VisualizerMetaphor2, { ...props, metaphorTuning: tuning_default5.read(props.visualizerTunings) }),
+      renderSettingsPanel: (props) => /* @__PURE__ */ jsx(react_shim_default.Suspense, { fallback: null, children: /* @__PURE__ */ jsx(MetaphorSettingsPanel, { ...props }) }),
+      renderQuickControls: ({ tuning, onTuningChange, t: t4 }) => /* @__PURE__ */ jsxs(Fragment2, { children: [
+        /* @__PURE__ */ jsx(
+          QuickControlToggle,
+          {
+            active: tuning.flip,
+            label: t4("options.metaphorFlip"),
+            onToggle: () => onTuningChange({ flip: !tuning.flip }),
+            children: /* @__PURE__ */ jsx(Contrast, { size: 14 })
+          }
+        ),
+        /* @__PURE__ */ jsx(
+          QuickControlToggle,
+          {
+            active: tuning.transitions,
+            label: t4("options.metaphorTransitions"),
+            onToggle: () => onTuningChange({ transitions: !tuning.transitions }),
+            children: /* @__PURE__ */ jsx(Scissors, { size: 14 })
+          }
+        )
+      ] }),
+      ownFontSizeNoticeKey: "options.metaphorFontSizeAutoNotice"
+    });
+  
     // src/folia/utils/builtinTheme/generateBuiltinDualTheme.ts
     init_themeColorMath();
   
@@ -120689,18 +124275,18 @@ function __mpStylesBundle() {
       }
       return entries[entries.length - 1].value;
     };
-    var pickBaseColor = (parsedColors2, random) => {
-      if (parsedColors2.length === 0) {
+    var pickBaseColor = (parsedColors3, random) => {
+      if (parsedColors3.length === 0) {
         return { h: random() * 360, s: 0.35 + random() * 0.3, l: 0.5 };
       }
-      const scored = parsedColors2.reduce((best, candidate) => getCoverColorScore(candidate) > getCoverColorScore(best) ? candidate : best, parsedColors2[0]);
-      return getCoverColorScore(scored) > 0.02 ? scored : parsedColors2[0];
+      const scored = parsedColors3.reduce((best, candidate) => getCoverColorScore(candidate) > getCoverColorScore(best) ? candidate : best, parsedColors3[0]);
+      return getCoverColorScore(scored) > 0.02 ? scored : parsedColors3[0];
     };
-    var pickSupportHue = (parsedColors2, base) => {
-      const support = parsedColors2.find((candidate) => {
+    var pickSupportHue = (parsedColors3, base) => {
+      const support = parsedColors3.find((candidate) => {
         if (candidate.s < MIN_SUPPORT_SATURATION) return false;
-        const distance = getHueDistance(candidate.h, base.h);
-        return distance >= MIN_SUPPORT_HUE_DISTANCE && distance <= MAX_SUPPORT_HUE_DISTANCE;
+        const distance2 = getHueDistance(candidate.h, base.h);
+        return distance2 >= MIN_SUPPORT_HUE_DISTANCE && distance2 <= MAX_SUPPORT_HUE_DISTANCE;
       });
       return support ? support.h : null;
     };
@@ -120717,27 +124303,27 @@ function __mpStylesBundle() {
       ]);
     };
     var resolveAccentHue = (scheme, baseHue, supportHue, random) => {
-      const sign = random() < 0.5 ? -1 : 1;
+      const sign2 = random() < 0.5 ? -1 : 1;
       switch (scheme) {
         case "duotone":
           return supportHue ?? baseHue;
         case "analogous":
-          return baseHue + sign * (20 + random() * 15);
+          return baseHue + sign2 * (20 + random() * 15);
         case "complementary":
           return baseHue + 150 + random() * 30;
         case "split":
-          return baseHue + (sign < 0 ? 150 : 210);
+          return baseHue + (sign2 < 0 ? 150 : 210);
         case "triadic":
-          return baseHue + sign * 120;
+          return baseHue + sign2 * 120;
         case "monochrome":
         default:
           return baseHue;
       }
     };
     var analyzeCoverPalette = (coverColors, random) => {
-      const parsedColors2 = coverColors.map((color) => hexToHsl(color)).filter((color) => color !== null);
-      const base = pickBaseColor(parsedColors2, random);
-      const supportHue = pickSupportHue(parsedColors2, base);
+      const parsedColors3 = coverColors.map((color) => hexToHsl(color)).filter((color) => color !== null);
+      const base = pickBaseColor(parsedColors3, random);
+      const supportHue = pickSupportHue(parsedColors3, base);
       const scheme = pickScheme(base.s, supportHue, random);
       const accentJitter = scheme === "monochrome" ? 0 : (random() - 0.5) * 16;
       return {
@@ -121517,7 +125103,8 @@ function __mpStylesBundle() {
       tempera: entry_default12,
       hanabi: entry_default13,
       nebbia: entry_default14,
-      diorama: entry_default15
+      diorama: entry_default15,
+      metaphor: entry_default16
     };
     return __toCommonJS(styles_entry_exports);
   })();

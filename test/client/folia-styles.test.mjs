@@ -99,6 +99,9 @@ api.apply({
 const internals = api.__internals
 const styles = internals.FOLIA_STYLES
 assert.ok(styles, 'the compiled Folia styles bundle must load')
+// The host merges each style's prefs over the bundle's exported defaults; metaphor
+// (and any future style) is unusable without its defaults reaching the client.
+assert.equal(styles.DEFAULT_METAPHOR_TUNING.cutPace, 1, 'metaphor defaults ride along with the bundle')
 const entries = styles.FOLIA_STYLE_ENTRIES
 assert.ok(entries, 'styles bundle exports FOLIA_STYLE_ENTRIES')
 
@@ -118,6 +121,7 @@ const expected = [
   'hanabi',
   'nebbia',
   'diorama',
+  'metaphor',
 ]
 assert.deepEqual(Object.keys(entries).sort(), [...expected].sort())
 for (const mode of expected) {
@@ -155,7 +159,7 @@ for (const mode of expected) {
 assert.ok(Array.isArray(internals.FOLIA_STYLE_META))
 assert.deepEqual(
   internals.FOLIA_STYLE_META.map((item) => item.id),
-  ['sonnet', 'tempera', 'lumiere', 'hanabi', 'machi', 'nebbia', 'classic', 'cadenza', 'partita', 'fume', 'tilt', 'claddagh', 'monet', 'diorama', 'still'],
+  ['sonnet', 'tempera', 'lumiere', 'hanabi', 'machi', 'nebbia', 'metaphor', 'classic', 'cadenza', 'partita', 'fume', 'tilt', 'claddagh', 'monet', 'diorama', 'still'],
   'style order follows the upstream entry order values',
 )
 assert.deepEqual(

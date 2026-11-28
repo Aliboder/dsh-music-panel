@@ -26,6 +26,7 @@ var FOLIA_STYLE_META = [
   { id: 'hanabi', labelKey: 'sheet.foliaStyleHanabi', glyph: 'star', order: 26 },
   { id: 'machi', labelKey: 'sheet.foliaStyleMachi', glyph: 'disc', order: 27 },
   { id: 'nebbia', labelKey: 'sheet.foliaStyleNebbia', glyph: 'note', order: 29 },
+  { id: 'metaphor', labelKey: 'sheet.foliaStyleMetaphor', glyph: 'disc', order: 29.5 },
   { id: 'classic', labelKey: 'sheet.foliaStyleClassic', glyph: 'note', order: 30 },
   { id: 'cadenza', labelKey: 'sheet.foliaStyleCadenza', glyph: 'note', order: 40 },
   { id: 'partita', labelKey: 'sheet.foliaStylePartita', glyph: 'list', order: 50 },
@@ -374,6 +375,27 @@ function FoliaStyleStage(props) {
     return foliaPlainFallback(props)
   }
 
+  // Folia entries take their tuning two ways: the older ones read a named prop
+  // (classicTuning, ...), the newer ones call tuning.read(props.visualizerTunings), which
+  // looks the tuning up by mode id. Build one object and feed both, so a style never silently
+  // falls back to its defaults.
+  var tunings = {
+    classic: foliaTuning(FOLIA_STYLES.DEFAULT_CLASSIC_TUNING, prefs.classicTuning),
+    tilt: foliaTuning(FOLIA_STYLES.DEFAULT_TILT_TUNING, prefs.tiltTuning),
+    partita: foliaTuning(FOLIA_STYLES.DEFAULT_PARTITA_TUNING, prefs.partitaTuning),
+    fume: foliaTuning(FOLIA_STYLES.DEFAULT_FUME_TUNING, prefs.fumeTuning),
+    cadenza: foliaTuning(FOLIA_STYLES.DEFAULT_CADENZA_TUNING, prefs.cadenzaTuning),
+    sonnet: foliaTuning(FOLIA_STYLES.DEFAULT_SONNET_TUNING, prefs.sonnetTuning),
+    monet: foliaTuning(FOLIA_STYLES.DEFAULT_MONET_TUNING, prefs.monetTuning),
+    machi: foliaTuning(FOLIA_STYLES.DEFAULT_MACHI_TUNING, prefs.machiTuning),
+    lumiere: foliaTuning(FOLIA_STYLES.DEFAULT_LUMIERE_TUNING, prefs.lumiereTuning),
+    diorama: foliaTuning(FOLIA_STYLES.DEFAULT_DIORAMA_TUNING, prefs.dioramaTuning),
+    nebbia: foliaTuning(FOLIA_STYLES.DEFAULT_NEBBIA_TUNING, prefs.nebbiaTuning),
+    tempera: foliaTuning(FOLIA_STYLES.DEFAULT_TEMPERA_TUNING, prefs.temperaTuning, { colorMode: prefs.temperaTuning && prefs.temperaTuning.temperaColorMode }),
+    hanabi: foliaTuning(FOLIA_STYLES.DEFAULT_HANABI_TUNING, prefs.hanabiTuning, { colorMode: prefs.hanabiTuning && prefs.hanabiTuning.hanabiColorMode }),
+    claddagh: foliaTuning(FOLIA_STYLES.DEFAULT_CLADDAGH_TUNING, prefs.claddaghTuning, { translationScale: prefs.claddaghTuning && prefs.claddaghTuning.translationFontScale }),
+    metaphor: foliaTuning(FOLIA_STYLES.DEFAULT_METAPHOR_TUNING, prefs.metaphorTuning),
+  }
   var shared = {
     currentTime: clock,
     currentLineIndex: currentLineIndex,
@@ -383,20 +405,22 @@ function FoliaStyleStage(props) {
     audioPower: power,
     audioBands: bandsRef.current,
     showText: true,
-    classicTuning: foliaTuning(FOLIA_STYLES.DEFAULT_CLASSIC_TUNING, prefs.classicTuning),
-    tiltTuning: foliaTuning(FOLIA_STYLES.DEFAULT_TILT_TUNING, prefs.tiltTuning),
-    partitaTuning: foliaTuning(FOLIA_STYLES.DEFAULT_PARTITA_TUNING, prefs.partitaTuning),
-    fumeTuning: foliaTuning(FOLIA_STYLES.DEFAULT_FUME_TUNING, prefs.fumeTuning),
-    cadenzaTuning: foliaTuning(FOLIA_STYLES.DEFAULT_CADENZA_TUNING, prefs.cadenzaTuning),
-    sonnetTuning: foliaTuning(FOLIA_STYLES.DEFAULT_SONNET_TUNING, prefs.sonnetTuning),
-    monetTuning: foliaTuning(FOLIA_STYLES.DEFAULT_MONET_TUNING, prefs.monetTuning),
-    machiTuning: foliaTuning(FOLIA_STYLES.DEFAULT_MACHI_TUNING, prefs.machiTuning),
-    lumiereTuning: foliaTuning(FOLIA_STYLES.DEFAULT_LUMIERE_TUNING, prefs.lumiereTuning),
-    dioramaTuning: foliaTuning(FOLIA_STYLES.DEFAULT_DIORAMA_TUNING, prefs.dioramaTuning),
-    nebbiaTuning: foliaTuning(FOLIA_STYLES.DEFAULT_NEBBIA_TUNING, prefs.nebbiaTuning),
-    temperaTuning: foliaTuning(FOLIA_STYLES.DEFAULT_TEMPERA_TUNING, prefs.temperaTuning, { colorMode: prefs.temperaTuning && prefs.temperaTuning.temperaColorMode }),
-    hanabiTuning: foliaTuning(FOLIA_STYLES.DEFAULT_HANABI_TUNING, prefs.hanabiTuning, { colorMode: prefs.hanabiTuning && prefs.hanabiTuning.hanabiColorMode }),
-    claddaghTuning: foliaTuning(FOLIA_STYLES.DEFAULT_CLADDAGH_TUNING, prefs.claddaghTuning, { translationScale: prefs.claddaghTuning && prefs.claddaghTuning.translationFontScale }),
+    visualizerTunings: tunings,
+    classicTuning: tunings.classic,
+    tiltTuning: tunings.tilt,
+    partitaTuning: tunings.partita,
+    fumeTuning: tunings.fume,
+    cadenzaTuning: tunings.cadenza,
+    sonnetTuning: tunings.sonnet,
+    monetTuning: tunings.monet,
+    machiTuning: tunings.machi,
+    lumiereTuning: tunings.lumiere,
+    dioramaTuning: tunings.diorama,
+    nebbiaTuning: tunings.nebbia,
+    temperaTuning: tunings.tempera,
+    hanabiTuning: tunings.hanabi,
+    claddaghTuning: tunings.claddagh,
+    metaphorTuning: tunings.metaphor,
     // Monet ignores hideTranslationSubtitle and only reads the content mode (resolveSubtitleContentMode
     // returns the given mode as-is), so the mode itself has to carry the translation switch.
     subtitleContentMode: showTranslation ? 'translation' : 'none',

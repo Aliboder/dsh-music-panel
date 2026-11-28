@@ -83,7 +83,7 @@ test('style option labels are translated', () => {
 })
 
 test('外观 page exposes the selected style tuning', () => {
-  for (const name of ['classic', 'tilt', 'partita', 'fume', 'claddagh', 'hanabi', 'cadenza', 'sonnet', 'monet', 'machi', 'lumiere', 'pendolo', 'diorama', 'tempera', 'nebbia']) {
+  for (const name of ['classic', 'tilt', 'partita', 'fume', 'claddagh', 'hanabi', 'cadenza', 'sonnet', 'monet', 'machi', 'lumiere', 'pendolo', 'diorama', 'tempera', 'nebbia', 'metaphor']) {
     assert.match(tuning, new RegExp(name + 'TuningBlock\\(\\)'), name + ' tuning is routed from the look page')
   }
 })

@@ -66,3 +66,6 @@ export const defaultIcon = Star
 export const Camera = makeIcon('M4 7h3l2-3h6l2 3h3v12H4zM12 10a3 3 0 1 0 0 6 3 3 0 0 0 0-6z')
 export const Orbit = makeIcon('M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM3 12h18M12 3c4 4 4 14 0 18M12 3c-4 4-4 14 0 18')
 export const X = makeIcon('M6 6l12 12M18 6L6 18')
+// 隐喻（metaphor）的调参面板图标：对比度 / 剪刀。
+export const Contrast = makeIcon('M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM12 2v20a10 10 0 0 0 0-20z')
+export const Scissors = makeIcon('M6 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM20 4L8.5 15.5M20 20L8.5 8.5')

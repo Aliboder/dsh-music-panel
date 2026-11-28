@@ -65,6 +65,8 @@ test('playback defaults', () => {
   assert.equal(defaults.dioramaTuning.cameraSpeed, 1, 'Folia diorama tuning defaults')
   assert.equal(defaults.temperaTuning.cameraIntensity, 1, 'Folia tempera tuning defaults')
   assert.equal(defaults.nebbiaTuning.mist, 0.75, 'Folia nebbia tuning defaults')
+  assert.equal(defaults.metaphorTuning.cutPace, 1, 'Folia metaphor tuning defaults')
+  assert.equal(defaults.metaphorTuning.negative, true, 'metaphor negative shots default on')
   assert.equal(defaults.resumeOnStart, true)
   assert.equal(defaults.onlineQuality, 'standard')
 })

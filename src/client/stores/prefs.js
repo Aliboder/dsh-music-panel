@@ -91,6 +91,19 @@ var PREF_DEFAULTS = {
     snowSize: 1,
     snowMelt: 1,
   },
+  /** Folia metaphor's tuning; defaults mirror DEFAULT_METAPHOR_TUNING. */
+  metaphorTuning: {
+    cutPace: 1,
+    cameraMotion: 1,
+    flow: 1,
+    blobs: 1,
+    halftone: 1,
+    grain: 1,
+    negative: true,
+    flip: false,
+    keywordColors: false,
+    transitions: true,
+  },
   temperaTuning: {
     cameraIntensity: 1,
     glyphMotion: 1,

@@ -9,10 +9,14 @@ export const BEAT_EFFECT_IDS = {
     pendoloGearBeats: 'pendolo.gearBeats',
     latentPulse: 'latent.pulse',
     hanabiBeatBursts: 'hanabi.beatBursts',
-    hanabiPush: 'hanabi.push',
+    hanabiBeatPulse: 'hanabi.beatPulse',
     temperaInkFlash: 'tempera.inkFlash',
     machiNeonPulse: 'machi.neonPulse',
     machiDrumRipple: 'machi.drumRipple',
+    machiScreenFlash: 'machi.screenFlash',
+    nebbiaDrizzleRide: 'nebbia.drizzleRide',
+    nebbiaAquaBeat: 'nebbia.aquaBeat',
+    metaphorAnnihilation: 'metaphor.annihilation',
 } as const;
 
 export interface SmartBeatSettings {

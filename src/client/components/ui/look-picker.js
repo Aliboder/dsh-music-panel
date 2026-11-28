@@ -24,6 +24,7 @@ var MP_LYRIC_STYLE_THUMBS = {
   tempera: 'tempera',
   hanabi: 'hanabi',
   nebbia: 'nebbia',
+  metaphor: 'metaphor',
   diorama: 'diorama',
   pendolo: 'pendolo',
   machi: 'machi',

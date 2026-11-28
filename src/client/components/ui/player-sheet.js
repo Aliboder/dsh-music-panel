@@ -1121,6 +1121,7 @@ function PlayerSheetInner(props) {
     if (style === 'diorama') blocks.push(dioramaTuningBlock())
     if (style === 'tempera') blocks.push(temperaTuningBlock())
     if (style === 'nebbia') blocks.push(nebbiaTuningBlock())
+    if (style === 'metaphor') blocks.push(metaphorTuningBlock())
     return blocks
   }
   function segmented(options, value, onChange) {
@@ -1788,6 +1789,35 @@ function PlayerSheetInner(props) {
       num('settings.temperaRgb', 'postProcessRgbShift', 0, 1, 0.01),
       num('settings.temperaVignette', 'postProcessVignette', 0, 2, 0.01),
       num('settings.temperaLens', 'postProcessLensDistortion', 0, 2, 0.01),
+    ))
+  }
+  /** Folia metaphor tuning: camera cutting, the ink and the inversions. */
+  function metaphorTuningBlock() {
+    var tuning = prefs.metaphorTuning || {}
+    function num(label, key, min, max, step) {
+      var value = Number(tuning[key])
+      if (!isFinite(value)) value = min
+      return mpPanelRow(t(label), h('input', {
+        type: 'range', className: 'mp-range', min: String(min), max: String(max), step: String(step),
+        value: String(value), 'aria-label': t(label),
+        onChange: function (event) { setPrefs({ metaphorTuning: Object.assign({}, tuning, { [key]: Number(event.target.value) }) }) },
+      }))
+    }
+    function sw(label, key, fallback) {
+      var value = fallback ? tuning[key] !== false : tuning[key] === true
+      return mpPanelRow(t(label), h(Switch, { value: value, label: t(label), onChange: function (next) { setPrefs({ metaphorTuning: Object.assign({}, tuning, { [key]: next }) }) } }))
+    }
+    return mpSection(t('settings.metaphorTuning'), h('div', null,
+      num('settings.metaphorCutPace', 'cutPace', 0.4, 2, 0.05),
+      num('settings.metaphorCameraMotion', 'cameraMotion', 0, 2, 0.05),
+      num('settings.metaphorFlow', 'flow', 0, 2, 0.05),
+      num('settings.metaphorBlobs', 'blobs', 0, 2, 0.05),
+      num('settings.metaphorHalftone', 'halftone', 0.5, 2.5, 0.05),
+      num('settings.metaphorGrain', 'grain', 0, 2, 0.05),
+      sw('settings.metaphorNegative', 'negative', true),
+      sw('settings.metaphorFlip', 'flip', false),
+      sw('settings.metaphorKeywordColors', 'keywordColors', false),
+      sw('settings.metaphorTransitions', 'transitions', true),
     ))
   }
   /** Folia nebbia tuning: window/glass and the handwriting core. */
