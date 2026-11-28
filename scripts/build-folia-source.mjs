@@ -36,6 +36,16 @@ const PLATFORMS = {
     out: 'src/host/vendor/qq-folia/source.bundle.mjs',
     external: ['@yakult-green-tea/qq-music-api'],
   },
+  lyrics: {
+    entry: 'src/folia-build/lyrics-match-host-entry.ts',
+    out: 'src/host/vendor/lyrics-folia/match.bundle.mjs',
+    // 上游匹配链要的宿主接口，用插件侧替身；两个 npm 依赖留到运行时解析。
+    external: ['wanakana', 'opencc-js/t2cn'],
+    alias: {
+      '../../services/onlineMusic/providerRegistry': 'src/folia-adapters/lyrics-match/provider-registry.ts',
+      '../../services/onlineMusic/crossSource': 'src/folia-adapters/lyrics-match/cross-source.ts',
+    },
+  },
   netease: {
     entry: 'src/folia-build/netease-host-entry.ts',
     out: 'src/host/vendor/netease-folia/source.bundle.mjs',
@@ -95,6 +105,13 @@ const bundleOf = async (id) => {
     logLevel: 'silent',
     legalComments: 'none',
     loader: { '.ts': 'ts', '.json': 'json' },
+    // 上游源码里有 import.meta.env.DEV / MODE（Vite 约定）：按生产构建固定。
+    define: {
+      'import.meta.env.DEV': 'false',
+      'import.meta.env.PROD': 'true',
+      'import.meta.env.MODE': '"production"',
+      'import.meta.env.SSR': 'false',
+    },
     banner: { js: 'import { createRequire as __mpCreateRequire } from "node:module"; import { fileURLToPath as __mpFileURLToPath } from "node:url"; const require = __mpCreateRequire(import.meta.url); const __filename = __mpFileURLToPath(import.meta.url); const __dirname = __mpFileURLToPath(new URL(".", import.meta.url)).replace(/[\\\\/]$/, "");' },
     plugins: [foliumAliases(platform.external ?? [], platform.alias ?? {})],
   })
