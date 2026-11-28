@@ -1249,7 +1249,8 @@ function PlayerSheetInner(props) {
   /** 歌词样式 + 歌词显示 — the style picker and the display controls, each named in words. */
   function lyricLookBlock() {
     var intensity = ['calm', 'normal', 'chaotic'].indexOf(prefs.lyricIntensity) >= 0 ? prefs.lyricIntensity : 'normal'
-    var lyricScale = Math.min(150, Math.max(50, Math.round((Number(prefs.lyricsFontScale) || 1) * 100)))
+    // 译文字号（Folia 的 subtitleFontScale）：歌词字号归外观页的样式参数管，这里只管译文。
+    var subtitleScale = Math.min(140, Math.max(85, Math.round((Number(prefs.subtitleFontScale) || 1) * 100)))
     return h(
       'div',
       { key: 'lyric-look' },
@@ -1304,9 +1305,9 @@ function PlayerSheetInner(props) {
             }),
           ),
           mpPanelRow(
-            t('settings.lyricFontScale'),
-            mpScaleStepper(lyricScale, 5, function (next) {
-              setPrefs({ lyricsFontScale: Math.min(150, Math.max(50, next)) / 100 })
+            t('sheet.subtitleFontScale'),
+            mpScaleStepper(subtitleScale, 5, function (next) {
+              setPrefs({ subtitleFontScale: Math.min(140, Math.max(85, next)) / 100 })
             }),
           ),
         ),

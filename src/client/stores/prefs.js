@@ -310,6 +310,12 @@ var PREF_DEFAULTS = {
   autoUseBestLyric: true,
   /** Every Folia lyric style's font multiplier (设置 · 歌词 · 字号, and the ≋ quick control). */
   lyricsFontScale: 1,
+  /**
+   * Folia 的 `subtitleFontScale`：译文（以及样式里的下一句字幕）字号倍率，默认 1，
+   * 上下限 0.85–1.4 与上游的 handleSetSubtitleFontScale / 滑杆一致。歌词字号由
+   * 外观页的样式参数控制，这一项只放大/缩小译文。
+   */
+  subtitleFontScale: 1,
   bgMode: 'latent',
   bgCoverOnly: false,
   /** Latent background layers: pixel dithering, fluid mesh, or both. */
@@ -836,6 +842,10 @@ function readPrefs() {
   merged.classicTuning.wordSpacing = isFinite(classicSpacing) ? Math.min(2, Math.max(0, classicSpacing)) : classicTuningDefaults.wordSpacing
   var fontScale = Number(merged.lyricsFontScale)
   if (!isFinite(fontScale) || fontScale < 0.5 || fontScale > 2) merged.lyricsFontScale = PREF_DEFAULTS.lyricsFontScale
+  var subtitleFontScale = Number(merged.subtitleFontScale)
+  if (!isFinite(subtitleFontScale) || subtitleFontScale < 0.85 || subtitleFontScale > 1.4) {
+    merged.subtitleFontScale = PREF_DEFAULTS.subtitleFontScale
+  }
   var globalOffset = Number(merged.lyricGlobalOffsetMs)
   if (!isFinite(globalOffset)) globalOffset = PREF_DEFAULTS.lyricGlobalOffsetMs
   merged.lyricGlobalOffsetMs = Math.max(-2000, Math.min(2000, Math.round(globalOffset)))

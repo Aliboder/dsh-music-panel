@@ -362,6 +362,10 @@ function FoliaStyleStage(props) {
   var styledTheme = Object.assign({}, theme, { animationIntensity: intensity })
   var lyricsFontScale = Number(prefs.lyricsFontScale)
   if (!isFinite(lyricsFontScale) || lyricsFontScale <= 0) lyricsFontScale = 1
+  // Folia 的 subtitleFontScale：译文字号倍率（0.85–1.4），与歌词字号分开。
+  var subtitleFontScale = Number(prefs.subtitleFontScale)
+  if (!isFinite(subtitleFontScale)) subtitleFontScale = 1
+  subtitleFontScale = Math.min(1.4, Math.max(0.85, subtitleFontScale))
   var showTranslation = prefs.showTranslation !== false
   // Folia's subtitle overlay draws a soft theme-coloured halo behind the bottom line. It is
   // a setting there too (`subtitleOverlayBackground`), on by default; ours mirrors it.
@@ -427,8 +431,8 @@ function FoliaStyleStage(props) {
     subtitleContentMode: showTranslation ? 'translation' : 'none',
     showSubtitleTranslation: showTranslation,
     lyricsFontScale: lyricsFontScale,
-    // One text-size control: the translation row keeps Folia's 90% of the lyric size.
-    subtitleFontScale: 0.9,
+    // Folia scales translation (and the upcoming line) with this, independently of the lyric size.
+    subtitleFontScale: subtitleFontScale,
     subtitleOverlayBackground: subtitleOverlayBackground,
     hideTranslationSubtitle: !showTranslation,
     isPlayerChromeHidden: false,

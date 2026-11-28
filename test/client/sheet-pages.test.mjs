@@ -56,11 +56,14 @@ test('歌词 page: source, timeline, match/file, word split and style', () => {
 
 test('歌词显示 has named controls, not glyph-only buttons', () => {
   const style = paneSource('lyricLookBlock')
-  for (const key of ['settings.lyricIntensity', 'sheet.showTranslation', 'settings.lyricFontScale']) {
+  for (const key of ['settings.lyricIntensity', 'sheet.showTranslation', 'sheet.subtitleFontScale']) {
     assert.ok(style.includes("t('" + key + "')"), key + ' is labelled in the lyric display group')
   }
   assert.match(style, /segmented\(/, '歌词动态 is a segmented choice (KitSegmented)')
-  assert.match(style, /mpScaleStepper\(/, 'the two size rows are steppers with a percentage')
+  assert.match(style, /mpScaleStepper\(/, 'the translation size row is a stepper with a percentage')
+  assert.match(style, /prefs\.subtitleFontScale/, 'it reads Folia’s subtitle font scale, not the lyric size')
+  assert.match(style, /setPrefs\(\{ subtitleFontScale: Math\.min\(140, Math\.max\(85, next\)\) \/ 100 \}\)/, 'it writes the 0.85–1.4 multiplier')
+  assert.doesNotMatch(style, /lyricsFontScale/, 'the redundant lyric-size row is gone from this pane')
   assert.doesNotMatch(style, /TuningBlock\(\)/, 'Folia tunings live in the look page now')
   assert.doesNotMatch(style, /mpSmallButton\('≡'/, 'the wired ≡ glyph is gone')
   assert.doesNotMatch(style, /mpSmallButton\('≋'/, 'the wired ≋ glyph is gone')

@@ -79,7 +79,9 @@ test('被移除的经典排版键不再有默认值，旧的持久化值会被�
 test('时计样式读取真实偏好，而不是写死的 1', () => {
   const pendolo = readFileSync(join(root, 'src/client/render/styles/folia-pendolo.js'), 'utf8')
   assert.match(pendolo, /prefs\.lyricsFontScale/, '字号倍率 reaches 时计')
-  assert.match(pendolo, /subtitleFontScale: 0\.9/, 'the translation keeps Folia的 90%')
+  assert.match(pendolo, /prefs\.subtitleFontScale/, '译文字号 reaches 时计')
+  assert.match(pendolo, /subtitleFontScale: subtitleFontScale/, 'the translation multiplier is passed through')
+  assert.doesNotMatch(pendolo, /subtitleFontScale: 0\.9/, 'the old fixed 90% ratio is gone')
   assert.match(pendolo, /prefs\.showTranslation/, '翻译开关 reaches 时计')
   assert.doesNotMatch(pendolo, /lyricsFontScale: 1,/, 'the hardcoded multiplier is gone')
 })

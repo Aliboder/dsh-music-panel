@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.47.2"
-    var CLIENT_BUILD = "a1ae146559b3"
+    var CLIENT_BUILD = "431bcb841317"
 
     // ── src/client/app/runtime.js
     /**
@@ -8947,6 +8947,7 @@ window.__ModuleLoader__.load({
         'sheet.loggedIn': '已登录',
         'sheet.loggedOut': '未登录',
         'sheet.showTranslation': '显示译文',
+      'sheet.subtitleFontScale': '译文字号',
         'sheet.addToPlaylist': '加入歌单',
         'sheet.lyrics': '歌词',
         'sheet.matchOnline': '在线匹配',
@@ -10094,6 +10095,7 @@ window.__ModuleLoader__.load({
         'sheet.loggedIn': 'Signed in',
         'sheet.loggedOut': 'Signed out',
         'sheet.showTranslation': 'Show translation',
+      'sheet.subtitleFontScale': 'Subtitle size',
         'sheet.addToPlaylist': 'Add to playlist',
         'sheet.lyrics': 'Lyrics',
         'sheet.matchOnline': 'Match online',
@@ -33499,11 +33501,14 @@ window.__ModuleLoader__.load({
       }
       var seed = typeof props.seed === 'string' && props.seed !== '' ? props.seed : 'pendolo'
       // The style host used to hardcode these, so 字号 / 翻译开关 did nothing while 时计 was the
-      // style on screen. Read them the same way folia-styles.js does; the translation ratio is
-      // fixed at Folia's 90% (one text-size control).
+      // style on screen. Read them the same way folia-styles.js does; the translation keeps its own
+      // Folia multiplier (subtitleFontScale, 0.85–1.4).
       var prefs = props.prefs || {}
       var lyricsFontScale = Number(prefs.lyricsFontScale)
       if (!isFinite(lyricsFontScale) || lyricsFontScale <= 0) lyricsFontScale = 1
+      var subtitleFontScale = Number(prefs.subtitleFontScale)
+      if (!isFinite(subtitleFontScale)) subtitleFontScale = 1
+      subtitleFontScale = Math.min(1.4, Math.max(0.85, subtitleFontScale))
       var showTranslation = prefs.showTranslation !== false
       var foliaProps = {
         // Folia's entry remounts the renderer per song (`key={props.seed}`); the rail's
@@ -33520,7 +33525,7 @@ window.__ModuleLoader__.load({
         subtitleContentMode: showTranslation ? 'translation' : 'none',
         showSubtitleTranslation: showTranslation,
         lyricsFontScale: lyricsFontScale,
-        subtitleFontScale: 0.9,
+        subtitleFontScale: subtitleFontScale,
         subtitleOverlayBackground: prefs.subtitleOverlayBackground !== false,
         hideTranslationSubtitle: !showTranslation,
         isPlayerChromeHidden: false,
@@ -159439,6 +159444,10 @@ window.__ModuleLoader__.load({
       var styledTheme = Object.assign({}, theme, { animationIntensity: intensity })
       var lyricsFontScale = Number(prefs.lyricsFontScale)
       if (!isFinite(lyricsFontScale) || lyricsFontScale <= 0) lyricsFontScale = 1
+      // Folia 的 subtitleFontScale：译文字号倍率（0.85–1.4），与歌词字号分开。
+      var subtitleFontScale = Number(prefs.subtitleFontScale)
+      if (!isFinite(subtitleFontScale)) subtitleFontScale = 1
+      subtitleFontScale = Math.min(1.4, Math.max(0.85, subtitleFontScale))
       var showTranslation = prefs.showTranslation !== false
       // Folia's subtitle overlay draws a soft theme-coloured halo behind the bottom line. It is
       // a setting there too (`subtitleOverlayBackground`), on by default; ours mirrors it.
@@ -159504,8 +159513,8 @@ window.__ModuleLoader__.load({
         subtitleContentMode: showTranslation ? 'translation' : 'none',
         showSubtitleTranslation: showTranslation,
         lyricsFontScale: lyricsFontScale,
-        // One text-size control: the translation row keeps Folia's 90% of the lyric size.
-        subtitleFontScale: 0.9,
+        // Folia scales translation (and the upcoming line) with this, independently of the lyric size.
+        subtitleFontScale: subtitleFontScale,
         subtitleOverlayBackground: subtitleOverlayBackground,
         hideTranslationSubtitle: !showTranslation,
         isPlayerChromeHidden: false,
@@ -170447,6 +170456,12 @@ window.__ModuleLoader__.load({
       autoUseBestLyric: true,
       /** Every Folia lyric style's font multiplier (设置 · 歌词 · 字号, and the ≋ quick control). */
       lyricsFontScale: 1,
+      /**
+       * Folia 的 `subtitleFontScale`：译文（以及样式里的下一句字幕）字号倍率，默认 1，
+       * 上下限 0.85–1.4 与上游的 handleSetSubtitleFontScale / 滑杆一致。歌词字号由
+       * 外观页的样式参数控制，这一项只放大/缩小译文。
+       */
+      subtitleFontScale: 1,
       bgMode: 'latent',
       bgCoverOnly: false,
       /** Latent background layers: pixel dithering, fluid mesh, or both. */
@@ -170973,6 +170988,10 @@ window.__ModuleLoader__.load({
       merged.classicTuning.wordSpacing = isFinite(classicSpacing) ? Math.min(2, Math.max(0, classicSpacing)) : classicTuningDefaults.wordSpacing
       var fontScale = Number(merged.lyricsFontScale)
       if (!isFinite(fontScale) || fontScale < 0.5 || fontScale > 2) merged.lyricsFontScale = PREF_DEFAULTS.lyricsFontScale
+      var subtitleFontScale = Number(merged.subtitleFontScale)
+      if (!isFinite(subtitleFontScale) || subtitleFontScale < 0.85 || subtitleFontScale > 1.4) {
+        merged.subtitleFontScale = PREF_DEFAULTS.subtitleFontScale
+      }
       var globalOffset = Number(merged.lyricGlobalOffsetMs)
       if (!isFinite(globalOffset)) globalOffset = PREF_DEFAULTS.lyricGlobalOffsetMs
       merged.lyricGlobalOffsetMs = Math.max(-2000, Math.min(2000, Math.round(globalOffset)))
@@ -200043,7 +200062,8 @@ window.__ModuleLoader__.load({
       /** 歌词样式 + 歌词显示 — the style picker and the display controls, each named in words. */
       function lyricLookBlock() {
         var intensity = ['calm', 'normal', 'chaotic'].indexOf(prefs.lyricIntensity) >= 0 ? prefs.lyricIntensity : 'normal'
-        var lyricScale = Math.min(150, Math.max(50, Math.round((Number(prefs.lyricsFontScale) || 1) * 100)))
+        // 译文字号（Folia 的 subtitleFontScale）：歌词字号归外观页的样式参数管，这里只管译文。
+        var subtitleScale = Math.min(140, Math.max(85, Math.round((Number(prefs.subtitleFontScale) || 1) * 100)))
         return h(
           'div',
           { key: 'lyric-look' },
@@ -200098,9 +200118,9 @@ window.__ModuleLoader__.load({
                 }),
               ),
               mpPanelRow(
-                t('settings.lyricFontScale'),
-                mpScaleStepper(lyricScale, 5, function (next) {
-                  setPrefs({ lyricsFontScale: Math.min(150, Math.max(50, next)) / 100 })
+                t('sheet.subtitleFontScale'),
+                mpScaleStepper(subtitleScale, 5, function (next) {
+                  setPrefs({ subtitleFontScale: Math.min(140, Math.max(85, next)) / 100 })
                 }),
               ),
             ),

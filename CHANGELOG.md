@@ -19,6 +19,11 @@
 - 网易云的后端跑在工作线程里，线程是 bundle 旁边的 `worker.cjs`（由上游 `neteaseApiWorker.cjs` 复制改名）；QQ 的内嵌后端在第一次问状态时拉起、监听本机端口。插件停用或退出时会关掉它们。
 - **登录态需要重新扫码一次**：旧实现在 `sessions.json`（明文）里，移植源各自用插件数据目录下的加密存储（`<平台>-legacy-store.json` + `<平台>-seal.key`），两者不是一套格式。已存的收藏、歌单、播放历史、队列不受影响（歌曲 id 形态没变）。
 
+### 歌词页 · 歌词字号改为译文字号（移植 Folia 的 subtitleFontScale）
+
+- 播放器面板「歌词 → 歌词显示」里的「歌词字号」换成了「译文字号」：歌词字号由外观页的样式参数负责，这一项不再重复提供。
+- 新增偏好 `subtitleFontScale`（Folia `useTypographySettingsStore` 的同名设置）：默认 1、范围 0.85–1.4、步进 5%，与上游滑杆和 `handleSetSubtitleFontScale` 的夹取一致；面板用同一个百分比步进器（− 100% +）。
+- 两套 Folia 舞台宿主（`folia-styles.js`、`folia-pendolo.js`）把 `subtitleFontScale` 传给样式（之前写死 0.9），译文与样式里的下一句字幕按这个倍率缩放；`lyricsFontScale` 仍单独传给样式控制主歌词。
 ### 外观 · 多套歌词样式的默认调参按验收方案更新
 
 - **商籁（sonnet）**：镜头强度 1→1.2、MG 密度 1→0.6、后期处理开、RGB 错位 0→0.05、半调 0→0.05、暗角 0.85→1.05；外框仍为全框。

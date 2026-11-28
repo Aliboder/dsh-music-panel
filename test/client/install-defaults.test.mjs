@@ -37,6 +37,7 @@ test('lyric defaults', () => {
   assert.equal(defaults.showTranslation, true)
   assert.equal(defaults.subtitleOverlayBackground, true)
   assert.equal(defaults.lyricsFontScale, 1, '100%')
+  assert.equal(defaults.subtitleFontScale, 1, 'translation starts at Folia’s 100%')
   assert.equal(defaults.composerLyrics, true)
   assert.equal(defaults.composerTranslation, true)
 })
