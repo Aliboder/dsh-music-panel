@@ -19,6 +19,12 @@
 - 网易云的后端跑在工作线程里，线程是 bundle 旁边的 `worker.cjs`（由上游 `neteaseApiWorker.cjs` 复制改名）；QQ 的内嵌后端在第一次问状态时拉起、监听本机端口。插件停用或退出时会关掉它们。
 - **登录态需要重新扫码一次**：旧实现在 `sessions.json`（明文）里，移植源各自用插件数据目录下的加密存储（`<平台>-legacy-store.json` + `<平台>-seal.key`），两者不是一套格式。已存的收藏、歌单、播放历史、队列不受影响（歌曲 id 形态没变）。
 
+### 在线歌词 · 平台自己的歌词按 Folia 的解析步骤还原
+
+- **现象**：播放酷狗（以及其他四个移植平台）的歌，有的有歌词、有的整段空白；有歌词的那些其实都来自 AMLL 跨源匹配。
+- **原因**：移植只搬了音源定义，漏了宿主侧的「音源歌词 → 应用歌词」一步。上游 `lyrics@1.getLyrics` 交回的是 `{ main: { format, text }, wordByWord: { format, text } }`（原始文本 + 格式），而两个宿主适配层（`folia-bridge` 的 `source.lyric`、`kugou-folia/playback.lyric`）都在读 `track.lines`——上游从不给这个字段，于是平台歌词被整段丢成空。
+- **处理**：把上游 `src/mods/folium/lyricsSource.ts` 逐字节镜像进 `src/folia/mods/folium/`（连同它依赖的 27 个歌词工具文件），解析交给移植的 `resolveFoliumSourceLyricsResult`；Node 里没有 Web Worker，`workerClient` 用进程内替身（同一份 `parseLyricsByFormat`，格式归一与传参照抄上游 worker）。新增 `src/host/services/lyrics/folia-lyrics-source.js` 把结果换成本插件的行形状，并把原文作为 `raw` 交回客户端（客户端用它自己的 Folia 管线再解析）。
+- **验证**：真实酷狗歌曲（发如雪）从 0 行变为 69 行、逐字、raw 8309 字节 KRC；新增 `lyrics-source-conversion` 覆盖 LRC/KRC/增强 LRC/翻译借用/纯音乐/坏轨/旧形状不算数。
 ### 匹配歌词 · 算法改为 Folia 原样移植
 
 - **自动匹配、打分、来源顺序全部换成 Folia 的实现**：`src/folia/utils/lyrics/**`（29 个文件，SHA256 与上游全等）经 `src/folia-adapters/lyrics-match/` 的宿主替身打成 `src/host/vendor/lyrics-folia/match.bundle.mjs`；`lyrics-match-runner` 直接调用上游 `autoMatchBestLyric`，`lyrics-match.js` 的打分改为上游 `matchScore`。

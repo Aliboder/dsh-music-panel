@@ -36,8 +36,9 @@ const song = (id, extra = {}) => ({ id, title: 'song ' + id, artists: [{ id: '1'
       'lyrics@1': {
         async getLyrics() {
           return {
-            main: { lines: [{ startTime: 0, endTime: 1000, text: '一行' }] },
-            wordByWord: { lines: [{ startTime: 0, endTime: 1000, text: '一行', words: [{ startTime: 0, endTime: 500, text: '一' }, { startTime: 500, endTime: 1000, text: '行' }] }] },
+            // 上游契约：原始文本 + 格式（解析在宿主，见 mods/folium/lyricsSource.ts 的移植）。
+            main: { format: 'krc', text: '[0,1000]<0,500,0>一<500,500,0>行' },
+            wordByWord: { format: 'krc', text: '[0,1000]<0,500,0>一<500,500,0>行' },
             chorusRanges: [{ startTime: 0, endTime: 1 }],
           }
         },

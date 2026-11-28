@@ -9,6 +9,7 @@
  */
 import { kugouDefinition, kugouError } from './instance.js'
 import { foliaSongOf } from './cache.js'
+import { resolveSourceLyrics } from '../../../services/lyrics/folia-lyrics-source.js'
 
 /** 门面的音质档 → 上游的档位。上游把 hires 归到 high，我们自己也没有更高的酷狗档。 */
 export function qualityOf(quality) {
@@ -72,25 +73,23 @@ const textOfTrack = (track) => (Array.isArray(track?.lines) ? track.lines.map((l
 /** 一首歌的歌词：门面形状 { lrc, lines, wordLevel, raw, translation }。 */
 export async function lyric(provider, id, cookie = '', session = {}) {
   try {
-    const result = await kugouDefinition().capabilities['lyrics@1'].getLyrics(foliaSongOf({ id }))
-    if (!result) return { lrc: '', lines: [], raw: {} }
-    const wordLines = result.wordByWord ? linesOf(result.wordByWord) : []
-    const mainLines = result.main ? linesOf(result.main) : []
-    const lines = wordLines.length > 0 ? wordLines : mainLines
-    const lrc = result.main ? textOfTrack(result.main) : lines.map((line) => line.text).join('\n')
+    const raw = await kugouDefinition().capabilities['lyrics@1'].getLyrics(foliaSongOf({ id }))
+    // 上游给的是 { main: { format, text }, wordByWord: { format, text } }：解析交给移植的
+    // Folia 宿主步骤（mods/folium/lyricsSource.ts），这里只换成门面/路由认的形状。
+    const resolved = await resolveSourceLyrics(raw, 'kugouLite')
     return {
-      lrc,
-      lines,
-      wordLevel: wordLines.length > 0,
-      ...(result.isPureMusic === true ? { pureMusic: true } : {}),
-      raw: { formatHint: 'krc', chorusRanges: result.chorusRanges ?? [] },
-      translation: '',
+      lrc: resolved.lrc,
+      lines: resolved.lines,
+      wordLevel: resolved.wordLevel,
+      translation: resolved.translation || '',
+      romaji: resolved.romaji || '',
+      ...(resolved.pureMusic === true ? { pureMusic: true } : {}),
+      raw: { ...(resolved.raw || {}), chorusRanges: raw && Array.isArray(raw.chorusRanges) ? raw.chorusRanges : [] },
     }
   } catch (error) {
     throw kugouError(error)
   }
 }
-
 /** 副歌区间；上游有 getChorusRanges，门面原来恒 null，这里如实给出来。 */
 export async function chorus(provider, id) {
   const capabilities = kugouDefinition().capabilities['lyrics@1']

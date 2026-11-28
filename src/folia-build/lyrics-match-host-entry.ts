@@ -11,6 +11,7 @@
  *
  * @module dsh-music-panel/folia-build/lyrics-match-host-entry
  */
+import { resolveFoliumSourceLyricsResult } from '../folia/mods/folium/lyricsSource'
 import { configureAmllDb } from '../folia-adapters/lyrics-match/amll-db-provider'
 import { setLyricsMatchParticipants } from '../folia-adapters/lyrics-match/cross-source'
 import { registerLyricsMatchProvider } from '../folia-adapters/lyrics-match/provider-registry'
@@ -74,6 +75,8 @@ export function configureLyricsMatch(config: LyricsMatchConfig): void {
 }
 
 export {
+  /** 上游 mods/folium/lyricsSource.ts：音源 {main,wordByWord} 文本 → 应用歌词。 */
+  resolveFoliumSourceLyricsResult,
   configureAmllDb,
   autoMatchBestLyric,
   calculateMatchScore,

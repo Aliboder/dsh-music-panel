@@ -88,11 +88,12 @@ assert.deepEqual(['standard', 'high', 'lossless'].map(facadeQualityOf), ['standa
         return { url: 'https://fs.kugou.com/a.mp3', quality: 'high', replayGain: { trackGain: -3 } }
       },
     },
+    // 上游契约：{ main: { format, text }, wordByWord: { format, text } } —— 原始文本，不是解析好的行。
     'lyrics@1': {
       async getLyrics() {
         return {
-          main: { lines: [{ startTime: 0, endTime: 1000, text: '第一行' }] },
-          wordByWord: { lines: [{ startTime: 0, endTime: 1000, text: '第一行', words: [{ startTime: 0, endTime: 500, text: '第一' }, { startTime: 500, endTime: 1000, text: '行' }] }] },
+          main: { format: 'krc', text: '[0,1000]<0,500,0>第一<500,500,0>行' },
+          wordByWord: { format: 'krc', text: '[0,1000]<0,500,0>第一<500,500,0>行' },
           chorusRanges: [{ startTime: 0, endTime: 1 }],
           isPureMusic: false,
         }

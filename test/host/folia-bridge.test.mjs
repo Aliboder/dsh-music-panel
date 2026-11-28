@@ -55,10 +55,10 @@ const definition = {
         return [[1000, 2000]]
       },
       async getLyrics(target) {
+        // 上游契约：{ format, text }。KRC：`[行起点, 行时长]`，字是 `<相对行首的偏移, 时长, ?>`。
         return {
-          main: { lines: [{ startTime: 1000, endTime: 2500, text: 'line' }] },
-          wordByWord: { lines: [{ startTime: 1000, endTime: 2500, text: 'ab', words: [{ startTime: 1000, endTime: 1500, text: 'a' }, { startTime: 1500, endTime: 2500, text: 'b' }] }] },
-          chorusRanges: [[1000, 2000]],
+          main: { format: 'krc', text: '[1000,1500]<0,500,0>a<500,1000,0>b' },
+          wordByWord: { format: 'krc', text: '[1000,1500]<0,500,0>a<500,1000,0>b' },
         }
       },
     },

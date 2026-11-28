@@ -46,6 +46,13 @@ const PLATFORMS = {
       '../../services/onlineMusic/crossSource': 'src/folia-adapters/lyrics-match/cross-source.ts',
       // AMLL 库的网络访问是宿主的事（与在线源一样），匹配逻辑仍由上游决定问什么、怎么用。
       './providers/amllDbProvider': 'src/folia-adapters/lyrics-match/amll-db-provider.ts',
+      // 上游 mods/folium/lyricsSource.ts 用 `@/` 指向 src；镜像后指回 src/folia，解析工作交给进程内替身。
+      '@/utils/lyrics/adapters/LocalFileLyricAdapter': 'src/folia/utils/lyrics/adapters/LocalFileLyricAdapter.ts',
+      '@/utils/lyrics/filtering': 'src/folia/utils/lyrics/filtering.ts',
+      '@/utils/lyrics/parserCore': 'src/folia/utils/lyrics/parserCore.ts',
+      '@/utils/lyrics/foliaLyricDocument': 'src/folia/utils/lyrics/foliaLyricDocument.ts',
+      '@/utils/lyrics/chorusResolver': 'src/folia/utils/lyrics/chorusResolver.ts',
+      '@/utils/lyrics/workerClient': 'src/folia-adapters/lyrics-source/worker-client.ts',
     },
   },
   netease: {

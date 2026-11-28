@@ -11,6 +11,7 @@ import { capabilities as buildCapabilities } from '../../../services/core/contra
 import { MusicError } from '../../../services/core/errors.js'
 import { albumCardOf, artistCardOf, playlistCardOf, playlistRowOf, searchPageOf, songOf, songsOf, songsPageOf } from './dto.js'
 import { foliaError, hasMethod } from './errors.js'
+import { resolveSourceLyrics } from '../../../services/lyrics/folia-lyrics-source.js'
 
 const PAGE_SIZE = 100
 const MAX_PAGES = 200
@@ -395,33 +396,20 @@ export function createFoliaSource(options) {
     }
   }
   if (declared.lyrics) {
-    const trackLines = (track) => (Array.isArray(track?.lines) ? track.lines : []).map((line) => ({
-      t: (Number(line.startTime) || 0) / 1000,
-      end: line.endTime === undefined ? undefined : (Number(line.endTime) || 0) / 1000,
-      text: String(line.text ?? ''),
-      words: Array.isArray(line.words)
-        ? line.words.map((word) => ({
-            t: (Number(word.startTime) || 0) / 1000,
-            end: word.endTime === undefined ? undefined : (Number(word.endTime) || 0) / 1000,
-            text: String(word.text ?? ''),
-          }))
-        : undefined,
-    })).filter((line) => line.text !== '' || (line.words && line.words.length > 0))
-    const trackText = (track) => (Array.isArray(track?.lines) ? track.lines.map((line) => String(line.text ?? '')).join('\n') : '')
+    // 上游 lyrics@1 交回的是 { main: { format, text }, wordByWord: { format, text } }（原始文本 + 格式）。
+    // 解析走移植的 Folia 宿主步骤（mods/folium/lyricsSource.ts），这里只换成插件源对象的形状。
     source.lyric = async (id) => {
       try {
         const answered = await lyrics.getLyrics(foliaSongOf({ id }))
-        if (!answered) return { lrc: '', lines: [], raw: {} }
-        const wordLines = answered.wordByWord ? trackLines(answered.wordByWord) : []
-        const mainLines = answered.main ? trackLines(answered.main) : []
-        const lines = wordLines.length > 0 ? wordLines : mainLines
+        const resolved = await resolveSourceLyrics(answered, sourceId)
         return {
-          lrc: answered.main ? trackText(answered.main) : lines.map((line) => line.text).join('\n'),
-          lines,
-          wordLevel: wordLines.length > 0,
-          ...(answered.isPureMusic === true ? { pureMusic: true } : {}),
-          raw: { chorusRanges: answered.chorusRanges ?? [] },
-          translation: '',
+          lrc: resolved.lrc,
+          lines: resolved.lines,
+          wordLevel: resolved.wordLevel,
+          ...(resolved.pureMusic === true ? { pureMusic: true } : {}),
+          raw: { ...(resolved.raw || {}) },
+          translation: resolved.translation || '',
+          romaji: resolved.romaji || '',
         }
       } catch (error) { throw foliaError(error, sourceId) }
     }
