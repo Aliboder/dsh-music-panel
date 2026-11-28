@@ -489,6 +489,13 @@ export function createFoliaSource(options) {
     source.forgetTokens = () => true
   }
 
+  // 平台自己的失败说法（Folia 音源定义的 describeFailure）：宿主据此分情况提示。
+  if (typeof definition.describeFailure === 'function') {
+    source.describeFailure = (operation, error) => {
+      try { return definition.describeFailure(operation, error) ?? null } catch { return null }
+    }
+  }
+
   return source
 }
 

@@ -246,6 +246,11 @@ export function createOnlineAdapter(spec) {
     availability() {
       return { configured: true }
     },
+
+    /** 平台自己的失败说法（宿主按 Folia 的 failure case 分情况提示）。 */
+    describeFailure(operation, error) {
+      return providers.providerDescribeFailure(providerKey, operation, error)
+    },
   }
   source.api = providerApi(source)
   return source

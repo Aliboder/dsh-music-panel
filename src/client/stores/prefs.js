@@ -388,7 +388,7 @@ var PREF_DEFAULTS = {
   /** Folia's `queueAddBehavior`: where 「加入队列」 puts a song, after the current one or at the end. */
   queueAddBehavior: 'append',
   /** Folia's `autoSkipUnplayable`: a track that cannot be played is skipped instead of stopping. */
-  autoSkipUnplayable: true,
+  autoSkipUnplayable: false,
   /** Folia's `shuffleRoundNoRepeat`: a shuffled queue is re-shuffled for every round. */
   shuffleRoundNoRepeat: false,
   /** Keep the screen awake while a song plays (Wake Lock, where the host offers it). */

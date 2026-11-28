@@ -105,3 +105,12 @@ export async function chorus(provider, id) {
 export function requiresVip(provider, id) {
   return null
 }
+/** 平台自己的失败说法（上游音源定义的 describeFailure）：宿主据此分情况提示。 */
+export function describeFailure(operation, error) {
+  try {
+    const definition = kugouDefinition()
+    return typeof definition.describeFailure === 'function' ? definition.describeFailure(operation, error) ?? null : null
+  } catch {
+    return null
+  }
+}

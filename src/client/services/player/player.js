@@ -1612,21 +1612,123 @@ var mseFallbackToken = -1
    * (the proxy HTTP stream is the one Electron refuses to seek, issue #82/#110). Only a
    * miss uses MSE's streaming start.
    */
+  // Folia's failure cases (services/onlineMusic/failure/onlineFailureCase.ts)：stops 是停在失败上，
+  // unplayable 是「无法播放时自动跳过」打开时也跳过的那几种。Host 的 /online/stream-info 已经分好类，
+  // 这里只按情况决定提示与停/跳。
+  var ONLINE_FAILURE_RULES = {
+    unreachable: { stops: false, retry: true },
+    'local-service-stopped': { stops: false, retry: true },
+    'retry-later': { stops: false, retry: false },
+    'sign-in-needed': { stops: true, retry: false },
+    'account-refused': { stops: true, retry: false },
+    'subscription-required': { stops: true, retry: false, unplayable: true },
+    'purchase-required': { stops: true, retry: false, unplayable: true },
+    'entitlement-required': { stops: true, retry: false, unplayable: true },
+    'preview-only': { stops: true, retry: false, unplayable: true },
+    'region-restricted': { stops: true, retry: false, unplayable: true },
+    'not-configured': { stops: true, retry: false },
+    'taken-down': { stops: false, retry: false },
+    'no-audio': { stops: false, retry: false },
+    'audio-unplayable': { stops: false, retry: false },
+    'not-public': { stops: false, retry: false },
+    refused: { stops: false, retry: true },
+    unknown: { stops: false, retry: true },
+  }
+
+  var ONLINE_FAILURE_TEXT = {
+    'sign-in-needed': 'online.failSignIn',
+    'account-refused': 'online.failAccountRefused',
+    'subscription-required': 'online.failSubscription',
+    'purchase-required': 'online.failPurchase',
+    'entitlement-required': 'online.failEntitlement',
+    'preview-only': 'online.previewOnly',
+    'region-restricted': 'online.failRegion',
+    'not-configured': 'online.failNotConfigured',
+    'taken-down': 'online.failTakenDown',
+    'no-audio': 'online.failNoAudio',
+    'audio-unplayable': 'online.failAudioUnplayable',
+    refused: 'online.failRefused',
+    unreachable: 'online.failUnreachable',
+    'retry-later': 'online.failRetryLater',
+    'local-service-stopped': 'online.failServiceStopped',
+    unknown: 'online.failUnknown',
+  }
+
+  function onlineFailureText(caseId) {
+    var key = ONLINE_FAILURE_TEXT[caseId] || ONLINE_FAILURE_TEXT.unknown
+    return t(key)
+  }
+
+  /** Folia's stop/skip decision for one classified failure. */
+  function onlineFailureSkipOrStop(caseId) {
+    var rule = ONLINE_FAILURE_RULES[caseId] || ONLINE_FAILURE_RULES.unknown
+    var autoSkip = readPrefs().autoSkipUnplayable === true
+    var stops = rule.stops === true && !(autoSkip && rule.unplayable === true)
+    errorStreak += 1
+    if (!stops && state.queue.length > 1 && errorStreak <= 3) {
+      var next = nextQueueIndex(state.queue.length, state.index, state.loop)
+      if (next >= 0) {
+        load(next, true)
+        return
+      }
+    }
+    errorStreak = 0
+    patch({ playing: false })
+  }
+
   function playOnlineEntry(item, token, loudness) {
+    var playStream = function () {
+      // Folia asks the provider for audio before it starts, and the answer says whether this
+      // account gets a preview clip; the notice belongs before sound, not after a duration check.
+      if (typeof onlineStreamInfo !== 'function') {
+        playOnlineMse(item, token, loudness)
+        return
+      }
+      onlineStreamInfo(item.onlineProvider, item.onlineId || '')
+        .then(function (info) {
+          if (token !== loadToken) {
+            loudness.resolve()
+            return
+          }
+          if (info && info.ok === false) {
+            showToast(onlineFailureText(info.case))
+            loudness.resolve()
+            onlineFailureSkipOrStop(info.case)
+            return
+          }
+          if (info && info.preview === true && session.preview !== true) {
+            session.preview = true
+            showToast(t('online.previewOnly'))
+          }
+          playOnlineMse(item, token, loudness)
+        }, function () {
+          // The extra question must never keep a song from starting.
+          if (token === loadToken) playOnlineMse(item, token, loudness)
+          else loudness.resolve()
+        })
+    }
+    // A copy already on disk plays first: it was written after a full play, so the gate
+    // below (which asks the platform) must not decide whether the cached song starts.
     var infoUrl = API + 'online/cache-info?provider=' + encodeURIComponent(item.onlineProvider)
       + '&id=' + encodeURIComponent(item.onlineId || '')
     getJson(infoUrl)
       .then(function (info) {
-        if (token !== loadToken) return
+        if (token !== loadToken) {
+          loudness.resolve()
+          return
+        }
         if (info && info.cached === true) {
           startOnlineBlob(item, token, loudness)
           return
         }
-        playOnlineMse(item, token, loudness)
+        playStream()
       })
       .catch(function () {
-        if (token !== loadToken) return
-        playOnlineMse(item, token, loudness)
+        if (token !== loadToken) {
+          loudness.resolve()
+          return
+        }
+        playStream()
       })
   }
   /** Folia-like current song, but with MediaSource owning the seekable ranges. */

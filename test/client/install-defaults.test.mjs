@@ -47,7 +47,7 @@ test('playback defaults', () => {
   assert.equal(defaults.normalizeVolume, false)
   assert.equal(defaults.playbackFade, false)
   assert.equal(defaults.queueAddBehavior, 'append')
-  assert.equal(defaults.autoSkipUnplayable, true)
+  assert.equal(defaults.autoSkipUnplayable, false, 'Folia default: stop on an unplayable song')
   assert.equal(defaults.autoHidePlayerChrome, true, 'player chrome auto-hides by default')
   assert.equal(defaults.playerChromeVisibilityMode, 'auto-hide', 'player chrome auto-hides by default')
   assert.equal(defaults.classicTuning.wordSpacing, 0.7, 'Folia classic tuning defaults')

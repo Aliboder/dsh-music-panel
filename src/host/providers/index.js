@@ -592,6 +592,12 @@ export async function providerVipInfo(provider, cookie = '', session = {}) {
 }
 
 /** Public account profile for settings (nickname + avatar URL; never cookies). */
+/** 平台自己的失败说法（只对移植源有意义；其它平台没有这条规则时回 null）。 */
+export function providerDescribeFailure(provider, operation, error) {
+  if (provider === 'kugou' || provider === 'kugouLite') return kugouFacade('describeFailure', [operation, error])
+  return null
+}
+
 export async function providerProfile(provider, cookie = '', session = {}) {
   if (provider === 'kugou' || provider === 'kugouLite') return kugouFacade('providerProfile', arguments)
   if (provider === 'navidrome') {

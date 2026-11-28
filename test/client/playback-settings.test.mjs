@@ -85,7 +85,7 @@ test('加入队列的默认位置两端都实现', () => {
 })
 
 test('无法播放跳过、一轮不重复、播放时阻止休眠接到播放器', () => {
-  assert.match(prefs, /autoSkipUnplayable: true/, 'skip is on by default')
+  assert.match(prefs, /autoSkipUnplayable: false/, 'Folia default: skip is off')
   assert.match(player, /readPrefs\(\)\.autoSkipUnplayable === true/, 'the error path reads the switch')
   // 随机表放完一轮回到表头循环，不自动重洗；「一轮不重复」只影响下一次进入随机时的排列。
   assert.match(player, /shuffleForRound\(/, 'the random table uses the round helper')

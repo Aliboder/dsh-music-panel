@@ -25,6 +25,7 @@ import { loginFailureOf } from '../../services/core/login-failure.js'
 import { kugouServiceStatus, refreshKugouAccount, restartKugouService } from '../../providers/sources/kugou-folia/status.js'
 import { createAmllClient } from '../../services/lyrics/amll.js'
 import { pickBestLyricCandidate } from '../../services/lyrics/lyrics-match.js'
+import { classifyOnlineFailure } from '../../services/playback/online-failure.js'
 import { buildLyricSourceOrder, isLyricSource } from '../../services/lyrics/lyrics-sources.js'
 import {
   buildLyricSearchQuery,
@@ -278,6 +279,41 @@ export function createOnlineRoutes(deps) {
   const STREAM_URL_TTL_MS = 4 * 60 * 1000
   function streamUrlKey(provider, id, quality) {
     return provider + ':' + id + ':' + quality
+  }
+
+  /**
+   * 一次取流失败按 Folia 的 failure case 分类：先问音源自己的 describeFailure（平台状态码的意思只有它知道），
+   * 再按共用规则（错误码 / HTTP 状态 / 限流）落到一种情况。
+   */
+  function onlineFailureOf(provider, error) {
+    let detail = null
+    try {
+      detail = typeof omni.describeFailure === 'function'
+        ? omni.describeFailure(provider, 'audio', error?.cause ?? error)
+        : null
+    } catch {
+      detail = null
+    }
+    return classifyOnlineFailure({
+      detail,
+      errorCode: typeof error?.code === 'string' ? error.code : '',
+      status: Number(error?.status) || 0,
+      retryAfterMs: Number(error?.retryAfterMs) || 0,
+    })
+  }
+
+  /** 解决一次取流（不转发字节），供「播放前问一次」的 /online/stream-info 使用。 */
+  async function resolveStreamInfo(provider, id, quality) {
+    const cookie = providerStore === undefined ? '' : await providerStore.cookie(provider)
+    const session = providerStore === undefined ? {} : await providerStore.session(provider)
+    const key = streamUrlKey(provider, id, quality)
+    const cached = streamUrlCache.get(key)
+    if (cached !== undefined && Date.now() - cached.at < STREAM_URL_TTL_MS && cached.stream.url !== '') {
+      return cached.stream
+    }
+    const stream = await omni.stream(provider, id, { cookie, session }, quality)
+    if (stream !== null && stream.url !== '') streamUrlCache.set(key, { stream, at: Date.now() })
+    return stream
   }
 
   /**
@@ -636,6 +672,39 @@ export function createOnlineRoutes(deps) {
         }
       }
 
+      // 播放前问一次：这一首歌在这个账号上会拿到整曲还是试听片段，或者根本拿不到。
+      // 客户端的提示与「停/跳过」按 Folia 的规则在真正出声之前决定。
+      if (pathname === '/online/stream-info' && method === 'GET') {
+        const provider = (params.get('provider') || '').trim()
+        const id = (params.get('id') || '').trim()
+        if (!isOnlineSource(provider) || id === '') {
+          return fail(res, 400, 'BAD_REQUEST', '缺少 provider / id')
+        }
+        const config = await settings.read()
+        const requestedQuality = (params.get('quality') || '').trim()
+        const quality = ['standard', 'high', 'lossless', 'hires'].includes(requestedQuality)
+          ? requestedQuality
+          : config.onlineQuality || 'high'
+        try {
+          const stream = await resolveStreamInfo(provider, id, quality)
+          return sendJson(res, 200, {
+            ok: true,
+            preview: stream !== null && stream.preview === true,
+            quality: stream !== null && typeof stream.quality === 'string' ? stream.quality : quality,
+          })
+        } catch (error) {
+          const failure = onlineFailureOf(provider, error)
+          return sendJson(res, 200, {
+            ok: false,
+            case: failure.case,
+            message: error instanceof Error ? error.message : '在线播放失败',
+            code: typeof error?.code === 'string' ? error.code : '',
+            status: Number(error?.status) || 0,
+            retryAfterMs: Number(error?.retryAfterMs) || 0,
+          })
+        }
+      }
+
       if (pathname === '/online/stream' && (method === 'GET' || method === 'HEAD')) {
         const provider = (params.get('provider') || '').trim()
         const id = (params.get('id') || '').trim()
@@ -703,7 +772,14 @@ export function createOnlineRoutes(deps) {
               provider === 'netease' && Number(stream.code) === 404
                 ? '网易云版权限制：该曲目在当前地区暂不可播放'
                 : '该曲目暂不可播（可能需要登录或 VIP）'
-            return fail(res, 404, 'NO_STREAM', message)
+            return sendJson(res, 404, {
+              ok: false,
+              error: {
+                code: 'NO_STREAM',
+                message,
+                case: (Number(stream.code) === 404 ? 'region-restricted' : 'no-audio'),
+              },
+            })
           }
           const controller = new AbortController()
           const timer = setTimeout(() => controller.abort(), 15000)

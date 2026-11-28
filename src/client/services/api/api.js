@@ -33,6 +33,27 @@ function onlineStreamUrl(provider, id, quality, direct) {
 }
 
 /**
+ * Folia's `getAudioSource` answer, asked before playback: this account gets the whole
+ * song, a preview clip, or no stream at all — and which failure case the Host told.
+ * The player uses it for the preview notice and for the stop/skip rule.
+ */
+function onlineStreamInfo(provider, id, quality) {
+  var level =
+    typeof quality === 'string' && quality !== ''
+      ? quality
+      : (readPrefs().onlineQuality || 'high')
+  return getJson(
+    API +
+      'online/stream-info?provider=' +
+      encodeURIComponent(provider) +
+      '&id=' +
+      encodeURIComponent(id) +
+      '&quality=' +
+      encodeURIComponent(level),
+  )
+}
+
+/**
  * Cover art for a self-hosted Navidrome/Subsonic server.
  *
  * The generic /online/cover route only allows the public provider CDNs, and a

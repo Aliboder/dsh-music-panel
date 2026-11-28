@@ -52,6 +52,7 @@ const ROUTES = {
   lyric: [playback, 'lyric'],
   chorus: [playback, 'chorus'],
   requiresVip: [playback, 'requiresVip'],
+  describeFailure: [playback, 'describeFailure'],
   // ── 登录 / 账号 ──────────────────────────────────────────────────────
   loginStart: [account, 'loginStart'],
   loginStatus: [account, 'loginStatus'],

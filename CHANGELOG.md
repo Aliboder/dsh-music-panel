@@ -19,6 +19,11 @@
 - 网易云的后端跑在工作线程里，线程是 bundle 旁边的 `worker.cjs`（由上游 `neteaseApiWorker.cjs` 复制改名）；QQ 的内嵌后端在第一次问状态时拉起、监听本机端口。插件停用或退出时会关掉它们。
 - **登录态需要重新扫码一次**：旧实现在 `sessions.json`（明文）里，移植源各自用插件数据目录下的加密存储（`<平台>-legacy-store.json` + `<平台>-seal.key`），两者不是一套格式。已存的收藏、歌单、播放历史、队列不受影响（歌曲 id 形态没变）。
 
+### 在线播放 · 失败与试听的三处对齐 Folia
+
+- **试听提示提前到播放前**：新增 Host 路由 `/online/stream-info`（只解析、不转发字节），客户端在真正出声前问一次：整曲 / `preview` 片段 / 哪一类失败。试听片段现在**播放前**就提示“当前账号只能试听这首歌的片段”，与 Folia 按 `preview` 标记提示一致；播放后的时长兜底判断保留作保险。已缓存到本地的歌先读缓存、不走这个问询，避免网络问题挡住离线播放。
+- **无法播放时自动跳过默认关闭**：`autoSkipUnplayable` 的默认值从开改成关（与 Folia 的 `getStoredBoolean(..., false)` 一致）。以前的账号默认仍是开，可在设置里改。
+- **失败提示按情况细分**：移植 Folia 的 failure case（`services/onlineMusic/failure/onlineFailureCase.ts`）到 Host（`src/host/services/playback/online-failure.js`）：先问音源自己的 `describeFailure`（平台状态码的含义，随移植源一起搬过来），再按错误码 / HTTP 状态 / 限流归类。提示从一句“该曲目暂不可播（可能需要登录或 VIP）”变成：需要登录、需要会员、需要购买、没有播放权限、地区不可用、无音频、音频无法播放、平台不可达、稍后再试、平台未配置、已下架等；停/跳过规则也与 Folia 相同（登录/会员/购买等停下，网络类不停；自动跳过打开时会员/购买/地区等会跳过）。
 ### 在线音乐 · 恢复 VIP 曲目角标
 
 - **特性**：VIP/付费曲目在列表与播放器里显示 `VIP` 角标（`qualityHint: 'VIP'`），并且“跳过 VIP 曲目”的判断继续生效。这是插件自己的特性，Folia 没有。

@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.47.2"
-    var CLIENT_BUILD = "286b2a5122fa"
+    var CLIENT_BUILD = "af661c0d73a3"
 
     // ── src/client/app/runtime.js
     /**
@@ -7080,6 +7080,21 @@ window.__ModuleLoader__.load({
         'online.qrRefresh': '刷新二维码',
         'online.artistSongs': '热门歌曲',
         'online.previewOnly': '当前账号只能试听这首歌的片段',
+      'online.failSignIn': '需要登录后才能播放这首歌',
+      'online.failAccountRefused': '当前账号被平台拒绝播放',
+      'online.failSubscription': '这首歌需要会员（VIP）',
+      'online.failPurchase': '这首歌需要购买',
+      'online.failEntitlement': '当前账号没有这首歌的播放权限',
+      'online.failRegion': '这首歌在当前地区不可用',
+      'online.failNotConfigured': '该平台尚未配置',
+      'online.failTakenDown': '这首歌已下架或不可用',
+      'online.failNoAudio': '平台没有返回可播放的音频',
+      'online.failAudioUnplayable': '音频无法播放',
+      'online.failRefused': '平台拒绝了播放请求',
+      'online.failUnreachable': '连接平台失败，请检查网络',
+      'online.failRetryLater': '平台暂时受限，请稍后再试',
+      'online.failServiceStopped': '本地服务未运行，请重启应用',
+      'online.failUnknown': '播放失败，请稍后再试',
         'online.artistHome': '歌手主页',
         'online.restartService': '重启本地服务',
         'online.restartingService': '正在重启…',
@@ -7741,6 +7756,21 @@ window.__ModuleLoader__.load({
         'online.qrRefresh': 'Refresh QR code',
         'online.artistSongs': 'Top songs',
         'online.previewOnly': 'This account can play only a preview of this song',
+      'online.failSignIn': 'Sign in to play this song',
+      'online.failAccountRefused': 'This account is refused by the platform',
+      'online.failSubscription': 'This song needs a membership (VIP)',
+      'online.failPurchase': 'This song needs a purchase',
+      'online.failEntitlement': 'This account cannot play this song',
+      'online.failRegion': 'This song is not available in this region',
+      'online.failNotConfigured': 'This platform is not configured yet',
+      'online.failTakenDown': 'This song is taken down or unavailable',
+      'online.failNoAudio': 'The platform returned no playable audio',
+      'online.failAudioUnplayable': 'The audio cannot be played',
+      'online.failRefused': 'The platform refused the playback request',
+      'online.failUnreachable': 'Cannot reach the platform; check the network',
+      'online.failRetryLater': 'Temporarily limited by the platform; try again later',
+      'online.failServiceStopped': 'The local service is not running; restart the app',
+      'online.failUnknown': 'Playback failed; try again later',
         'online.artistHome': 'Artist page',
         'online.restartService': 'Restart local service',
         'online.restartingService': 'Restarting…',
@@ -23391,6 +23421,27 @@ window.__ModuleLoader__.load({
         '&quality=' +
         encodeURIComponent(level) +
         (direct === true ? '&direct=1' : '')
+      )
+    }
+
+    /**
+     * Folia's `getAudioSource` answer, asked before playback: this account gets the whole
+     * song, a preview clip, or no stream at all — and which failure case the Host told.
+     * The player uses it for the preview notice and for the stop/skip rule.
+     */
+    function onlineStreamInfo(provider, id, quality) {
+      var level =
+        typeof quality === 'string' && quality !== ''
+          ? quality
+          : (readPrefs().onlineQuality || 'high')
+      return getJson(
+        API +
+          'online/stream-info?provider=' +
+          encodeURIComponent(provider) +
+          '&id=' +
+          encodeURIComponent(id) +
+          '&quality=' +
+          encodeURIComponent(level),
       )
     }
 
@@ -170463,7 +170514,7 @@ window.__ModuleLoader__.load({
       /** Folia's `queueAddBehavior`: where 「加入队列」 puts a song, after the current one or at the end. */
       queueAddBehavior: 'append',
       /** Folia's `autoSkipUnplayable`: a track that cannot be played is skipped instead of stopping. */
-      autoSkipUnplayable: true,
+      autoSkipUnplayable: false,
       /** Folia's `shuffleRoundNoRepeat`: a shuffled queue is re-shuffled for every round. */
       shuffleRoundNoRepeat: false,
       /** Keep the screen awake while a song plays (Wake Lock, where the host offers it). */
@@ -178330,21 +178381,123 @@ window.__ModuleLoader__.load({
        * (the proxy HTTP stream is the one Electron refuses to seek, issue #82/#110). Only a
        * miss uses MSE's streaming start.
        */
+      // Folia's failure cases (services/onlineMusic/failure/onlineFailureCase.ts)：stops 是停在失败上，
+      // unplayable 是「无法播放时自动跳过」打开时也跳过的那几种。Host 的 /online/stream-info 已经分好类，
+      // 这里只按情况决定提示与停/跳。
+      var ONLINE_FAILURE_RULES = {
+        unreachable: { stops: false, retry: true },
+        'local-service-stopped': { stops: false, retry: true },
+        'retry-later': { stops: false, retry: false },
+        'sign-in-needed': { stops: true, retry: false },
+        'account-refused': { stops: true, retry: false },
+        'subscription-required': { stops: true, retry: false, unplayable: true },
+        'purchase-required': { stops: true, retry: false, unplayable: true },
+        'entitlement-required': { stops: true, retry: false, unplayable: true },
+        'preview-only': { stops: true, retry: false, unplayable: true },
+        'region-restricted': { stops: true, retry: false, unplayable: true },
+        'not-configured': { stops: true, retry: false },
+        'taken-down': { stops: false, retry: false },
+        'no-audio': { stops: false, retry: false },
+        'audio-unplayable': { stops: false, retry: false },
+        'not-public': { stops: false, retry: false },
+        refused: { stops: false, retry: true },
+        unknown: { stops: false, retry: true },
+      }
+
+      var ONLINE_FAILURE_TEXT = {
+        'sign-in-needed': 'online.failSignIn',
+        'account-refused': 'online.failAccountRefused',
+        'subscription-required': 'online.failSubscription',
+        'purchase-required': 'online.failPurchase',
+        'entitlement-required': 'online.failEntitlement',
+        'preview-only': 'online.previewOnly',
+        'region-restricted': 'online.failRegion',
+        'not-configured': 'online.failNotConfigured',
+        'taken-down': 'online.failTakenDown',
+        'no-audio': 'online.failNoAudio',
+        'audio-unplayable': 'online.failAudioUnplayable',
+        refused: 'online.failRefused',
+        unreachable: 'online.failUnreachable',
+        'retry-later': 'online.failRetryLater',
+        'local-service-stopped': 'online.failServiceStopped',
+        unknown: 'online.failUnknown',
+      }
+
+      function onlineFailureText(caseId) {
+        var key = ONLINE_FAILURE_TEXT[caseId] || ONLINE_FAILURE_TEXT.unknown
+        return t(key)
+      }
+
+      /** Folia's stop/skip decision for one classified failure. */
+      function onlineFailureSkipOrStop(caseId) {
+        var rule = ONLINE_FAILURE_RULES[caseId] || ONLINE_FAILURE_RULES.unknown
+        var autoSkip = readPrefs().autoSkipUnplayable === true
+        var stops = rule.stops === true && !(autoSkip && rule.unplayable === true)
+        errorStreak += 1
+        if (!stops && state.queue.length > 1 && errorStreak <= 3) {
+          var next = nextQueueIndex(state.queue.length, state.index, state.loop)
+          if (next >= 0) {
+            load(next, true)
+            return
+          }
+        }
+        errorStreak = 0
+        patch({ playing: false })
+      }
+
       function playOnlineEntry(item, token, loudness) {
+        var playStream = function () {
+          // Folia asks the provider for audio before it starts, and the answer says whether this
+          // account gets a preview clip; the notice belongs before sound, not after a duration check.
+          if (typeof onlineStreamInfo !== 'function') {
+            playOnlineMse(item, token, loudness)
+            return
+          }
+          onlineStreamInfo(item.onlineProvider, item.onlineId || '')
+            .then(function (info) {
+              if (token !== loadToken) {
+                loudness.resolve()
+                return
+              }
+              if (info && info.ok === false) {
+                showToast(onlineFailureText(info.case))
+                loudness.resolve()
+                onlineFailureSkipOrStop(info.case)
+                return
+              }
+              if (info && info.preview === true && session.preview !== true) {
+                session.preview = true
+                showToast(t('online.previewOnly'))
+              }
+              playOnlineMse(item, token, loudness)
+            }, function () {
+              // The extra question must never keep a song from starting.
+              if (token === loadToken) playOnlineMse(item, token, loudness)
+              else loudness.resolve()
+            })
+        }
+        // A copy already on disk plays first: it was written after a full play, so the gate
+        // below (which asks the platform) must not decide whether the cached song starts.
         var infoUrl = API + 'online/cache-info?provider=' + encodeURIComponent(item.onlineProvider)
           + '&id=' + encodeURIComponent(item.onlineId || '')
         getJson(infoUrl)
           .then(function (info) {
-            if (token !== loadToken) return
+            if (token !== loadToken) {
+              loudness.resolve()
+              return
+            }
             if (info && info.cached === true) {
               startOnlineBlob(item, token, loudness)
               return
             }
-            playOnlineMse(item, token, loudness)
+            playStream()
           })
           .catch(function () {
-            if (token !== loadToken) return
-            playOnlineMse(item, token, loudness)
+            if (token !== loadToken) {
+              loudness.resolve()
+              return
+            }
+            playStream()
           })
       }
       /** Folia-like current song, but with MediaSource owning the seekable ranges. */

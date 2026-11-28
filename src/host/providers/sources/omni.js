@@ -56,6 +56,11 @@ export function createOmni(registry) {
       return Array.isArray(methods) ? methods.slice() : []
     },
     availability: (sourceId) => registry.require(sourceId).availability?.() ?? { configured: true },
+    /** 平台自己的失败说法；没有这条规则的源回 null（Folia 的 describeFailure）。 */
+    describeFailure(sourceId, operation, error) {
+      const source = registry.get(sourceId)
+      return typeof source?.describeFailure === 'function' ? source.describeFailure(operation, error) : null
+    },
 
     // ── catalogue / search ────────────────────────────────────────────────
     search: route('search'),
