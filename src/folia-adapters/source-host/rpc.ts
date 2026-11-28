@@ -12,11 +12,15 @@ const NAME_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9._-]*$/
 export interface RpcRegistry {
   handle(name: string, handler: (...args: unknown[]) => unknown): void
   call<T>(name: string, ...args: unknown[]): Promise<T>
+  /** main 入口 → client 入口的单向推送（Electron 里是 api.rpc.send / folium.rpc.on）。 */
+  send(name: string, payload?: unknown): void
+  on(name: string, listener: (payload: unknown) => void): () => void
   names(): string[]
 }
 
 export const createRpcRegistry = (options: { beforeCall?: () => void } = {}): RpcRegistry => {
   const handlers = new Map<string, (...args: unknown[]) => unknown>()
+  const listeners = new Map<string, Set<(payload: unknown) => void>>()
   return {
     handle(name, handler) {
       if (typeof name !== 'string' || !NAME_PATTERN.test(name)) throw new TypeError('rpc: a name like /^[a-zA-Z0-9][a-zA-Z0-9._-]*$/')
@@ -29,6 +33,25 @@ export const createRpcRegistry = (options: { beforeCall?: () => void } = {}): Rp
       const handler = handlers.get(name)
       if (!handler) throw new Error('rpc: no handler for ' + name)
       return (await handler(...args)) as T
+    },
+    send(name, payload) {
+      for (const listener of listeners.get(String(name)) ?? []) {
+        try {
+          listener(payload)
+        } catch {
+          // 一条坏监听不能挡住别的监听。
+        }
+      }
+    },
+    on(name, listener) {
+      const key = String(name)
+      const set = listeners.get(key) ?? new Set()
+      set.add(listener)
+      listeners.set(key, set)
+      return () => {
+        set.delete(listener)
+        if (set.size === 0) listeners.delete(key)
+      }
     },
     names() { return [...handlers.keys()] },
   }

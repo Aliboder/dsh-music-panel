@@ -6,6 +6,7 @@
  *
  * @module dsh-music-panel/folia-adapters/source-host/host
  */
+import { mkdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { createSourceError, type SourceErrorFactory } from './errors'
 import { createMedia } from './media'
@@ -56,6 +57,11 @@ export const createSourceHost = (options: SourceHostOptions): SourceHost => {
   const media = createMedia()
   const texts = createSourceTexts(options.locales, options.language)
 
+  // 需要收尾的回调：插件停用/进程退出时按注册顺序跑（上游在 onBeforeUnload / onBeforeQuit 里关后端）。
+  const beforeUnload: Array<() => void | Promise<void>> = []
+  const beforeQuit: Array<() => void | Promise<void>> = []
+  const diagnostics = new Map<string, unknown>()
+
   const api: Record<string, unknown> = {
     net,
     media,
@@ -65,12 +71,57 @@ export const createSourceHost = (options: SourceHostOptions): SourceHost => {
       seal: (text: string) => seal.seal(text),
       open: (sealed: string) => seal.open(sealed),
     },
-    rpc: { handle: (name: string, handler: (...args: unknown[]) => unknown) => rpc.handle(name, handler) },
+    rpc: {
+      handle: (name: string, handler: (...args: unknown[]) => unknown) => rpc.handle(name, handler),
+      send: (name: string, payload?: unknown) => rpc.send(name, payload),
+    },
+    // 上游要的「受信表认领的 userData 子目录」：插件数据目录下的同名文件夹。
+    paths: {
+      legacy: (name: string) => {
+        const folder = join(options.dir, String(name))
+        mkdirSync(folder, { recursive: true })
+        return folder
+      },
+    },
+    // 诊断与自检：上游把后端对象登记进来，client 经 rpc 拿快照/自检结果，这里原样转给后端。
+    diagnostics: {
+      register: (name: string, backend: unknown) => {
+        diagnostics.set(String(name), backend)
+        return () => diagnostics.delete(String(name))
+      },
+      snapshot: (name: string) => {
+        const backend = diagnostics.get(String(name)) as { snapshot?: () => unknown } | undefined
+        return typeof backend?.snapshot === 'function' ? backend.snapshot() : null
+      },
+      selfCheck: (name: string) => {
+        const backend = diagnostics.get(String(name)) as { selfCheck?: () => unknown } | undefined
+        return typeof backend?.selfCheck === 'function' ? backend.selfCheck() : null
+      },
+    },
+    onBeforeUnload: (handler: () => void | Promise<void>) => {
+      beforeUnload.push(handler)
+      return () => {
+        const index = beforeUnload.indexOf(handler)
+        if (index >= 0) beforeUnload.splice(index, 1)
+      }
+    },
+    onBeforeQuit: (handler: () => void | Promise<void>) => {
+      beforeQuit.push(handler)
+      return () => {
+        const index = beforeQuit.indexOf(handler)
+        if (index >= 0) beforeQuit.splice(index, 1)
+      }
+    },
   }
 
   return {
     modId: options.modId,
     api,
+    /** 插件停用/退出时调：先跑 onBeforeUnload，再跑 onBeforeQuit。 */
+    async dispose() {
+      for (const handler of [...beforeUnload]) { try { await handler() } catch { /* 收尾失败不挡下一个 */ } }
+      for (const handler of [...beforeQuit]) { try { await handler() } catch { /* 同上 */ } }
+    },
     rpc,
     seal,
     store,
@@ -97,7 +148,10 @@ export const createSourceHost = (options: SourceHostOptions): SourceHost => {
           text: (key: string, params?: Record<string, string | number>) => texts.text(key, params),
         },
         lyrics: { isPureMusicText: (text: string | null | undefined) => isPureMusicText(text) },
-        rpc: { call: (name: string, ...args: unknown[]) => rpc.call(name, ...args) },
+        rpc: {
+          call: (name: string, ...args: unknown[]) => rpc.call(name, ...args),
+          on: (name: string, listener: (payload: unknown) => void) => rpc.on(name, listener),
+        },
       }
     },
   }

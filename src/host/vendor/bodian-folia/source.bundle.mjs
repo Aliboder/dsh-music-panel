@@ -749,6 +749,10 @@ var vi_default = {
   }
 };
 
+// src/folia-adapters/source-host/host.ts
+import { mkdirSync as mkdirSync3 } from "node:fs";
+import { join as join3 } from "node:path";
+
 // src/folia-adapters/source-host/errors.ts
 var createSourceError = (code, message, details = {}) => {
   const error = new Error(message);
@@ -900,6 +904,7 @@ var createNet = (options = {}) => {
 var NAME_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9._-]*$/;
 var createRpcRegistry = (options = {}) => {
   const handlers = /* @__PURE__ */ new Map();
+  const listeners = /* @__PURE__ */ new Map();
   return {
     handle(name, handler) {
       if (typeof name !== "string" || !NAME_PATTERN.test(name)) throw new TypeError("rpc: a name like /^[a-zA-Z0-9][a-zA-Z0-9._-]*$/");
@@ -912,6 +917,24 @@ var createRpcRegistry = (options = {}) => {
       const handler = handlers.get(name);
       if (!handler) throw new Error("rpc: no handler for " + name);
       return await handler(...args);
+    },
+    send(name, payload) {
+      for (const listener of listeners.get(String(name)) ?? []) {
+        try {
+          listener(payload);
+        } catch {
+        }
+      }
+    },
+    on(name, listener) {
+      const key = String(name);
+      const set = listeners.get(key) ?? /* @__PURE__ */ new Set();
+      set.add(listener);
+      listeners.set(key, set);
+      return () => {
+        set.delete(listener);
+        if (set.size === 0) listeners.delete(key);
+      };
     },
     names() {
       return [...handlers.keys()];
@@ -1111,6 +1134,9 @@ var createSourceHost = (options) => {
   const net = createNet({ fetchImpl: options.fetchImpl });
   const media = createMedia();
   const texts = createSourceTexts(options.locales, options.language);
+  const beforeUnload = [];
+  const beforeQuit = [];
+  const diagnostics = /* @__PURE__ */ new Map();
   const api = {
     net,
     media,
@@ -1120,11 +1146,66 @@ var createSourceHost = (options) => {
       seal: (text2) => seal.seal(text2),
       open: (sealed) => seal.open(sealed)
     },
-    rpc: { handle: (name, handler) => rpc.handle(name, handler) }
+    rpc: {
+      handle: (name, handler) => rpc.handle(name, handler),
+      send: (name, payload) => rpc.send(name, payload)
+    },
+    // 上游要的「受信表认领的 userData 子目录」：插件数据目录下的同名文件夹。
+    paths: {
+      legacy: (name) => {
+        const folder = join3(options.dir, String(name));
+        mkdirSync3(folder, { recursive: true });
+        return folder;
+      }
+    },
+    // 诊断与自检：上游把后端对象登记进来，client 经 rpc 拿快照/自检结果，这里原样转给后端。
+    diagnostics: {
+      register: (name, backend) => {
+        diagnostics.set(String(name), backend);
+        return () => diagnostics.delete(String(name));
+      },
+      snapshot: (name) => {
+        const backend = diagnostics.get(String(name));
+        return typeof backend?.snapshot === "function" ? backend.snapshot() : null;
+      },
+      selfCheck: (name) => {
+        const backend = diagnostics.get(String(name));
+        return typeof backend?.selfCheck === "function" ? backend.selfCheck() : null;
+      }
+    },
+    onBeforeUnload: (handler) => {
+      beforeUnload.push(handler);
+      return () => {
+        const index = beforeUnload.indexOf(handler);
+        if (index >= 0) beforeUnload.splice(index, 1);
+      };
+    },
+    onBeforeQuit: (handler) => {
+      beforeQuit.push(handler);
+      return () => {
+        const index = beforeQuit.indexOf(handler);
+        if (index >= 0) beforeQuit.splice(index, 1);
+      };
+    }
   };
   return {
     modId: options.modId,
     api,
+    /** 插件停用/退出时调：先跑 onBeforeUnload，再跑 onBeforeQuit。 */
+    async dispose() {
+      for (const handler of [...beforeUnload]) {
+        try {
+          await handler();
+        } catch {
+        }
+      }
+      for (const handler of [...beforeQuit]) {
+        try {
+          await handler();
+        } catch {
+        }
+      }
+    },
     rpc,
     seal,
     store,
@@ -1152,7 +1233,10 @@ var createSourceHost = (options) => {
           text: (key, params) => texts.text(key, params)
         },
         lyrics: { isPureMusicText: (text2) => isPureMusicText(text2) },
-        rpc: { call: (name, ...args) => rpc.call(name, ...args) }
+        rpc: {
+          call: (name, ...args) => rpc.call(name, ...args),
+          on: (name, listener) => rpc.on(name, listener)
+        }
       };
     }
   };

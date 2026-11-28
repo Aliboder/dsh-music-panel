@@ -18,6 +18,7 @@ import { createOmni } from './omni.js'
 import { createRegistry } from './registry.js'
 import { configureBodianFolia, createBodianFoliaSource } from './bodian-folia/index.js'
 import { configureKugouFolia } from './kugou-folia/instance.js'
+import { configureQqFolia, createQqFoliaSource } from './qq-folia/index.js'
 import { configureQishuiFolia, createQishuiFoliaSource } from './qishui-folia/index.js'
 import { createQishuiSource } from './qishui/index.js'
 import { ensureQishuiDeviceId } from './qishui/device.js'
@@ -173,12 +174,7 @@ export const ONLINE_SPECS = [
     capabilities: NETEASE_CAPABILITIES,
     qualityLevels: FULL_QUALITY,
   },
-  {
-    id: 'qq',
-    displayName: 'QQ Music',
-    capabilities: QQ_CAPABILITIES,
-    qualityLevels: FULL_QUALITY,
-  },
+  // QQ 改由 sources/qq-folia 注册（Folia 移植源），这里不再列。
   {
     // 客户端与存下来的数据仍是 kugouLite；映射写完时把 providerKey 打开，请求就交给移植源
     // （adapter.js:36 的 providerKey ?? spec.id，门面里每个酷狗方法开头那行 kugouFacade 只在
@@ -266,6 +262,21 @@ export function registerBodianSource(options) {
 export function registerBodianFoliaSource(options) {
   configureBodianFolia({ dir: options.dir, language: options.language })
   const source = createBodianFoliaSource()
+  registry.register(source)
+  return source
+}
+
+/**
+ * QQ Music: the ported Folia source module.
+ *
+ * The embedded qq-music-api backend starts on the first `status` ask, so registering this
+ * starts nothing; dispose() closes it again when the plugin unloads.
+ *
+ * @param {{ dir: string, language?: string }} options
+ */
+export function registerQqFoliaSource(options) {
+  configureQqFolia({ dir: options.dir, language: options.language })
+  const source = createQqFoliaSource()
   registry.register(source)
   return source
 }

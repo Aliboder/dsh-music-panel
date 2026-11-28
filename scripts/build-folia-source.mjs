@@ -31,6 +31,11 @@ const PLATFORMS = {
     out: 'src/host/vendor/qishui-folia/source.bundle.mjs',
     external: ['qishui-music-api'],
   },
+  qq: {
+    entry: 'src/folia-build/qq-host-entry.ts',
+    out: 'src/host/vendor/qq-folia/source.bundle.mjs',
+    external: ['@yakult-green-tea/qq-music-api'],
+  },
 }
 
 const foliumAliases = (external) => ({

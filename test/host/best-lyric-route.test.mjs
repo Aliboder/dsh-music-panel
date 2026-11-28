@@ -11,8 +11,13 @@ import { mkdtemp } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createOnlineRoutes } from '../../src/host/http/routes/online.js'
+import { registry } from '../../src/host/providers/sources/index.js'
 import { createLyricState } from '../../src/host/stores/lyric-state.js'
 import { fakeReq, fakeRes } from '../helpers.mjs'
+
+// QQ 由移植源在插件启动时登记；这个用例只验歌词路由，登记一个能寻址的空壳就够
+// （路由的 isOnlineSource 读注册表，不再认平台名字）。
+registry.register({ id: 'qq', kind: 'online', displayName: 'QQ Music', capabilities: { lyrics: true }, lyric: async () => null })
 
 const dir = await mkdtemp(join(tmpdir(), 'dsh-music-best-lyric-'))
 const lyricState = createLyricState({ dir: join(dir, 'lyric-state') })
