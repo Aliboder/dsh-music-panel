@@ -94,7 +94,7 @@ Folia 的在线层架构。
 | `@neteasecloudmusicapienhanced/api` | 4.41.1 | MIT | 网易云：搜索、取链、歌词、扫码登录、歌单、专辑 |
 | `@yakult-green-tea/qq-music-api` | 3.3.6 | MIT | QQ 音乐：搜索、取链、歌词、扫码登录 |
 | `qishui-music-api` | 0.2.2 | MIT | 汽水音乐：Host 侧已注册为在线平台，提供扫码登录、搜索、播放地址、歌词、歌单与喜欢 |
-| `kugoumusicapi` | 1.6.0（vendored in `src/host/vendor/kugoumusicapi/`） | MIT，全文见该目录 `LICENSE` | 酷狗：Host 侧用于二维码登录、搜索、歌词与设备注册；取链等仍保留本插件自有的签名 transport |
+| `kugoumusicapi` | 1.6.0（vendored in `src/host/vendor/kugoumusicapi/`） | MIT，全文见该目录 `LICENSE` | 酷狗：Host 侧的全部平台请求（扫码登录、搜索、取链、歌词、歌单、云盘、排行、写入），由移植的 Folia 音源模块调用；版本与上游 `sources/kugou/package.json` 一致 |
 
 ## Folia
 
