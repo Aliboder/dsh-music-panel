@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.47.2"
-    var CLIENT_BUILD = "78fa73c4bdf2"
+    var CLIENT_BUILD = "e3820e0f0f16"
 
     // ── src/client/app/runtime.js
     /**
@@ -8974,6 +8974,8 @@ window.__ModuleLoader__.load({
         'sheet.mute': '静音',
         'sheet.unmute': '取消静音',
         'sheet.lyricStyleParams': '样式参数',
+      'sheet.resetStyleParams': '重置',
+      'sheet.styleParamsReset': '样式参数已恢复默认',
         'sheet.lyricStyle': '歌词样式',
         'sheet.lyricUpgraded': '已换用 {source} 的逐字歌词',
         'sheet.lyricSwitched': '已换用 {source} 的歌词',
@@ -10117,6 +10119,8 @@ window.__ModuleLoader__.load({
         'sheet.mute': 'Mute',
         'sheet.unmute': 'Unmute',
         'sheet.lyricStyleParams': 'Style options',
+      'sheet.resetStyleParams': 'Reset',
+      'sheet.styleParamsReset': 'Style options reset to defaults',
         'sheet.lyricStyle': 'Lyric style',
         'sheet.lyricUpgraded': 'Using {source} word-by-word lyrics',
         'sheet.lyricSwitched': 'Using {source} lyrics',
@@ -170994,6 +170998,21 @@ window.__ModuleLoader__.load({
       return Object.keys(PREF_DEFAULTS)
     }
 
+    /**
+     * A preference's factory default, deep-copied so the caller can store it without mutating
+     * PREF_DEFAULTS. The look tab's 重置 writes one of these back (Folia's tuning defaults).
+     */
+    function prefDefaultOf(key) {
+      var value = PREF_DEFAULTS[key]
+      if (value === undefined) return undefined
+      if (value === null || typeof value !== 'object') return value
+      try {
+        return JSON.parse(JSON.stringify(value))
+      } catch (error) {
+        return undefined
+      }
+    }
+
     function savePrefs(patch) {
       var next = readPrefs()
       if (patch !== null && typeof patch === 'object') {
@@ -199485,11 +199504,26 @@ window.__ModuleLoader__.load({
         return h(Button, { variant: 'ghost', size: 'sm', onClick: onClick, title: title }, label)
       }
 
-      function mpSection(title, children) {
+      function mpSection(title, children, action) {
         return h(
           'div',
           { key: 'section-' + String(title), style: { marginBottom: '2px' } },
-          h('div', { className: 'mp-set-label', style: { padding: '12px 0 2px', opacity: '.9' } }, title),
+          h(
+            'div',
+            {
+              className: 'mp-set-label',
+              style: {
+                padding: '12px 0 2px',
+                opacity: '.9',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '8px',
+              },
+            },
+            h('span', null, title),
+            action === undefined || action === null ? null : action,
+          ),
           children,
         )
       }
@@ -199632,7 +199666,11 @@ window.__ModuleLoader__.load({
             ),
           ),
           tuningBlocks.length > 0
-            ? mpSection(t('sheet.lyricStyleParams'), h(TuningGrid, null, tuningBlocks))
+            ? mpSection(
+                t('sheet.lyricStyleParams'),
+                h(TuningGrid, null, tuningBlocks),
+                cardButton(t('sheet.resetStyleParams'), resetStyleParams, t('sheet.resetStyleParams')),
+              )
             : null,
         )
       }
@@ -199880,6 +199918,37 @@ window.__ModuleLoader__.load({
         )
       }
 
+
+      /** Which preference object a style's tuning rows write (`lyricTuningBlocks` above). */
+      var STYLE_TUNING_PREF = {
+        classic: 'classicTuning',
+        tilt: 'tiltTuning',
+        partita: 'partitaTuning',
+        fume: 'fumeTuning',
+        claddagh: 'claddaghTuning',
+        hanabi: 'hanabiTuning',
+        cadenza: 'cadenzaTuning',
+        sonnet: 'sonnetTuning',
+        monet: 'monetTuning',
+        machi: 'machiTuning',
+        lumiere: 'lumiereTuning',
+        pendolo: 'pendoloTuning',
+        diorama: 'dioramaTuning',
+        tempera: 'temperaTuning',
+        nebbia: 'nebbiaTuning',
+        metaphor: 'metaphorTuning',
+      }
+
+      /** 样式参数的重置：当前歌词样式的调参对象回到出厂默认（Folia 的 tuning defaults）。 */
+      function resetStyleParams() {
+        var style = mpStyleIdOf(prefs.lyricStyle)
+        var key = STYLE_TUNING_PREF[style]
+        if (key === undefined || typeof prefDefaultOf !== 'function') return
+        var defaults = prefDefaultOf(key)
+        if (defaults === undefined) return
+        setPrefs({ [key]: defaults })
+        if (typeof showToast === 'function') showToast(t('sheet.styleParamsReset'))
+      }
 
       /** The selected style's Folia tuning, rendered in the 外观 tab. */
       function lyricTuningBlocks() {

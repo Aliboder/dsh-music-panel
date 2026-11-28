@@ -861,6 +861,21 @@ function prefKeys() {
   return Object.keys(PREF_DEFAULTS)
 }
 
+/**
+ * A preference's factory default, deep-copied so the caller can store it without mutating
+ * PREF_DEFAULTS. The look tab's 重置 writes one of these back (Folia's tuning defaults).
+ */
+function prefDefaultOf(key) {
+  var value = PREF_DEFAULTS[key]
+  if (value === undefined) return undefined
+  if (value === null || typeof value !== 'object') return value
+  try {
+    return JSON.parse(JSON.stringify(value))
+  } catch (error) {
+    return undefined
+  }
+}
+
 function savePrefs(patch) {
   var next = readPrefs()
   if (patch !== null && typeof patch === 'object') {

@@ -19,6 +19,11 @@
 - 网易云的后端跑在工作线程里，线程是 bundle 旁边的 `worker.cjs`（由上游 `neteaseApiWorker.cjs` 复制改名）；QQ 的内嵌后端在第一次问状态时拉起、监听本机端口。插件停用或退出时会关掉它们。
 - **登录态需要重新扫码一次**：旧实现在 `sessions.json`（明文）里，移植源各自用插件数据目录下的加密存储（`<平台>-legacy-store.json` + `<平台>-seal.key`），两者不是一套格式。已存的收藏、歌单、播放历史、队列不受影响（歌曲 id 形态没变）。
 
+### 外观 · 样式参数可一键重置
+
+- 播放器面板「外观 → 样式参数」标题右侧新增「重置」按钮（复用面板已有的 ghost 小按钮，不引入新控件）：按当前歌词样式把它对应的调参对象（`classicTuning` / `tiltTuning` / … / `metaphorTuning`）整体写回 `PREF_DEFAULTS` 里的出厂默认，并提示「样式参数已恢复默认」。
+- 默认值由 `prefs.js` 的 `prefDefaultOf(key)` 深拷贝给出，重置不会改到 `PREF_DEFAULTS` 本身；`mpSection` 增加可选的右侧动作位置，其它分区不受影响。
+- 只有当前样式会被重置（这个分区展示的就是当前样式的参数）；切换样式后各自仍有自己的默认值。
 ### 在线播放：取流带上整首歌的侧车（修 QQ「son has no songmid」）
 
 - **根因**：Folia 宿主交出去的播放请求是整首 `FoliumSourceSong`（`omni.getAudioSource(song, quality)`）；本插件的 HTTP 边界只有 `provider + id`。QQ 的播放键 songmid 不在 id 里（id 是数字 songid，songmid 在 `lyricIds.qq` / `data.songMid`，`mediaMid` 在 `data.mediaMid`），于是上游 `qqProvider` 直接报「QQ song has no songmid」。同一处还会丢：波点的 `data.freeSign`（免费曲取流要它）、酷狗的 `data.albumId` / `albumAudioId` / `variant: cloud`。

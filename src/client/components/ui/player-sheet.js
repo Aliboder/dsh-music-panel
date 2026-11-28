@@ -712,11 +712,26 @@ function PlayerSheetInner(props) {
     return h(Button, { variant: 'ghost', size: 'sm', onClick: onClick, title: title }, label)
   }
 
-  function mpSection(title, children) {
+  function mpSection(title, children, action) {
     return h(
       'div',
       { key: 'section-' + String(title), style: { marginBottom: '2px' } },
-      h('div', { className: 'mp-set-label', style: { padding: '12px 0 2px', opacity: '.9' } }, title),
+      h(
+        'div',
+        {
+          className: 'mp-set-label',
+          style: {
+            padding: '12px 0 2px',
+            opacity: '.9',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '8px',
+          },
+        },
+        h('span', null, title),
+        action === undefined || action === null ? null : action,
+      ),
       children,
     )
   }
@@ -859,7 +874,11 @@ function PlayerSheetInner(props) {
         ),
       ),
       tuningBlocks.length > 0
-        ? mpSection(t('sheet.lyricStyleParams'), h(TuningGrid, null, tuningBlocks))
+        ? mpSection(
+            t('sheet.lyricStyleParams'),
+            h(TuningGrid, null, tuningBlocks),
+            cardButton(t('sheet.resetStyleParams'), resetStyleParams, t('sheet.resetStyleParams')),
+          )
         : null,
     )
   }
@@ -1107,6 +1126,37 @@ function PlayerSheetInner(props) {
     )
   }
 
+
+  /** Which preference object a style's tuning rows write (`lyricTuningBlocks` above). */
+  var STYLE_TUNING_PREF = {
+    classic: 'classicTuning',
+    tilt: 'tiltTuning',
+    partita: 'partitaTuning',
+    fume: 'fumeTuning',
+    claddagh: 'claddaghTuning',
+    hanabi: 'hanabiTuning',
+    cadenza: 'cadenzaTuning',
+    sonnet: 'sonnetTuning',
+    monet: 'monetTuning',
+    machi: 'machiTuning',
+    lumiere: 'lumiereTuning',
+    pendolo: 'pendoloTuning',
+    diorama: 'dioramaTuning',
+    tempera: 'temperaTuning',
+    nebbia: 'nebbiaTuning',
+    metaphor: 'metaphorTuning',
+  }
+
+  /** 样式参数的重置：当前歌词样式的调参对象回到出厂默认（Folia 的 tuning defaults）。 */
+  function resetStyleParams() {
+    var style = mpStyleIdOf(prefs.lyricStyle)
+    var key = STYLE_TUNING_PREF[style]
+    if (key === undefined || typeof prefDefaultOf !== 'function') return
+    var defaults = prefDefaultOf(key)
+    if (defaults === undefined) return
+    setPrefs({ [key]: defaults })
+    if (typeof showToast === 'function') showToast(t('sheet.styleParamsReset'))
+  }
 
   /** The selected style's Folia tuning, rendered in the 外观 tab. */
   function lyricTuningBlocks() {
