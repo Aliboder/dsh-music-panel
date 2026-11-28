@@ -26,6 +26,13 @@ test('the surface and the cover are capped by the free height', () => {
   assert.doesNotMatch(sheet, /maxHeight:[\s\S]{0,120}100dvh/)
 })
 
+test('the top edge clears the player page fullscreen button', () => {
+  // `.mp-np-fs` is top:22px + 36px tall: the card must start below it or it covers the
+  // button (the card is anchored to the bottom-right FAB).
+  assert.match(sheet, /var MP_TOP_MARGIN = 70/)
+  assert.match(sheet, /cardMaxH = Math\.max\(240, viewportForLayout - MP_TOP_MARGIN - cardBottom\)/)
+})
+
 test('resizing the window re-clamps the body', () => {
   assert.match(sheet, /window\.addEventListener\('resize', update\)/)
   assert.match(sheet, /setViewportH\(window\.innerHeight \|\| 800\)/)

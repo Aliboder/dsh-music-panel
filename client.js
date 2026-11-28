@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.47.2"
-    var CLIENT_BUILD = "af661c0d73a3"
+    var CLIENT_BUILD = "859889a9fa9e"
 
     // ── src/client/app/runtime.js
     /**
@@ -198743,7 +198743,10 @@ window.__ModuleLoader__.load({
     var MP_FOLDED = 48
     var MP_COVER_GAP = 14
     var MP_MIN_COVER = 96
-    var MP_TOP_MARGIN = 56
+    // Room at the top of the window the card must leave free: the player page's fullscreen
+    // button (`.mp-np-fs`: top 22px + 36px tall) plus a 12px gap. Without it the card's top
+    // edge reaches the button and covers it (the card is bottom-anchored at the FAB offset).
+    var MP_TOP_MARGIN = 70
     var MP_BOTTOM_GAP = 24
     // The card is bottom-anchored at the real anchor offset, so its body room is
     // viewport - top margin - bottom offset - card chrome. Using the fixed bottom gap here
