@@ -114,6 +114,8 @@ export function createFoliaSource(options) {
   const source = {
     id: sourceId,
     kind: 'online',
+    // 标记：登录态在这个移植源自己的存储里，不在旧 sessions.json 里（/online/providers 据此核对）。
+    folia: true,
     displayName: options.displayName ?? definition?.displayName ?? sourceId,
     capabilities: buildCapabilities(declared),
     qualityLevels: Array.isArray(options.qualityLevels) ? options.qualityLevels.slice() : ['original'],

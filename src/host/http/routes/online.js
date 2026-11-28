@@ -2321,8 +2321,12 @@ export function createOnlineRoutes(deps) {
         for (const source of onlineSources) {
           registered.add(source.id)
           const account = accounts[source.id] ?? null
-          const signedIn = summary[source.id]?.loggedIn === true
           const row = summary[source.id] ?? null
+          const storedSignedIn = summary[source.id]?.loggedIn === true
+          // 移植源（Folia）的登录态在它自己的存储里。迁移前写进 sessions.json 的条目还在，
+          // 直接信它会把「早已失效的登录」显示成已登录；所以对移植源以它自己的账号为准。
+          const liveProfile = source.folia === true && storedSignedIn ? await profileState(source.id) : null
+          const signedIn = source.folia === true ? storedSignedIn && liveProfile !== null : storedSignedIn
           const storedUser =
             account?.user && (account.user.id || account.user.nickname || account.user.avatarUrl)
               ? account.user
@@ -2335,6 +2339,8 @@ export function createOnlineRoutes(deps) {
               : null
           merged[source.id] = {
             ...(summary[source.id] ?? {}),
+            // 移植源没登录时，旧快照里的昵称/头像/会员信息一律不显示。
+            ...(source.folia === true && !signedIn ? { nickname: '', avatarUrl: '', accountId: '', vip: false, vipExpiresAt: '' } : {}),
             displayName: source.displayName,
             kind: source.kind,
             capabilities: source.capabilities,
@@ -2349,7 +2355,11 @@ export function createOnlineRoutes(deps) {
               : true,
             requiresAccount: source.requiresAccount,
             status: signedIn ? (account?.freshness === 'error' ? 'error' : 'authenticated') : 'anonymous',
-            user: storedUser ?? rowUser,
+            user: source.folia === true
+              ? (signedIn
+                ? { id: String(liveProfile?.accountId ?? ''), nickname: liveProfile?.nickname ?? '', avatarUrl: liveProfile?.avatarUrl ?? '' }
+                : null)
+              : (storedUser ?? rowUser),
             collections: Array.isArray(account?.collections) ? account.collections : [],
             freshness: account?.freshness ?? 'stale',
             lastUpdatedAt: Number(account?.savedAt) || 0,

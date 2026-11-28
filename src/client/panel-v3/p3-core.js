@@ -77,7 +77,10 @@ function p3SourceLabel(source) {
 function p3SourceLoggedIn(source) {
   if (source === 'local') return true
   var info = p3SourceInfo(source)
-  return info.loggedIn === true || info.configured === true
+  // configured 只说明「这个源不用再配置」（Navidrome 填了服务器），不代表登录了。
+  // 之前把两者并在一起，未登录的平台也会显示出「重新登录 / 退出登录」，歌单页还会把
+  // 平台的原始报错当成失败正文；登录态只认 loggedIn。
+  return info.loggedIn === true
 }
 
 function p3SourceLoginMode(source) {
@@ -719,7 +722,9 @@ function P3Empty(props) {
       { className: 'mpv3-empty' },
       icon(props.icon || 'music', 28),
       h('strong', null, props.title || ''),
-      props.hint ? h('span', null, props.hint) : null,
+      props.hint
+        ? h('span', { title: props.hintTitle ? String(props.hintTitle) : undefined }, props.hint)
+        : null,
       props.actions ? h('div', { className: 'mpv3-empty-actions' }, props.actions) : null,
     ),
   )

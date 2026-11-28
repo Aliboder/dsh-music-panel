@@ -349,6 +349,36 @@ function P3ArtistPage(props) {
   )
 }
 
+// 页面加载失败的统一呈现：
+//   未登录 → 说明「需要登录」并给出登录按钮（不把平台的原始报错当正文，用户会以为是坏了）；
+//   已登录 → 友好提示 + 重试，平台原文只放进 title 属性，需要排查时悬停仍能看到。
+function p3LoginAction(source) {
+  return function () {
+    if (source === 'navidrome') pushLayer('settings', { tab: 'online' })
+    else pushLayer('login', { provider: source })
+  }
+}
+
+function p3FailureEmpty(options) {
+  var source = options.source
+  if (source !== 'local' && !p3SourceLoggedIn(source)) {
+    return h(P3Empty, {
+      icon: 'user',
+      title: t('p3.loginRequired'),
+      hint: t('p3.loginRequiredHint'),
+      actions: h(Button, { variant: 'primary', onClick: p3LoginAction(source) }, t('p3.login')),
+    })
+  }
+  return h(P3Empty, {
+    icon: options.icon || 'warning',
+    title: t('p3.loadFailed'),
+    hint: t('p3.failureHint'),
+    hintTitle: String(options.error || ''),
+    actions: typeof options.retry === 'function'
+      ? h(Button, { variant: 'ghost', onClick: options.retry }, t('p3.retry'))
+      : null,
+  })
+}
 function P3PlaylistsPage(props) {
   var source = props.route.source
   var local = (props.library.playlists || []).map(function (playlist) {
@@ -376,7 +406,7 @@ function P3PlaylistsPage(props) {
   }
   if (source !== 'local' && items.length === 0 && props.online.playlistsPhase === 'error' && p3SourceLoggedIn(source)) {
     return h(P3GridPage, { route: props.route, library: props.library, online: props.online, prefs: props.prefs },
-      h(P3Empty, { icon: 'warning', title: t('p3.loadFailed'), hint: props.online.error, actions: h(Button, { variant: 'ghost', onClick: function () { void loadMyPlaylists(source) } }, t('p3.retry')) }),
+      p3FailureEmpty({ source: source, error: props.online.error, retry: function () { void loadMyPlaylists(source) } }),
     )
   }
   if (source !== 'local' && !p3SourceLoggedIn(source) && items.length === 0) {
@@ -623,7 +653,7 @@ function P3DiscoverPage(props) {
   }
   if (state.phase === 'error') {
     return h(P3GridPage, { route: props.route, library: props.library, online: props.online, prefs: props.prefs },
-      h(P3Empty, { icon: 'warning', title: t('p3.loadFailed'), hint: state.error, actions: h(Button, { variant: 'ghost', onClick: function () { setReload(reload + 1) } }, t('p3.retry')) }),
+      p3FailureEmpty({ source: source, error: state.error, retry: function () { setReload(reload + 1) } }),
     )
   }
   if (items.length === 0 && playlistItems.length === 0) {
@@ -687,7 +717,7 @@ function P3CloudPage(props) {
   }
   if (state.phase === 'error') {
     return h(P3GridPage, { route: props.route, library: props.library, online: props.online, prefs: props.prefs },
-      h(P3Empty, { icon: 'warning', title: t('p3.loadFailed'), hint: state.error, actions: h(Button, { variant: 'ghost', onClick: function () { setPage(1); setReload(reload + 1) } }, t('p3.retry')) }),
+      p3FailureEmpty({ source: source, error: state.error, retry: function () { setPage(1); setReload(reload + 1) } }),
     )
   }
   if (state.items.length === 0) {
@@ -748,7 +778,7 @@ function P3OnlineSongsPage(props) {
   }, [props.route.source, props.prefs.sortBy, props.prefs.sortDir, page, reload])
   useEffect(function () { setPage(1) }, [props.route.source, props.prefs.sortBy, props.prefs.sortDir])
   if (state.phase === 'loading') return h('div', { className: 'mpv3-scroll' }, h('div', { className: 'mpv3-scroll-inner is-static' }, h(P3PageHeadFor, { route: props.route, library: props.library, online: props.online, prefs: props.prefs }), h(P3Skeleton, { count: 8 })))
-  if (state.phase === 'error') return h(P3GridPage, { route: props.route, library: props.library, online: props.online, prefs: props.prefs }, h(P3Empty, { icon: 'warning', title: t('p3.loadFailed'), hint: state.error, actions: h(Button, { variant: 'ghost', onClick: function () { setState({ phase: 'loading', items: [], total: 0, loadingMore: false, error: '' }); setPage(1); setReload(reload + 1) } }, t('p3.retry')) }))
+  if (state.phase === 'error') return h(P3GridPage, { route: props.route, library: props.library, online: props.online, prefs: props.prefs }, p3FailureEmpty({ source: props.route.source, error: state.error, retry: function () { setState({ phase: 'loading', items: [], total: 0, loadingMore: false, error: '' }); setPage(1); setReload(reload + 1) } }))
   if (state.items.length === 0) return h(P3GridPage, { route: props.route, library: props.library, online: props.online, prefs: props.prefs }, h(P3Empty, { icon: 'music', title: t('page.noResults') }))
   var more = state.items.length < state.total
   return h(P3List, {
@@ -787,7 +817,7 @@ function P3OnlineAlbumsPage(props) {
     return function () { cancelled = true }
   }, [props.route.source, reload])
   if (state.phase === 'loading') return h(P3GridPage, { route: props.route, library: props.library, online: props.online, prefs: props.prefs }, h(P3Skeleton, { count: 6 }))
-  if (state.phase === 'error') return h(P3GridPage, { route: props.route, library: props.library, online: props.online, prefs: props.prefs }, h(P3Empty, { icon: 'warning', title: t('p3.loadFailed'), hint: state.error, actions: h(Button, { variant: 'ghost', onClick: function () { setState({ phase: 'loading', items: [] }); setReload(reload + 1) } }, t('p3.retry')) }))
+  if (state.phase === 'error') return h(P3GridPage, { route: props.route, library: props.library, online: props.online, prefs: props.prefs }, p3FailureEmpty({ source: props.route.source, error: state.error, retry: function () { setState({ phase: 'loading', items: [] }); setReload(reload + 1) } }))
   return h(P3GridPage, { route: props.route, library: props.library, online: props.online, prefs: props.prefs },
     state.items.length === 0
       ? h(P3Empty, { icon: 'disc', title: t('p3.noAlbums') })
@@ -819,7 +849,7 @@ function P3OnlineArtistsPage(props) {
     return function () { cancelled = true }
   }, [props.route.source, reload])
   if (state.phase === 'loading') return h(P3GridPage, { route: props.route, library: props.library, online: props.online, prefs: props.prefs }, h(P3Skeleton, { count: 6 }))
-  if (state.phase === 'error') return h(P3GridPage, { route: props.route, library: props.library, online: props.online, prefs: props.prefs }, h(P3Empty, { icon: 'warning', title: t('p3.loadFailed'), hint: state.error, actions: h(Button, { variant: 'ghost', onClick: function () { setState({ phase: 'loading', items: [] }); setReload(reload + 1) } }, t('p3.retry')) }))
+  if (state.phase === 'error') return h(P3GridPage, { route: props.route, library: props.library, online: props.online, prefs: props.prefs }, p3FailureEmpty({ source: props.route.source, error: state.error, retry: function () { setState({ phase: 'loading', items: [] }); setReload(reload + 1) } }))
   return h(P3GridPage, { route: props.route, library: props.library, online: props.online, prefs: props.prefs },
     state.items.length === 0
       ? h(P3Empty, { icon: 'user', title: t('p3.noArtists') })
@@ -907,7 +937,7 @@ function P3OnlinePlaylistPage(props) {
       .catch(function (error) { showToast(errorText(error)) })
   }
   if (props.online.playlistPhase === 'loading') return h('div', { className: 'mpv3-scroll' }, h('div', { className: 'mpv3-scroll-inner is-static' }, h(P3Skeleton, { count: 8 })))
-  if (props.online.playlistPhase === 'error') return h(P3GridPage, { route: props.route, library: props.library, online: props.online, prefs: props.prefs }, h(P3Empty, { icon: 'warning', title: t('p3.loadFailed'), hint: props.online.error, actions: h(Button, { variant: 'ghost', onClick: function () { void openOnlinePlaylist(collection) } }, t('p3.retry')) }))
+  if (props.online.playlistPhase === 'error') return h(P3GridPage, { route: props.route, library: props.library, online: props.online, prefs: props.prefs }, p3FailureEmpty({ source: props.route.source, error: props.online.error, retry: function () { void openOnlinePlaylist(collection) } }))
   return h(P3List, {
     items: items,
     header: h(P3Hero, {
@@ -954,7 +984,7 @@ function P3OnlineAlbumPage(props) {
   }, [props.route.param, props.route.source])
   var items = p3OnlineTrackList(props.online.albumSongs)
   if (props.online.albumPhase === 'loading') return h('div', { className: 'mpv3-scroll' }, h('div', { className: 'mpv3-scroll-inner is-static' }, h(P3Skeleton, { count: 8 })))
-  if (props.online.albumPhase === 'error') return h(P3GridPage, { route: props.route, library: props.library, online: props.online, prefs: props.prefs }, h(P3Empty, { icon: 'warning', title: t('p3.loadFailed'), hint: props.online.albumError, actions: h(Button, { variant: 'ghost', onClick: function () { void openOnlineAlbum(collection) } }, t('p3.retry')) }))
+  if (props.online.albumPhase === 'error') return h(P3GridPage, { route: props.route, library: props.library, online: props.online, prefs: props.prefs }, p3FailureEmpty({ source: props.route.source, error: props.online.albumError, retry: function () { void openOnlineAlbum(collection) } }))
   return h(P3List, {
     items: items,
     header: h(P3Hero, {
@@ -1049,9 +1079,9 @@ function P3OnlineArtistPage(props) {
     h('div', { className: 'mpv3-scroll-inner is-static' },
       hero,
       props.online.artistPhase === 'loading' ? h(P3Skeleton, { count: 6 }) : null,
-      props.online.artistPhase === 'error' ? h(P3Empty, { icon: 'warning', title: t('p3.loadFailed'), hint: props.online.artistError, actions: h(Button, { variant: 'ghost', onClick: function () {
+      props.online.artistPhase === 'error' ? p3FailureEmpty({ source: props.route.source, error: props.online.artistError, retry: function () {
         void openOnlineArtist({ onlineProvider: collection && collection.onlineProvider || props.route.source, artist: collection && collection.artist || '', artistsDetail: collection && collection.artistId ? [{ name: collection.artist, id: collection.artistId }] : [] })
-      } }, t('p3.retry')) }) : null,
+      } }) : null,
       items.length > 0 ? h('div', { className: 'mpv3-section' },
         h('div', { className: 'mpv3-section-head' }, h('strong', null, t('p3.hotSongs'))),
         h('div', { className: 'mpv3-plain-list' }, items.slice(0, ARTIST_TOP_SONG_SIZE).map(function (track, index) {
@@ -1132,12 +1162,7 @@ function P3OnlineArtistSongsPage(props) {
   }
   if (phase === 'error') {
     return h(P3GridPage, { route: props.route, library: props.library, online: props.online, prefs: props.prefs },
-      h(P3Empty, {
-        icon: 'warning',
-        title: t('p3.loadFailed'),
-        hint: props.online.artistAllError,
-        actions: h(Button, { variant: 'ghost', onClick: reload }, t('p3.retry')),
-      }))
+      p3FailureEmpty({ source: props.route.source, error: props.online.artistAllError, retry: reload }))
   }
   return h(P3List, {
     items: items,
@@ -1328,7 +1353,7 @@ function P3SearchPage(props) {
   }
   if (!local && props.online.phase === 'error') {
     return h(P3GridPage, { route: route, library: props.library, online: props.online, prefs: props.prefs },
-      h(P3Empty, { icon: 'warning', title: t('p3.loadFailed'), hint: props.online.error, actions: h(Button, { variant: 'ghost', onClick: function () { void searchOnline(query) } }, t('p3.retry')) }))
+      p3FailureEmpty({ source: source, error: props.online.error, retry: function () { void searchOnline(query) } }))
   }
   if (resultCount === 0) {
     return h(P3GridPage, { route: route, library: props.library, online: props.online, prefs: props.prefs },
