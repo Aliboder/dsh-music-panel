@@ -19,6 +19,10 @@
 - 网易云的后端跑在工作线程里，线程是 bundle 旁边的 `worker.cjs`（由上游 `neteaseApiWorker.cjs` 复制改名）；QQ 的内嵌后端在第一次问状态时拉起、监听本机端口。插件停用或退出时会关掉它们。
 - **登录态需要重新扫码一次**：旧实现在 `sessions.json`（明文）里，移植源各自用插件数据目录下的加密存储（`<平台>-legacy-store.json` + `<平台>-seal.key`），两者不是一套格式。已存的收藏、歌单、播放历史、队列不受影响（歌曲 id 形态没变）。
 
+### 顶栏搜索 · 只保留一个清除 ×
+
+- **根因**：搜索框是 `<input type="search">`，Chromium 会给它画一个原生的取消按钮（×）；插件又在同一位置放了自己的 `.mpv3-search-clear` 按钮，于是出现两个 ×。
+- **修法**：用 `::-webkit-search-cancel-button` / `::-webkit-search-decoration { display: none; -webkit-appearance: none }` 关掉原生装饰，只保留插件自己的清除按钮（它与搜索状态、清空后退出搜索页的逻辑绑定）。
 ### 顶栏 · 选歌不再盖住视图 Tab，切页自动收起选择
 
 - **根因**：歌曲行单击是「选中」（双击才播放），而选择状态是全局的 `selectionStore`；换 Tab / 打开歌单、专辑、歌手 / 搜索 / 换源 / 返回主页都不会清它。`P3ViewBar` 又用 `if (selecting) return …` 把整行让给选择栏，于是新页面的顶栏只剩上一页那首歌的批量操作（“编辑栏”），视图 Tab 被盖住。

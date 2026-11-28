@@ -41,6 +41,15 @@ test('recent searches render as a selectable dropdown with a clear action', () =
   assert.match(styles, /\.mpv3-search-history \{/)
 })
 
+test('the native search cancel button is hidden so only one clear × shows', () => {
+  // The custom .mpv3-search-clear button is the one the plugin owns; <input type=search>
+  // also paints Chromium's own cancel × unless the pseudo-element is removed.
+  assert.match(styles, /\.mpv3-search input::-webkit-search-cancel-button/)
+  assert.match(styles, /\.mpv3-search input::-webkit-search-decoration/)
+  assert.match(styles, /display: none; -webkit-appearance: none; appearance: none;/)
+  assert.match(shell, /className: 'mpv3-search-clear'/, 'the plugin clear button stays')
+})
+
 test('search history is a persisted preference cleared with plugin data', () => {
   assert.match(prefs, /searchHistory: \[\]/)
   assert.match(prefs, /var PREFS_KEY = 'music\.prefs\.v2'/)
