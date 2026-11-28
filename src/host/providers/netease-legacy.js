@@ -11,7 +11,7 @@
  *   - 三套加密（weapi/linuxapi/eapi）全部用 node:crypto 实现；eapi 匿名已被网关门禁，
  *     保留实现仅供登录态高音质路线复测（MVP 用 weapi 即可）
  *
- * 能力面与 lib/qq.js / lib/kugou.js 对齐：搜索(含歌单/多分型) / 取链(匿名可播，免费歌
+ * 能力面与 lib/qq.js 对齐：搜索(含歌单/多分型) / 取链(匿名可播，免费歌
  * 320k、VIP 歌 45s 试听、版权歌 404) / 歌词(LRC+翻译+罗马音，YRC 逐字可选) /
  * 歌单(推荐/分类/广场/详情 trackIds+批量/我的歌单/榜单 63 榜) / 扫码登录(两跳直达 MUSIC_U)。
  *
@@ -160,7 +160,7 @@ function assertOk(j, what) {
 const dec = (s) => String(s ?? '').replace(/<\/?em(?:\s[^>]*)?>/gi, '').trim()
 
 /**
- * 统一歌曲形状（对齐 qq.js/kugou.js 结果字段）。fee：0 免费 / 1 VIP / 4 数字专辑 /
+ * 统一歌曲形状（对齐 qq.js 结果字段）。fee：0 免费 / 1 VIP / 4 数字专辑 /
  * 8 版权受限（低音质可免费听）；privilege.pl = 可播码率上限（320000=320k 等）。
  */
 export function normalizeSong(o) {

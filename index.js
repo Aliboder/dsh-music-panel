@@ -18,7 +18,6 @@ import { join } from 'node:path'
 import { createProviderStore } from './src/host/providers/provider-store.js'
 import { createAccountStore } from './src/host/stores/accounts.js'
 import { createAccountReads } from './src/host/services/account-read.js'
-import { createKugouSessionManager } from './src/host/providers/kugou-session.js'
 import { createRoutes } from './src/host/http/routes.js'
 import { createSettings } from './src/host/stores/settings.js'
 import { createStats } from './src/host/stores/stats.js'
@@ -28,7 +27,6 @@ import { enqueueControl } from './src/host/services/playback/control.js'
 import { omni, registerBodianSource, registerKugouSource, registerLocalSource, registerOnlineSources, registerQishuiSource, resetSources } from './src/host/providers/sources/index.js'
 import { stopNeteaseService } from './src/host/services/netease-api.js'
 import { stopQqService } from './src/host/services/qq-api.js'
-import { stopAllKugouServices } from './src/host/services/kugou-api.js'
 import { createAudioFocusService } from './src/host/services/audio-focus.js'
 import { createUpdateChecker } from './src/host/services/update/checker.js'
 
@@ -95,8 +93,6 @@ export function apply(ctx, rawConfig) {
     mediaCache.setDir(cacheDirFor(config))
     return watcher.sync()
   }).catch(() => {})
-  const kugouSessions = createKugouSessionManager({ providerStore })
-
   /**
    * Reset in-memory stores after the data directory has been cleared. The route
    * removes the files; this callback makes sure no memoized value survives and
@@ -162,7 +158,6 @@ export function apply(ctx, rawConfig) {
     cacheDirFor,
     watcher,
     getLibraryRevision: () => libraryRevision,
-    kugouSessions,
     resetData,
     lyricState,
     audioFocus,
@@ -176,24 +171,7 @@ export function apply(ctx, rawConfig) {
     // Upstream services hold listening sockets and workers; they must not outlive the plugin.
     void stopNeteaseService()
     void stopQqService()
-    void stopAllKugouServices()
   }, 'music: sources')
-
-  // KuGou standard tokens last under a day. Refresh while the app stays open;
-  // the settings route also refreshes on demand and validates Lite.
-  ctx.effect(() => {
-    let disposed = false
-    const tick = () => {
-      if (disposed) return
-      void kugouSessions.refreshIfDue('kugou').catch(() => {})
-    }
-    tick()
-    const timer = setInterval(tick, kugouSessions.intervalMs)
-    return () => {
-      disposed = true
-      clearInterval(timer)
-    }
-  }, 'music: kugou session refresh')
 
   ctx.effect(() => {
     const dispose = ctx.webServer.register({

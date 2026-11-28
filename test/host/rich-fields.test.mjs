@@ -116,32 +116,6 @@ console.log('rich-fields.test.mjs ok')
   assert.deepEqual(qq.availableQualities, ['standard', 'high'])
   assert.equal(qq.privilegeDetail.payplay, 1)
 
-  const { normalizeSong: normalizeKugou } = await import('../../src/host/providers/kugou.js')
-  const kg = normalizeKugou({
-    FileHash: 'B3A52A7A958BF0AED0EBFBA2E9A818B7',
-    FileName: '周杰伦 - 晴天',
-    SingerName: '周杰伦',
-    Singers: [{ id: 3520, name: '周杰伦' }],
-    AlbumID: 966846,
-    AlbumName: '叶惠美',
-    AlbumImage: 'https://imge.kugou.com/album/1.jpg',
-    Duration: 269,
-    HQFileHash: 'HQHASH',
-    SQFileHash: 'SQHASH',
-    MixSongID: 32100650,
-    PublishTime: 1057776000000,
-    HeatLevel: 9,
-    PayType: 3,
-  }, { hashKey: 'FileHash', durationKey: 'Duration' })
-  assert.equal(kg.interval, 269)
-  assert.equal(kg.durationMs, 269000)
-  assert.deepEqual(kg.artistsDetail, [{ id: '3520', name: '周杰伦' }])
-  assert.equal(kg.albumDetail.id, '966846')
-  assert.ok(kg.albumDetail.coverUrl.includes('imge.kugou.com'))
-  assert.equal(kg.publishTime, 1057776000000)
-  assert.equal(kg.popularity, 9)
-  assert.deepEqual(kg.availableQualities, ['standard', 'high', 'lossless'])
-  assert.equal(kg.privilegeDetail.payType, 3)
 }
 // Mixed stream: `/lyric/new` interleaves rich JSON documents with classic lines.
 {

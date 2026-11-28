@@ -56,27 +56,9 @@ try {
   assert.deepEqual(qualities, ['high', 'standard'], 'high falls back to standard')
   assert.equal(res.body, '73,68,51,3', 'the response body is the lower-quality audio')
 
-  // A dead modern CDN object is repaired through KuGou's legacy play-info endpoint,
-  // the same last resort Folia keeps. It must not degrade the requested quality first.
-  qualities.length = 0
-  globalThis.fetch = async (url) => {
-    if (String(url).includes('getSongInfo.php')) {
-      return new Response(JSON.stringify({ url: 'https://cdn.test/legacy.mp3' }), { status: 200, headers: { 'content-type': 'application/json' } })
-    }
-    if (String(url).includes('/high.mp3')) return new Response('', { status: 404 })
-    if (String(url).includes('/legacy.mp3')) {
-      return new Response(Buffer.from([0x49, 0x44, 0x33, 0x03]), {
-        status: 206,
-        headers: { 'content-type': 'audio/mpeg', 'content-length': '4', 'content-range': 'bytes 0-3/4' },
-      })
-    }
-    return new Response('', { status: 500 })
-  }
-  const legacyRes = fakeRes()
-  await handler(fakeReq('/music/online/stream?provider=kugouLite&id=legacy-hash&quality=high'), legacyRes)
-  assert.equal(legacyRes.status, 206, 'the legacy URL is served when the modern CDN object is gone')
-  assert.deepEqual(qualities, ['high'], 'legacy fallback happens before lowering the quality')
-  assert.equal(legacyRes.body, '73,68,51,3', 'the legacy response body is the audio')
+  // 酷狗的 legacy play-info 退路现在在移植源里面（上游 playback.audio@1.getAudioSource 自己走
+  // /song/url → legacy → 降档的顺序），Host 路由只负责把上游给的地址代理出去并做降档，
+  // 所以这里不再有「用 getSongInfo.php 修一个 404」的一步。
 
 // CDNs commonly answer application/octet-stream even for MP3. The Host must
 // expose a real audio MIME or MediaSource refuses the stream.

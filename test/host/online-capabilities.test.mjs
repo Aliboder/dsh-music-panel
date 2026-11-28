@@ -13,7 +13,6 @@ import assert from 'node:assert/strict'
 import { ONLINE_SPECS, registry } from '../../src/host/providers/sources/index.js'
 import { setUpstreamOverride as stubNetease, resetUpstreamOverride as unstubNetease } from '../../src/host/services/netease-api.js'
 import { setUpstreamOverride as stubQq, resetUpstreamOverride as unstubQq } from '../../src/host/services/qq-api.js'
-import { setUpstreamOverride as stubKugou, resetUpstreamOverride as unstubKugou } from '../../src/host/services/kugou-api.js'
 
 const reached = (what) => {
   const error = new Error('reached upstream: ' + what)
@@ -22,7 +21,6 @@ const reached = (what) => {
 }
 stubNetease((route) => reached('netease ' + route))
 stubQq((route) => reached('qq ' + route))
-stubKugou((operation) => reached('kugou ' + operation))
 const realFetch = globalThis.fetch
 globalThis.fetch = async (url) => reached('fetch ' + String(url))
 
@@ -107,7 +105,7 @@ try {
     }
   }
 } finally {
-  unstubNetease(); unstubQq(); unstubKugou()
+  unstubNetease(); unstubQq()
   globalThis.fetch = realFetch
 }
 

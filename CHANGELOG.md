@@ -8,6 +8,7 @@
 - 上游依赖 KuGouMusicApi v1.6.0 改用仓库里已 vendor 的同一份（与上游 tarball 逐字节相同），不再从 GitHub 安装。
 - 门面（`providers/index.js`）40 个酷狗方法改为委派给移植源；客户端与已存的歌、歌单、历史 id 仍是 `kugouLite`。
 - 行为变化：设备身份与登录态由移植源自己管（加密存在插件数据目录）；`/online/quality`、`/online/check-playable` 不再因为「lite 没补设备」而恒报不可播；副歌区间如实给出；推荐歌单来自上游的推荐卡。播放上报（reports）上游未实现，仍不上报。
+- 旧的酷狗实现（自研标准版 / 概念版两个模块、本地 worker、会话与 cookie 管理、对应的 5 个测试）已删除；门面里只保留一行行委派，酷狗的一切平台细节都在 `src/folia-mods/sources/kugou/`。
 
 ### 歌词样式
 
