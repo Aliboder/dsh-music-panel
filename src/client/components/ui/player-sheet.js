@@ -202,12 +202,6 @@ function PlayerSheetInner(props) {
   var viewportPair = useState(0)
   var viewportH = viewportPair[0]
   var setViewportH = viewportPair[1]
-  // The player page's fullscreen button is absolute inside the page, not at the window's
-  // top edge, so a fixed margin cannot know where it ends. Measure its bottom when the
-  // card opens (and on resize) and keep that much room above the card.
-  var topPair = useState(MP_TOP_MARGIN)
-  var topClearance = topPair[0]
-  var setTopClearance = topPair[1]
   var cardBottom = props.anchor && props.anchor.bottom >= 0 ? props.anchor.bottom : MP_BOTTOM_GAP
 
   var contentRef = useRef(null)
@@ -248,21 +242,11 @@ function PlayerSheetInner(props) {
       if (props.open !== true) return undefined
       function update() {
         setViewportH(window.innerHeight || 800)
-        var button = document.querySelector('.mp-np-fs')
-        var rect = button !== null && typeof button.getBoundingClientRect === 'function'
-          ? button.getBoundingClientRect()
-          : null
-        var measured = rect !== null && rect.height > 0 ? Math.ceil(rect.bottom) + 12 : MP_TOP_MARGIN
-        setTopClearance(Math.max(MP_TOP_MARGIN, measured))
       }
       update()
       window.addEventListener('resize', update)
-      // The player page (and with it the fullscreen button) may mount after the card does:
-      // measure once more on the next frame, then let resize keep it current.
-      var frame = typeof requestAnimationFrame === 'function' ? requestAnimationFrame(update) : null
       return function () {
         window.removeEventListener('resize', update)
-        if (frame !== null && typeof cancelAnimationFrame === 'function') cancelAnimationFrame(frame)
       }
     },
     [props.open],
@@ -273,9 +257,9 @@ function PlayerSheetInner(props) {
       if (props.open !== true) return
       var el = contentRef.current
       if (el === null) return
-      setBodyH(clampCardBodyHeight(el.scrollHeight, viewportH, cardBottom, topClearance))
+      setBodyH(clampCardBodyHeight(el.scrollHeight, viewportH, cardBottom))
     },
-    [props.open, index, viewportH, cardBottom, topClearance],
+    [props.open, index, viewportH, cardBottom],
   )
 
   // The under-cover block changes height with the title (one line, two lines, no album);
@@ -488,7 +472,7 @@ function PlayerSheetInner(props) {
   // The cover is capped by the room left after padding, dock, gap and the title block,
   // otherwise a tall cover pushes the dock under the clipped edge on short windows.
   var viewportForLayout = viewportH > 0 ? viewportH : 800
-  var cardMaxH = Math.max(240, viewportForLayout - topClearance - cardBottom)
+  var cardMaxH = Math.max(240, viewportForLayout - MP_TOP_MARGIN - cardBottom)
   var coverRoom = cardMaxH - MP_PADDING * 2 - MP_DOCK_HEIGHT - MP_DOCK_GAP - MP_COVER_GAP - underHForLayout
   var coverBig = 'min(336px, 52vh, ' + String(Math.max(140, coverRoom)) + 'px)'
   var headerH = isCover
@@ -2094,7 +2078,11 @@ function PlayerSheetInner(props) {
     framer: framer,
     right: props.anchor && props.anchor.right >= 0 ? String(props.anchor.right) + 'px' : '22px',
     bottom: String(cardBottom) + 'px',
-    maxHeight: String(cardMaxH) + 'px',
+    // The card root is `position:fixed;inset:0` inside the player page, and the fullscreen
+    // button (`.mp-np-fs`, top 22 + 36 tall) lives in that same box: 100% is that box's height.
+    // Expressing the bound as a percentage keeps the two in one coordinate space, so the card
+    // cannot reach the button no matter where the page sits in the window (title bar, scale).
+    maxHeight: 'max(240px, calc(100% - ' + String(MP_TOP_MARGIN) + 'px - ' + String(cardBottom) + 'px))',
     onClose: onClose,
     header: header,
     body: body,
