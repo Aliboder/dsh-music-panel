@@ -2,6 +2,13 @@
 
 ## 未发布
 
+### 在线音乐 · 酷狗
+
+- 酷狗的实现从自研那套换成 **Folia 音源模组的原样移植**：`sources/kugou/**` 与 `packages/folium-source-kit/**` 逐字节镜像进 `src/folia-mods/`，宿主面（rpc / 网络 / 会话存储 / 加密封装 / 文案表）由 `src/folia-adapters/kugou/` 提供，用 `node scripts/build-kugou-folia.mjs` 打成 `src/host/vendor/kugou-folia/source.bundle.mjs`。上游的 provider、请求签名、VIP 凭据续期、取流五段降级、歌词与歌单逻辑一行没改。
+- 上游依赖 KuGouMusicApi v1.6.0 改用仓库里已 vendor 的同一份（与上游 tarball 逐字节相同），不再从 GitHub 安装。
+- 门面（`providers/index.js`）40 个酷狗方法改为委派给移植源；客户端与已存的歌、歌单、历史 id 仍是 `kugouLite`。
+- 行为变化：设备身份与登录态由移植源自己管（加密存在插件数据目录）；`/online/quality`、`/online/check-playable` 不再因为「lite 没补设备」而恒报不可播；副歌区间如实给出；推荐歌单来自上游的推荐卡。播放上报（reports）上游未实现，仍不上报。
+
 ### 歌词样式
 
 - 新增 Folia 的「隐喻」（metaphor）样式：three.js 墨球、半调网点与砂纸颗粒，按词硬切的镜头，反相镜头、画面反相、关键字着色、句间转场；参数在播放页「外观」里（节拍模型尚未接线，「湮灭对撞」参数暂不驱动画面）。
