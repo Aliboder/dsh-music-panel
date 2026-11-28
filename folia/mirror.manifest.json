@@ -4,6 +4,18 @@
   "note": "与上游同相对路径、但内容经过插件适配的文件。新增差异必须先登记（--update 仅用于有意的适配）；其余文件必须与上游逐字节相同。",
   "adapted": [
     {
+      "path": "sources/bodian/client/bodianNormalize.ts",
+      "upstreamSha256": "ab747ff49b69d0909ca704f0513e2fbba745e993d687ca4034926334ed9d0471"
+    },
+    {
+      "path": "sources/qishui/client/qishuiNormalize.ts",
+      "upstreamSha256": "1313a09f613ee69c79bb6235bd45899ceeee3a4d6d48416be7791216225bf26e"
+    },
+    {
+      "path": "sources/qq/core/qqNormalize.ts",
+      "upstreamSha256": "199d64d7f75d6adc0401faeaf714956323da44b90ed78e4cb9c9a4da6746a953"
+    },
+    {
       "path": "src/components/shared/QuickControlChip.tsx",
       "upstreamSha256": "953e2dcc22671ba9f6e30b3f94236c9320cc3deab6be7b3e026fbb5e652e5702"
     },

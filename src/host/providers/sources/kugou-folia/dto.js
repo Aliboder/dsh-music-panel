@@ -27,6 +27,8 @@ export function hashOf(song) {
   return String(raw).toLowerCase()
 }
 
+import { vipOfSong } from '../song-vip.js'
+
 const artistNames = (artists) => (Array.isArray(artists) ? artists.map((artist) => String(artist?.name ?? '')).filter(Boolean).join(' / ') : '')
 
 /** 一首上游的歌 → 门面的 shape() 形状。 */
@@ -50,7 +52,7 @@ export function songOf(song) {
     durationSec: Math.round(durationMs / 1000),
     durationMs,
     coverUrl,
-    qualityHint: item.availability?.label ? text(item.availability.label) : '',
+    qualityHint: vipOfSong(SOURCE_ID, item) ? 'VIP' : (item.availability?.label ? text(item.availability.label) : ''),
     fee: 0,
     artistsDetail: artists.map((artist) => ({
       id: String(artist?.id ?? ''),

@@ -1704,6 +1704,9 @@ var normalizeQqSong = (raw) => {
   const item = record(raw);
   const made = isMadeSong(item);
   const data = made ? record(item.data) : {};
+  const pay = record(item.pay);
+  const payplay = Number(pick(pay, "pay_play", "payplay") ?? pick(item, "payplay"));
+  const vip = made ? data.vip === true : payplay === 1;
   const album = record(item.album);
   const file = record(item.file);
   const songMid = made ? text(pick(data, "songMid") ?? pick(record(item.lyricIds), "qq") ?? pick(item, "id")) : text(pick(item, "mid", "songmid", "qqMid"));
@@ -1747,7 +1750,8 @@ var normalizeQqSong = (raw) => {
       ["albumMid", albumMid],
       ["mediaMid", mediaMid],
       ["originalName", originalName && originalName !== name ? originalName : void 0],
-      ["takenDown", takenDown ? true : void 0]
+      ["takenDown", takenDown ? true : void 0],
+      ["vip", vip ? true : void 0]
     ])
   };
 };

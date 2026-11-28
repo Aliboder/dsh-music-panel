@@ -307,6 +307,9 @@ function normalizeQishuiSong(raw) {
   if (!/^\d+$/.test(id)) throw qishuiError("invalid-response", "Qishui track ID is missing");
   const related = record(song.related_info);
   const album = record(related.album_link);
+  const commerce = record(song.commerce_info);
+  const commerceIcon = text(record(commerce.icon_info).type).toLowerCase();
+  const vip = commerceIcon === "vip" || commerceIcon === "svip" || /membership_type/.test(text(commerce.playable_condition));
   const composers = record(base.song_maker_team).composers;
   const listed = Array.isArray(related.artist_links) ? related.artist_links : composers;
   const artists = Array.isArray(listed) ? listed.map(record) : [];
@@ -316,7 +319,8 @@ function normalizeQishuiSong(raw) {
     durationMs: Math.max(0, Number(base.duration_ms) || 0),
     artists: artists.filter((artist) => artist.name).map(artistOf),
     // The car SDK has no album endpoint; retain metadata without an unusable album link.
-    album: { id: text(album.id), name: text(album.name), coverUrl: qishuiImage(record(song.display_info).cover_url), ref: false }
+    album: { id: text(album.id), name: text(album.name), coverUrl: qishuiImage(record(song.display_info).cover_url), ref: false },
+    ...vip ? { data: { vip: true } } : {}
   };
 }
 function normalizeQishuiCollection(raw, type = "playlist") {

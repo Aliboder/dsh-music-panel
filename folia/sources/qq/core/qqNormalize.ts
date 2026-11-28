@@ -116,6 +116,11 @@ export const normalizeQqSong = (raw: unknown): FoliumSourceSong => {
     const item = record(raw);
     const made = isMadeSong(item);
     const data = made ? record(item.data) : {};
+    // 插件自己的 VIP 角标（上游不带这个判断）：QQ 用 pay.pay_play（与旧实现同一条规则），
+    // 缓存/回填过的歌直接沿用 data.vip。
+    const pay = record(item.pay);
+    const payplay = Number(pick(pay, 'pay_play', 'payplay') ?? pick(item, 'payplay'));
+    const vip = made ? data.vip === true : payplay === 1;
     const album = record(item.album);
     const file = record(item.file);
 
@@ -180,6 +185,7 @@ export const normalizeQqSong = (raw: unknown): FoliumSourceSong => {
             ['mediaMid', mediaMid],
             ['originalName', originalName && originalName !== name ? originalName : undefined],
             ['takenDown', takenDown ? true : undefined],
+            ['vip', vip ? true : undefined],
         ]),
     };
 };

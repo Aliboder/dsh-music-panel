@@ -8,6 +8,8 @@
  * @module dsh-music-panel/sources/folia-bridge/dto
  */
 
+import { vipOfSong } from '../song-vip.js'
+
 const textOf = (texts, value) => {
   if (value === null || value === undefined) return ''
   try {
@@ -29,6 +31,8 @@ export function songOf(song, sourceId, texts) {
   const durationMs = Number(item.durationMs) || 0
   const coverUrl = String(item.coverUrl || album.coverUrl || '')
   const data = item.data && typeof item.data === 'object' ? item.data : {}
+  // 本插件自己的 VIP 角标：可用行上的 availability 文案之外，再按平台字段补一个 'VIP'。
+  const qualityHint = vipOfSong(sourceId, item) ? 'VIP' : (item.availability?.label ? textOf(texts, item.availability.label) : '')
   return {
     provider: sourceId,
     id: String(item.publicId ?? item.id ?? ''),
@@ -39,7 +43,7 @@ export function songOf(song, sourceId, texts) {
     durationSec: Math.round(durationMs / 1000),
     durationMs,
     coverUrl,
-    qualityHint: item.availability?.label ? textOf(texts, item.availability.label) : '',
+    qualityHint,
     fee: 0,
     artistsDetail: artists.map((artist) => ({
       id: String(artist?.id ?? ''),

@@ -19,6 +19,11 @@
 - 网易云的后端跑在工作线程里，线程是 bundle 旁边的 `worker.cjs`（由上游 `neteaseApiWorker.cjs` 复制改名）；QQ 的内嵌后端在第一次问状态时拉起、监听本机端口。插件停用或退出时会关掉它们。
 - **登录态需要重新扫码一次**：旧实现在 `sessions.json`（明文）里，移植源各自用插件数据目录下的加密存储（`<平台>-legacy-store.json` + `<平台>-seal.key`），两者不是一套格式。已存的收藏、歌单、播放历史、队列不受影响（歌曲 id 形态没变）。
 
+### 在线音乐 · 恢复 VIP 曲目角标
+
+- **特性**：VIP/付费曲目在列表与播放器里显示 `VIP` 角标（`qualityHint: 'VIP'`），并且“跳过 VIP 曲目”的判断继续生效。这是插件自己的特性，Folia 没有。
+- **移植时丢失的原因**：移植前规则写在旧的 provider 映射里（netease `fee===1`、qq `payplay===1`、bodian `payInfo.feeType.vip==='1'`、qishui `commerce_info.icon_info.type` 为 vip/svip）；移植后原始字段被各音源归一化丢弃，DTO 只映射了 `availability` 文案。
+- **恢复方式**：新增 `src/host/providers/sources/song-vip.js`（音源 → 是否 VIP），两个 DTO 在 `availability` 文案之前优先写 `qualityHint: 'VIP'`；netease 直接读已有的 `data.fee`/`data.privilege`，qq / bodian / qishui 在各自归一化里保留一个 `data.vip` 布尔（与旧规则一致，登记在 `folia/mirror.manifest.json`）。新增 `test/host/song-vip.test.mjs` 覆盖四家规则与 DTO 输出。
 ### 目录结构 · Folia 镜像改成与上游仓库根 1:1
 
 - **单根**：原来分散在 `src/folia/**`（上游 `src/**`）与 `src/folia-mods/**`（上游 `sources/**`、`packages/**`）的镜像，统一合并成 `folia/`，三条树的相对路径与上游完全一致：`folia/src/**`、`folia/sources/<id>/**`、`folia/packages/<包>/**`。以后移植一个上游文件就是「按上游路径拷到同路径」，升级上游按路径 diff 就行。

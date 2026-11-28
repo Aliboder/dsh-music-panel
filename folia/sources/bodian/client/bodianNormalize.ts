@@ -40,6 +40,8 @@ export const normalizeBodianSong = (raw: unknown): FoliumSourceSong => {
     // 不读 isListenFee、feeType 等会员或付费字段，单靠这些标签推不出播放结果。
     if (item.offline === true || item.online === 0) data.availability = 'off-shelf';
     else if (item.payInfo?.cannotOnlinePlay === 1) data.availability = 'online-play-restricted';
+    // 插件自己的 VIP 角标（上游不读 feeType）：旧实现就是 payInfo.feeType.vip === '1'。
+    if (String((item.payInfo as { feeType?: { vip?: unknown } } | undefined)?.feeType?.vip ?? '') === '1') data.vip = true;
     if (item.payInfo?.refrain_start !== undefined) data.chorusStartMs = Number(item.payInfo.refrain_start);
     if (item.payInfo?.refrain_end !== undefined) data.chorusEndMs = Number(item.payInfo.refrain_end);
     // 显示用的 `songName` 带版本（「夜に駆ける (Live)」），`name` 是不带它的原名：两者不同时存下，

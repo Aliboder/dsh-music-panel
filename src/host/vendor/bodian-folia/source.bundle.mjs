@@ -325,6 +325,7 @@ var normalizeBodianSong = (raw) => {
   if (typeof item.freeSign === "string" || typeof item.fsig === "string") data.freeSign = item.freeSign || item.fsig;
   if (item.offline === true || item.online === 0) data.availability = "off-shelf";
   else if (item.payInfo?.cannotOnlinePlay === 1) data.availability = "online-play-restricted";
+  if (String(item.payInfo?.feeType?.vip ?? "") === "1") data.vip = true;
   if (item.payInfo?.refrain_start !== void 0) data.chorusStartMs = Number(item.payInfo.refrain_start);
   if (item.payInfo?.refrain_end !== void 0) data.chorusEndMs = Number(item.payInfo.refrain_end);
   const name = text(item.songName || item.name);

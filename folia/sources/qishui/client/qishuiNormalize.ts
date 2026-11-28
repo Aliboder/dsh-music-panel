@@ -29,6 +29,11 @@ export function normalizeQishuiSong(raw: unknown): FoliumSourceSong {
     if (!/^\d+$/.test(id)) throw qishuiError('invalid-response', 'Qishui track ID is missing');
     const related = record(song.related_info);
     const album = record(related.album_link);
+    // 插件自己的 VIP 角标：旧实现读 commerce_info.icon_info.type（vip/svip）
+    // 或 playable_condition 里的 membership_type。
+    const commerce = record(song.commerce_info);
+    const commerceIcon = text(record(commerce.icon_info).type).toLowerCase();
+    const vip = commerceIcon === 'vip' || commerceIcon === 'svip' || /membership_type/.test(text(commerce.playable_condition));
     const composers: unknown = record(base.song_maker_team).composers;
     const listed: unknown = Array.isArray(related.artist_links) ? related.artist_links : composers;
     const artists = Array.isArray(listed) ? listed.map(record) : [];
@@ -37,6 +42,7 @@ export function normalizeQishuiSong(raw: unknown): FoliumSourceSong {
         artists: artists.filter(artist => artist.name).map(artistOf),
         // The car SDK has no album endpoint; retain metadata without an unusable album link.
         album: { id: text(album.id), name: text(album.name), coverUrl: qishuiImage(record(song.display_info).cover_url), ref: false },
+        ...(vip ? { data: { vip: true } } : {}),
     };
 }
 
