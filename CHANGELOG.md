@@ -19,6 +19,10 @@
 - 网易云的后端跑在工作线程里，线程是 bundle 旁边的 `worker.cjs`（由上游 `neteaseApiWorker.cjs` 复制改名）；QQ 的内嵌后端在第一次问状态时拉起、监听本机端口。插件停用或退出时会关掉它们。
 - **登录态需要重新扫码一次**：旧实现在 `sessions.json`（明文）里，移植源各自用插件数据目录下的加密存储（`<平台>-legacy-store.json` + `<平台>-seal.key`），两者不是一套格式。已存的收藏、歌单、播放历史、队列不受影响（歌曲 id 形态没变）。
 
+### 外观 · 时计（pendolo）新默认调参
+
+- 把调好的手感定为时计的出厂默认：`arcRadius 0.48`、`arcAngleDeg 100`、`wheelCenterX 0`、`wheelCenterY 0.5`、`tickSnappiness 3`、`activeScale 1.41`、`tiltDeg 2`、`parallaxDepth 1`、`mirrorLayout off`。
+- 影响两处：新安装/未保存过调参时的初始值，以及「样式参数 → 重置」恢复到的默认值；用户已保存的自定义调参不会被覆盖。
 ### 外观 · 样式参数可一键重置
 
 - 播放器面板「外观 → 样式参数」标题右侧新增「重置」按钮（复用面板已有的 ghost 小按钮，不引入新控件）：按当前歌词样式把它对应的调参对象（`classicTuning` / `tiltTuning` / … / `metaphorTuning`）整体写回 `PREF_DEFAULTS` 里的出厂默认，并提示「样式参数已恢复默认」。

@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.47.2"
-    var CLIENT_BUILD = "e3820e0f0f16"
+    var CLIENT_BUILD = "40a014de74d3"
 
     // ── src/client/app/runtime.js
     /**
@@ -170284,14 +170284,16 @@ window.__ModuleLoader__.load({
         gradientIntensity: 1,
         keywordColoringEnabled: true,
       },
+      // 时计（Folia 的 pendolo）的出厂调参。2026-11 按用户调好的手感定为默认：
+      // 弧更平、指针回弹更快、当前字更大、整盘微倾。
       pendoloTuning: {
-        arcRadius: 0.42,
+        arcRadius: 0.48,
         arcAngleDeg: 100,
         wheelCenterX: 0,
         wheelCenterY: 0.5,
-        tickSnappiness: 2,
-        activeScale: 1.25,
-        tiltDeg: 0,
+        tickSnappiness: 3,
+        activeScale: 1.41,
+        tiltDeg: 2,
         parallaxDepth: 1,
         mirrorLayout: false,
       },
