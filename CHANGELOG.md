@@ -10,6 +10,15 @@
 - 行为变化：设备身份与登录态由移植源自己管（加密存在插件数据目录）；`/online/quality`、`/online/check-playable` 不再因为「lite 没补设备」而恒报不可播；副歌区间如实给出；推荐歌单来自上游的推荐卡。播放上报（reports）上游未实现，仍不上报。
 - 旧的酷狗实现（自研标准版 / 概念版两个模块、本地 worker、会话与 cookie 管理、对应的 5 个测试）已删除；门面里只保留一行行委派，酷狗的一切平台细节都在 `src/folia-mods/sources/kugou/`。
 
+### 在线音乐 · 波点 / 汽水 / QQ / 网易云
+
+- 四个平台与酷狗同一套做法：上游 `sources/<平台>/**` **逐字节镜像**进 `src/folia-mods/sources/`（波点 24、汽水 26、QQ 45、网易云 35 个文件，SHA256 与上游全等），插件侧只写宿主面（`src/folia-adapters/source-host/`：seal、legacy store、pageStore、rpc、errors、文案表、net、media，加上 QQ/网易云要的 `rpc.send`、`paths.legacy`、`diagnostics`、`onBeforeUnload/onBeforeQuit`、`reportError` 与 `@folia/source-deps` 替身），再用 `scripts/build-folia-source.mjs` 打成各自 bundle（`src/host/vendor/<平台>-folia/`，网易云连 11 个工作线程用的 `.cjs` 一起核对）。
+- 四个平台的「定义 → 本插件源对象」由一份共用映射 `src/host/providers/sources/folia-bridge/` 完成：缺的方法不出现，能力表随之关闭。QQ 与网易云的 `explore@1`、网易云的 `raw@1` 界面上没有入口，因此不声明；网易云的 `reports@1` 接到 `/online/report-playback`。
+- 上游包版本对齐：`@yakult-green-tea/qq-music-api` 3.3.6 → **3.3.9**；网易云 `@neteasecloudmusicapienhanced/api` 4.41.1、波点 `bodian-music-api` 0.1.2、汽水 `qishui-music-api` 0.2.2 本就与上游相同。
+- 补回了上游没有、而我们本来有的一层：**汽水的 ticket guard 续期**（约 6 小时过期）。移植源在「失败 → 续期一次 → 重放一次」上做 `withAuthRetry`，镜像不动。
+- 网易云的后端跑在工作线程里，线程是 bundle 旁边的 `worker.cjs`（由上游 `neteaseApiWorker.cjs` 复制改名）；QQ 的内嵌后端在第一次问状态时拉起、监听本机端口。插件停用或退出时会关掉它们。
+- **登录态需要重新扫码一次**：旧实现在 `sessions.json`（明文）里，移植源各自用插件数据目录下的加密存储（`<平台>-legacy-store.json` + `<平台>-seal.key`），两者不是一套格式。已存的收藏、歌单、播放历史、队列不受影响（歌曲 id 形态没变）。
+
 ### 歌词样式
 
 - 新增 Folia 的「隐喻」（metaphor）样式：three.js 墨球、半调网点与砂纸颗粒，按词硬切的镜头，反相镜头、画面反相、关键字着色、句间转场；参数在播放页「外观」里（节拍模型尚未接线，「湮灭对撞」参数暂不驱动画面）。
