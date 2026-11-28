@@ -949,6 +949,9 @@ function P3Shell() {
   // control that opened it (rendered by NowPlaying), not the workspace queue.
   var [npQueueOpen, setNpQueueOpen] = useState(false)
   var [guideOpen, setGuideOpen] = useState(startupGuideOpen)
+  var [onlineNoticeOpen, setOnlineNoticeOpen] = useState(function () {
+    return onlineRelaunchNoticeOpen(prefs)
+  })
   var [wide, setWide] = useState(typeof window !== 'undefined' ? window.innerWidth : 1400)
 
   useEffect(function () {
@@ -1107,5 +1110,13 @@ function P3Shell() {
     h(P3PlaylistDialogHost),
     h(Toast),
     h(StartupGuide, { open: guideOpen, onClose: function (disable) { dismissStartupGuide(disable === true); setGuideOpen(false) } }),
+    // Rendered last so the update notice stacks above the first-run guide if both are open.
+    h(OnlineRelaunchNotice, {
+      open: onlineNoticeOpen,
+      onDone: function (dontShow) {
+        if (dontShow === true) setPrefs({ onlineRelaunchNoticeAck: ONLINE_RELAUNCH_NOTICE_ID })
+        setOnlineNoticeOpen(false)
+      },
+    }),
   )
 }

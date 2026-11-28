@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.47.2"
-    var CLIENT_BUILD = "431bcb841317"
+    var CLIENT_BUILD = "74d6ee686c83"
 
     // ── src/client/app/runtime.js
     /**
@@ -8948,6 +8948,10 @@ window.__ModuleLoader__.load({
         'sheet.loggedOut': '未登录',
         'sheet.showTranslation': '显示译文',
       'sheet.subtitleFontScale': '译文字号',
+      'notice.onlineRefreshTitle': '在线平台已底层换新',
+      'notice.onlineRefreshBody': '本次更新替换了全部在线平台的底层实现。请彻底退出并重新启动 DSH，然后重新登录各在线平台；否则可能出现播放错误。',
+      'notice.onlineRefreshDontShow': '不再显示',
+      'notice.gotIt': '我知道了',
         'sheet.addToPlaylist': '加入歌单',
         'sheet.lyrics': '歌词',
         'sheet.matchOnline': '在线匹配',
@@ -10096,6 +10100,10 @@ window.__ModuleLoader__.load({
         'sheet.loggedOut': 'Signed out',
         'sheet.showTranslation': 'Show translation',
       'sheet.subtitleFontScale': 'Subtitle size',
+      'notice.onlineRefreshTitle': 'Online platforms rebuilt',
+      'notice.onlineRefreshBody': 'This update replaced the underlying implementation of every online platform. Fully quit and restart DSH, then sign in to the platforms again; otherwise playback may fail.',
+      'notice.onlineRefreshDontShow': "Don't show again",
+      'notice.gotIt': 'Got it',
         'sheet.addToPlaylist': 'Add to playlist',
         'sheet.lyrics': 'Lyrics',
         'sheet.matchOnline': 'Match online',
@@ -170462,6 +170470,8 @@ window.__ModuleLoader__.load({
        * 外观页的样式参数控制，这一项只放大/缩小译文。
        */
       subtitleFontScale: 1,
+      /** 在线平台底层换新提示的确认版本：勾选「不再显示」后写入当前 notice id。 */
+      onlineRelaunchNoticeAck: '',
       bgMode: 'latent',
       bgCoverOnly: false,
       /** Latent background layers: pixel dithering, fluid mesh, or both. */
@@ -194031,6 +194041,71 @@ window.__ModuleLoader__.load({
       )
     }
 
+    // ── src/client/components/ui/online-refresh-notice.js
+    /**
+     * 在线平台底层换新的更新提示。
+     *
+     * 只显示给还没确认过本次换新的用户：勾选「不再显示」并点「我知道了」才记下；
+     * 没勾就关掉的话，下次启动还会出现（需求就是必须手动勾选）。
+     * 文案描述的是 DSH 宿主侧的底层替换：不彻底重启 + 重新登录会出现播放错误。
+     */
+
+    // 换新标识：以后再有同类的底层替换，改这个 id 就会重新提示一次。
+    var ONLINE_RELAUNCH_NOTICE_ID = '2026-11-online-platforms'
+    var onlineRelaunchNoticeShown = false
+
+    function onlineRelaunchNoticeOpen(prefs) {
+      if (onlineRelaunchNoticeShown) return false
+      var ack = prefs && typeof prefs.onlineRelaunchNoticeAck === 'string' ? prefs.onlineRelaunchNoticeAck : ''
+      if (ack === ONLINE_RELAUNCH_NOTICE_ID) return false
+      onlineRelaunchNoticeShown = true
+      return true
+    }
+
+    function OnlineRelaunchNotice(props) {
+      var pair = useState(false)
+      var dontShow = pair[0]
+      var setDontShow = pair[1]
+      var dontShowRef = useRef(false)
+
+      function changeDontShow(next) {
+        dontShowRef.current = next === true
+        setDontShow(next === true)
+      }
+
+      useEffect(
+        function () {
+          if (props.open === true) changeDontShow(false)
+        },
+        [props.open],
+      )
+
+      if (props.open !== true) return null
+
+      function done() {
+        props.onDone(dontShowRef.current === true)
+      }
+
+      return h(
+        KitModal,
+        {
+          title: t('notice.onlineRefreshTitle'),
+          onClose: done,
+          footer: h(Button, { variant: 'primary', onClick: done }, t('notice.gotIt')),
+        },
+        h(
+          'div',
+          { className: 'mp-online-refresh' },
+          h('p', { style: { margin: '0 0 14px', lineHeight: '21px' } }, t('notice.onlineRefreshBody')),
+          h(KitCheckbox, {
+            checked: dontShow,
+            label: t('notice.onlineRefreshDontShow'),
+            onChange: changeDontShow,
+          }),
+        ),
+      )
+    }
+
     // ── src/client/panel-v3/p3-overlay.js
     /**
      * panel-v3 overlay: shared boundaries, control actions, overlay host and startup guide.
@@ -198561,6 +198636,9 @@ window.__ModuleLoader__.load({
       // control that opened it (rendered by NowPlaying), not the workspace queue.
       var [npQueueOpen, setNpQueueOpen] = useState(false)
       var [guideOpen, setGuideOpen] = useState(startupGuideOpen)
+      var [onlineNoticeOpen, setOnlineNoticeOpen] = useState(function () {
+        return onlineRelaunchNoticeOpen(prefs)
+      })
       var [wide, setWide] = useState(typeof window !== 'undefined' ? window.innerWidth : 1400)
 
       useEffect(function () {
@@ -198719,6 +198797,14 @@ window.__ModuleLoader__.load({
         h(P3PlaylistDialogHost),
         h(Toast),
         h(StartupGuide, { open: guideOpen, onClose: function (disable) { dismissStartupGuide(disable === true); setGuideOpen(false) } }),
+        // Rendered last so the update notice stacks above the first-run guide if both are open.
+        h(OnlineRelaunchNotice, {
+          open: onlineNoticeOpen,
+          onDone: function (dontShow) {
+            if (dontShow === true) setPrefs({ onlineRelaunchNoticeAck: ONLINE_RELAUNCH_NOTICE_ID })
+            setOnlineNoticeOpen(false)
+          },
+        }),
       )
     }
 

@@ -316,6 +316,8 @@ var PREF_DEFAULTS = {
    * 外观页的样式参数控制，这一项只放大/缩小译文。
    */
   subtitleFontScale: 1,
+  /** 在线平台底层换新提示的确认版本：勾选「不再显示」后写入当前 notice id。 */
+  onlineRelaunchNoticeAck: '',
   bgMode: 'latent',
   bgCoverOnly: false,
   /** Latent background layers: pixel dithering, fluid mesh, or both. */

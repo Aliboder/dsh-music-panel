@@ -95,6 +95,7 @@
     "src/client/components/ui/settings.js",
     "src/client/components/ui/dialogs.js",
     "src/client/components/ui/details.js",
+    "src/client/components/ui/online-refresh-notice.js",
     "src/client/panel-v3/p3-overlay.js",
     "src/client/panel-v3/p3-nav.js",
     "src/client/panel-v3/p3-core.js",
