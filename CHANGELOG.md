@@ -2,6 +2,8 @@
 
 ## 未发布
 
+## 0.48.0 — 2026-11-29
+
 ### 在线音乐 · 酷狗
 
 - 酷狗的实现从自研那套换成 **Folia 音源模组的原样移植**：`sources/kugou/**` 与 `packages/folium-source-kit/**` 逐字节镜像进 `folia/`，宿主面（rpc / 网络 / 会话存储 / 加密封装 / 文案表）由 `src/folia-adapters/kugou/` 提供，用 `node scripts/build-kugou-folia.mjs` 打成 `src/host/vendor/kugou-folia/source.bundle.mjs`。上游的 provider、请求签名、VIP 凭据续期、取流五段降级、歌词与歌单逻辑一行没改。
@@ -9,6 +11,7 @@
 - 门面（`providers/index.js`）40 个酷狗方法改为委派给移植源；客户端与已存的歌、歌单、历史 id 仍是 `kugouLite`。
 - 行为变化：设备身份与登录态由移植源自己管（加密存在插件数据目录）；`/online/quality`、`/online/check-playable` 不再因为「lite 没补设备」而恒报不可播；副歌区间如实给出；推荐歌单来自上游的推荐卡。播放上报（reports）上游未实现，仍不上报。
 - 旧的酷狗实现（自研标准版 / 概念版两个模块、本地 worker、会话与 cookie 管理、对应的 5 个测试）已删除；门面里只保留一行行委派，酷狗的一切平台细节都在 `folia/sources/kugou/`。
+
 
 ### 在线音乐 · 波点 / 汽水 / QQ / 网易云
 
@@ -19,25 +22,30 @@
 - 网易云的后端跑在工作线程里，线程是 bundle 旁边的 `worker.cjs`（由上游 `neteaseApiWorker.cjs` 复制改名）；QQ 的内嵌后端在第一次问状态时拉起、监听本机端口。插件停用或退出时会关掉它们。
 - **登录态需要重新扫码一次**：旧实现在 `sessions.json`（明文）里，移植源各自用插件数据目录下的加密存储（`<平台>-legacy-store.json` + `<平台>-seal.key`），两者不是一套格式。已存的收藏、歌单、播放历史、队列不受影响（歌曲 id 形态没变）。
 
+
 ### 顶栏搜索 · 只保留一个清除 ×
 
 - **根因**：搜索框是 `<input type="search">`，Chromium 会给它画一个原生的取消按钮（×）；插件又在同一位置放了自己的 `.mpv3-search-clear` 按钮，于是出现两个 ×。
 - **修法**：用 `::-webkit-search-cancel-button` / `::-webkit-search-decoration { display: none; -webkit-appearance: none }` 关掉原生装饰，只保留插件自己的清除按钮（它与搜索状态、清空后退出搜索页的逻辑绑定）。
+
 ### 顶栏 · 选歌不再盖住视图 Tab，切页自动收起选择
 
 - **根因**：歌曲行单击是「选中」（双击才播放），而选择状态是全局的 `selectionStore`；换 Tab / 打开歌单、专辑、歌手 / 搜索 / 换源 / 返回主页都不会清它。`P3ViewBar` 又用 `if (selecting) return …` 把整行让给选择栏，于是新页面的顶栏只剩上一页那首歌的批量操作（“编辑栏”），视图 Tab 被盖住。
 - **状态归属**：选择只属于一个列表。P3Shell 现在按「视图身份」（source / page / param / filter / 搜索开合与查询 / 打开的 collection）监听，一旦换视图就 `clearSelection()` + `cancelRangePick()`；选择栏也只在「当前页确实包含被选歌曲」时出现（`selected.length > 0`），不会再出现「已选 0 首」的编辑栏。
 - **顶栏构成**：选择栏不再独占整行——视图 Tab 与选择操作同处一行：Tab 在左、选择操作靠右（`.mpv3-selection-bar` 改为 `flex: 1 1 auto; justify-content: flex-end; width: auto`），长时的操作可在右侧横向滚动，Tab 始终可点。
+
 ### 更新提示 · 在线平台底层换新
 
 - 打开音乐面板时弹一次更新说明：本次更新替换了全部在线平台的底层实现，请**彻底退出并重启 DSH**，再重新登录各在线平台，否则可能出现播放错误。
 - 弹窗自带「不再显示」勾选框（`KitCheckbox`），**必须手动勾选**并点「我知道了」才会记下（`prefs.onlineRelaunchNoticeAck` 写入当前提示 id）；没勾就关掉，下次启动仍会出现。宿主弹窗走 `KitModal`，深色/浅色主题与键盘（Esc）都按官方控件走。
 - 提示 id 带版本（`2026-11-online-platforms`）：以后若再有同类底层替换，改 id 即可重新提示。
+
 ### 歌词页 · 歌词字号改为译文字号（移植 Folia 的 subtitleFontScale）
 
 - 播放器面板「歌词 → 歌词显示」里的「歌词字号」换成了「译文字号」：歌词字号由外观页的样式参数负责，这一项不再重复提供。
 - 新增偏好 `subtitleFontScale`（Folia `useTypographySettingsStore` 的同名设置）：默认 1、范围 0.85–1.4、步进 5%，与上游滑杆和 `handleSetSubtitleFontScale` 的夹取一致；面板用同一个百分比步进器（− 100% +）。
 - 两套 Folia 舞台宿主（`folia-styles.js`、`folia-pendolo.js`）把 `subtitleFontScale` 传给样式（之前写死 0.9），译文与样式里的下一句字幕按这个倍率缩放；`lyricsFontScale` 仍单独传给样式控制主歌词。
+
 ### 外观 · 多套歌词样式的默认调参按验收方案更新
 
 - **商籁（sonnet）**：镜头强度 1→1.2、MG 密度 1→0.6、后期处理开、RGB 错位 0→0.05、半调 0→0.05、暗角 0.85→1.05；外框仍为全框。
@@ -48,25 +56,30 @@
 - **莫奈（monet）**：字号 1.2→1.5。
 - **镜台（diorama）**：镜头速度 1.3、动态幅度 0.9、音频响应 1.5、灵魂出窍开、渐变跟唱开。
 - 归一化里原本写死 `false` 的几项（商籁后期处理、回环翻译行、镜台灵魂出窍/渐变跟唱）改成读取各样式默认值，未保存过的偏好会采用新默认；已保存的自定义值不被覆盖，点「样式参数 → 重置」即可回到这套默认。
+
 ### 外观 · 时计（pendolo）新默认调参
 
 - 把调好的手感定为时计的出厂默认：`arcRadius 0.48`、`arcAngleDeg 100`、`wheelCenterX 0`、`wheelCenterY 0.5`、`tickSnappiness 3`、`activeScale 1.41`、`tiltDeg 2`、`parallaxDepth 1`、`mirrorLayout off`。
 - 影响两处：新安装/未保存过调参时的初始值，以及「样式参数 → 重置」恢复到的默认值；用户已保存的自定义调参不会被覆盖。
+
 ### 外观 · 样式参数可一键重置
 
 - 播放器面板「外观 → 样式参数」标题右侧新增「重置」按钮（复用面板已有的 ghost 小按钮，不引入新控件）：按当前歌词样式把它对应的调参对象（`classicTuning` / `tiltTuning` / … / `metaphorTuning`）整体写回 `PREF_DEFAULTS` 里的出厂默认，并提示「样式参数已恢复默认」。
 - 默认值由 `prefs.js` 的 `prefDefaultOf(key)` 深拷贝给出，重置不会改到 `PREF_DEFAULTS` 本身；`mpSection` 增加可选的右侧动作位置，其它分区不受影响。
 - 只有当前样式会被重置（这个分区展示的就是当前样式的参数）；切换样式后各自仍有自己的默认值。
+
 ### 在线播放：取流带上整首歌的侧车（修 QQ「son has no songmid」）
 
 - **根因**：Folia 宿主交出去的播放请求是整首 `FoliumSourceSong`（`omni.getAudioSource(song, quality)`）；本插件的 HTTP 边界只有 `provider + id`。QQ 的播放键 songmid 不在 id 里（id 是数字 songid，songmid 在 `lyricIds.qq` / `data.songMid`，`mediaMid` 在 `data.mediaMid`），于是上游 `qqProvider` 直接报「QQ song has no songmid」。同一处还会丢：波点的 `data.freeSign`（免费曲取流要它）、酷狗的 `data.albumId` / `albumAudioId` / `variant: cloud`。
 - **修法（对齐 Folia 的「宿主握着整首歌」）**：新增 `src/host/providers/sources/song-registry.js`，在 DTO 交出一首歌时按 provider+id 记下最小侧车（`data` / `lyricIds` / `variant`），取流 / 歌词 / 点赞 / 歌单写入时由 bridge 的 `fullSongOf` 与酷狗门面按 id 找回；侧车落盘到数据目录 `online-songs.json`，重启后恢复队列仍能播，LRU 3000 条、单条 4KB 上限。清空插件数据时随 `cache` 分类一起删。
 - **各平台核对**：网易云、汽水只读 `song.id`，本来就够；波点免费曲要 `freeSign`、酷狗要专辑/variant、QQ 要 songmid+mediaMid——现在都从侧车补齐。恢复队列如果是升级前保存的（sidecar 文件还没有），第一次播放会缺字段，重新打开一次对应平台的列表/搜索即可补记。
+
 ### 试听片段：时长与歌词时钟对齐 Folia
 
 - **时长**：试听片段播放时，进度条与时间显示改用媒体元素自己的时长（Folia 的舞台时长就是 `audioElement.duration`），不再用整首歌的目录时长。`effectivePlayerDuration` 新增 `preview` 参数：试听时媒体时长优先；普通播放仍取「媒体 / 目录」的较大值，避免 MediaSource 只报已追加前缀时把时长缩短。
 - **歌词时钟**：移植 Folia 的 `currentTime + clipStartMs`（visualizer 桥与 lyric API 都是这么加的）。Host 的 `/online/stream-info` 现在随 `preview` 一起返回 `clipStartMs`（音源定义了片段起点时才有；bridge 与酷狗门面都透传），客户端把它存进播放会话，播放页、舞台、状态栏歌词、作曲栏歌词四条时钟统一加上；歌词行点击 seek 时再减回去（`- clipStart + offset`）。
 - **续播位置**：试听片段有自己的短时间轴，从整曲播放存下的位置（或目录进度）会落到片段末尾。现在试听时不恢复保存位置（blob 与 MSE 两条路径、预取续播都跳过），从片段开头播。
+
 ### 播放器面板 · 顶部让出全屏按钮（按坐标空间修正）
 
 - 面板允许的最大高度再收一档：改为原来的 90%（`cardMaxH` 同步按 90% 计算，封面与内容区上限跟着收紧），保留 240px 的最小高度，窗口很矮时也不会压扁到不可用。
@@ -75,38 +88,45 @@
 - **修法**：把上限改成同一坐标空间里的百分比——`maxHeight: max(240px, calc(100% - 70px - 底部偏移))`。`100%` 就是包含块（放全屏按钮的那个盒子）的高度，因此卡片顶边永远离盒子顶 ≥70px，即按钮底部 58px 之下再留 12px；窗口多大、标题栏多高、页面是否缩放都不影响。之前实测按钮的代码与状态一并删掉，问题不再依赖测量时机。
 
 
+
 ### 在线播放 · 失败与试听的三处对齐 Folia
 
 - **试听提示提前到播放前**：新增 Host 路由 `/online/stream-info`（只解析、不转发字节），客户端在真正出声前问一次：整曲 / `preview` 片段 / 哪一类失败。试听片段现在**播放前**就提示“当前账号只能试听这首歌的片段”，与 Folia 按 `preview` 标记提示一致；播放后的时长兜底判断保留作保险。已缓存到本地的歌先读缓存、不走这个问询，避免网络问题挡住离线播放。
 - **无法播放时自动跳过默认关闭**：`autoSkipUnplayable` 的默认值从开改成关（与 Folia 的 `getStoredBoolean(..., false)` 一致）。以前的账号默认仍是开，可在设置里改。
 - **失败提示按情况细分**：移植 Folia 的 failure case（`services/onlineMusic/failure/onlineFailureCase.ts`）到 Host（`src/host/services/playback/online-failure.js`）：先问音源自己的 `describeFailure`（平台状态码的含义，随移植源一起搬过来），再按错误码 / HTTP 状态 / 限流归类。提示从一句“该曲目暂不可播（可能需要登录或 VIP）”变成：需要登录、需要会员、需要购买、没有播放权限、地区不可用、无音频、音频无法播放、平台不可达、稍后再试、平台未配置、已下架等；停/跳过规则也与 Folia 相同（登录/会员/购买等停下，网络类不停；自动跳过打开时会员/购买/地区等会跳过）。
+
 ### 在线音乐 · 恢复 VIP 曲目角标
 
 - **特性**：VIP/付费曲目在列表与播放器里显示 `VIP` 角标（`qualityHint: 'VIP'`），并且“跳过 VIP 曲目”的判断继续生效。这是插件自己的特性，Folia 没有。
 - **移植时丢失的原因**：移植前规则写在旧的 provider 映射里（netease `fee===1`、qq `payplay===1`、bodian `payInfo.feeType.vip==='1'`、qishui `commerce_info.icon_info.type` 为 vip/svip）；移植后原始字段被各音源归一化丢弃，DTO 只映射了 `availability` 文案。
 - **恢复方式**：新增 `src/host/providers/sources/song-vip.js`（音源 → 是否 VIP），两个 DTO 在 `availability` 文案之前优先写 `qualityHint: 'VIP'`；netease 直接读已有的 `data.fee`/`data.privilege`，qq / bodian / qishui 在各自归一化里保留一个 `data.vip` 布尔（与旧规则一致，登记在 `folia/mirror.manifest.json`）。新增 `test/host/song-vip.test.mjs` 覆盖各家规则与 DTO 输出。
 - **酷狗**：移植前的酷狗本来就没有 VIP 角标规则；这次补上：酷狗在行上给 `AlbumPrivilege`（0 免费，8/10 会员或付费）与 `PayType`（3 = 会员/付费），归一化据此写 `data.vip`（登记为适配），DTO 同一套映射输出 `VIP`。
+
 ### 目录结构 · Folia 镜像改成与上游仓库根 1:1
 
 - **单根**：原来分散在 `src/folia/**`（上游 `src/**`）与 `src/folia-mods/**`（上游 `sources/**`、`packages/**`）的镜像，统一合并成 `folia/`，三条树的相对路径与上游完全一致：`folia/src/**`、`folia/sources/<id>/**`、`folia/packages/<包>/**`。以后移植一个上游文件就是「按上游路径拷到同路径」，升级上游按路径 diff 就行。
 - **适配层按上游路径**：替换上游模块的替身改成同相对路径（`src/folia-adapters/services/onlineMusic/providerRegistry.ts`、`crossSource.ts`、`src/folia-adapters/utils/lyrics/providers/amllDbProvider.ts`、`src/folia-adapters/utils/lyrics/workerClient.ts`），文件头写「替身上游：…」；没有单一上游文件的宿主面仍按用途分组（`source-host/`、`kugou/`）。
 - **镜像校验**：新增 `scripts/check-folia-mirror.mjs`（并入 `npm run check` 与 `npm test`）：镜像每个文件必须在上游同路径存在；内容默认逐字节相同。确有插件适配的 52 个文件登记在 `folia/mirror.manifest.json`，记录登记时的上游 SHA256，上游一变就报错复核。顺带修正了两处上游已移动的文件（`utils/colorMix.ts`、`utils/textMeasureCache.ts`）与三个上游不存在的旧文件。
+
 ### 在线歌词 · 平台自己的歌词按 Folia 的解析步骤还原
 
 - **现象**：播放酷狗（以及其他四个移植平台）的歌，有的有歌词、有的整段空白；有歌词的那些其实都来自 AMLL 跨源匹配。
 - **原因**：移植只搬了音源定义，漏了宿主侧的「音源歌词 → 应用歌词」一步。上游 `lyrics@1.getLyrics` 交回的是 `{ main: { format, text }, wordByWord: { format, text } }`（原始文本 + 格式），而两个宿主适配层（`folia-bridge` 的 `source.lyric`、`kugou-folia/playback.lyric`）都在读 `track.lines`——上游从不给这个字段，于是平台歌词被整段丢成空。
 - **处理**：把上游 `src/mods/folium/lyricsSource.ts` 逐字节镜像进 `folia/src/mods/folium/`（连同它依赖的 27 个歌词工具文件），解析交给移植的 `resolveFoliumSourceLyricsResult`；Node 里没有 Web Worker，`workerClient` 用进程内替身（同一份 `parseLyricsByFormat`，格式归一与传参照抄上游 worker）。新增 `src/host/services/lyrics/folia-lyrics-source.js` 把结果换成本插件的行形状，并把原文作为 `raw` 交回客户端（客户端用它自己的 Folia 管线再解析）。
 - **验证**：真实酷狗歌曲（发如雪）从 0 行变为 69 行、逐字、raw 8309 字节 KRC；新增 `lyrics-source-conversion` 覆盖 LRC/KRC/增强 LRC/翻译借用/纯音乐/坏轨/旧形状不算数。
+
 ### 匹配歌词 · 算法改为 Folia 原样移植
 
 - **自动匹配、打分、来源顺序全部换成 Folia 的实现**：`folia/src/utils/lyrics/**`（29 个文件，SHA256 与上游全等）经 `src/folia-adapters/lyrics-match/` 的宿主替身打成 `src/host/vendor/lyrics-folia/match.bundle.mjs`；`lyrics-match-runner` 直接调用上游 `autoMatchBestLyric`，`lyrics-match.js` 的打分改为上游 `matchScore`。
 - **行为随上游**：时长分档补回 ≤1s → ×1（旧自写版缺这一档）；未指定偏好时默认偏好是 QQ（上游的 `DEFAULT_PREFERRED_LYRIC_SOURCE`）；AMLL 探测走「先找网易云候选、再用它的 id 问 AMLL」这条上游路径，不再由插件自己预解析 id；别名重试只给标题时，宿主把 artist 补成歌手的名字（上游会对 `artist.trim()` 取用）。
 - **界面不变**：匹配窗口仍是插件自己的对话框；它拿到的分数、排序来自上游，预览仍返回客户端需要的行/LRC/TTML 原文（AMLL 的原文仍随预览一起给）。
+
 ### 在线音乐 · 未登录体验
 
 - **源菜单与账号菜单分开**：未登录的平台不再显示「重新登录 / 退出登录」（它们只属于已登录账号），改为一项「登录」；原因是客户端把「已配置」当成了「已登录」。
 - **加载失败不再展示平台原始报错**：歌单、云盘、推荐、搜索、歌手页、专辑页加载失败时，未登录的平台显示「需要登录」+ 登录按钮；已登录时的失败显示「加载失败」+ 重试，平台原话收进悬停提示（`title`），排查时仍能看到。
 - **Host 以移植源自己的账号为准**：`/online/providers` 对 Folia 移植源会核对源内的账号，旧 `sessions.json` 里的登录快照不再被当成「已登录」（迁移后它已失效，之前会让界面显示成登录着、歌单却报错）。
+
 ### 在线音乐 · 旧实现退役
 
 - 四个平台（网易云 / QQ / 波点 / 汽水）的**旧实现整体删除**，请求路径只剩移植源：门面（`providers/index.js`）摘掉网易云与 QQ 的全部分支，只保留 Navidrome 与酷狗的一行行委派（1505 → 603 行）。
@@ -115,6 +135,7 @@
 - 「清空插件所有数据」的账户项去掉只属于旧实现的 `bodian-device.json` / `qishui-device.json` / `qq-auth-sessions.json`。
 - 顺带修一处映射缺陷：`folia-bridge` 的 `artistSongs` 之前把上游的 `{items}` 直接交出去，路由读 `songs` 得到空数组——移植源的歌手「全部歌曲」页因此是空的；现在按页形状返回并过 DTO。新增 `test/host/folia-bridge.test.mjs` 守住分页、专辑、排行、试听标记、上报与逐字歌词的契约。
 - 只测旧实现的 13 个测试文件删除；`kugou` 门面路径的测试保留并精简。
+
 
 ### 歌词样式
 
