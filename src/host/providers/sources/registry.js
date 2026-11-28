@@ -82,6 +82,8 @@ export function createRegistry() {
           ? source.availability()
           : { configured: true },
         requiresAccount: source.requiresAccount !== false,
+        // Folia 移植源：登录态在它自己的存储里（/online/providers 据此核对，而不是信旧 sessions.json）。
+        folia: source.folia === true,
       }))
     },
 

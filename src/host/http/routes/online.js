@@ -2339,7 +2339,9 @@ export function createOnlineRoutes(deps) {
               : null
           merged[source.id] = {
             ...(summary[source.id] ?? {}),
-            // 移植源没登录时，旧快照里的昵称/头像/会员信息一律不显示。
+            // 登录态本身也以这里算出来的为准：移植源没登录时，旧快照的 loggedIn 不能让界面以为已登录；
+            // 同时把旧快照里的昵称/头像/会员信息一并清掉。
+            loggedIn: signedIn,
             ...(source.folia === true && !signedIn ? { nickname: '', avatarUrl: '', accountId: '', vip: false, vipExpiresAt: '' } : {}),
             displayName: source.displayName,
             kind: source.kind,
