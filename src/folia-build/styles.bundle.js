@@ -367,10 +367,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/types.ts
+    // folia/src/types.ts
     var DEFAULT_CLASSIC_TUNING, DEFAULT_CADENZA_TUNING, DEFAULT_PARTITA_TUNING, DEFAULT_FUME_TUNING, DEFAULT_CLADDAGH_TUNING, DEFAULT_TILT_TUNING, DEFAULT_SONNET_TUNING, DEFAULT_TEMPERA_TUNING, DEFAULT_LUMIERE_TUNING, DEFAULT_DIORAMA_GEOMETRY_VISIBILITY, DIORAMA_PARTICLE_DENSITY_MIN, DIORAMA_PARTICLE_DENSITY_MAX, DIORAMA_PARTICLE_DENSITY_STEP, DIORAMA_MOTE_CIRCUMFERENCE_MIN, DIORAMA_MOTE_CIRCUMFERENCE_MAX, DIORAMA_MOTE_RADIAL_MIN, DIORAMA_MOTE_RADIAL_MAX, DEFAULT_DIORAMA_TUNING, MONET_CHROME_VISIBILITIES, DEFAULT_MONET_TUNING;
     var init_types = __esm({
-      "src/folia/types.ts"() {
+      "folia/src/types.ts"() {
         DEFAULT_CLASSIC_TUNING = {
           enableWordRotation: true,
           breathingFloatMultiplier: 1,
@@ -554,7 +554,7 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/utils/lyrics/renderHints.ts
+    // folia/src/utils/lyrics/renderHints.ts
     function buildLineRenderHints(lineOrStart, endTime) {
       const line2 = typeof lineOrStart === "number" ? { startTime: lineOrStart, endTime: endTime ?? lineOrStart } : lineOrStart;
       const rawDuration = Math.max(line2.endTime - line2.startTime, 0);
@@ -587,7 +587,7 @@ function __mpStylesBundle() {
     }
     var MICRO_LINE_DURATION_THRESHOLD, SHORT_LINE_DURATION_THRESHOLD, MICRO_LINE_RENDER_FLOOR, getLastWordEndTime, getLineTransitionTiming, getTimingClass, getLineTransitionMode, getWordRevealMode, clamp, buildLineRenderEndTime, getLineRenderHints, getLineRenderEndTime, hasExpectedRenderHints, migrateLyricLinesRenderHints, annotateLyricLines, ensureLyricDataRenderHints;
     var init_renderHints = __esm({
-      "src/folia/utils/lyrics/renderHints.ts"() {
+      "folia/src/utils/lyrics/renderHints.ts"() {
         MICRO_LINE_DURATION_THRESHOLD = 0.1;
         SHORT_LINE_DURATION_THRESHOLD = 0.18;
         MICRO_LINE_RENDER_FLOOR = 0.067;
@@ -698,10 +698,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/utils/lyrics/textDirection.ts
+    // folia/src/utils/lyrics/textDirection.ts
     var RTL_LETTER_RE, LETTER_RE, resolveLyricTextDirection;
     var init_textDirection = __esm({
-      "src/folia/utils/lyrics/textDirection.ts"() {
+      "folia/src/utils/lyrics/textDirection.ts"() {
         RTL_LETTER_RE = /[\p{Script=Arabic}\p{Script=Hebrew}\p{Script=Syriac}\p{Script=Thaana}\p{Script=Nko}\p{Script=Samaritan}\p{Script=Mandaic}\p{Script=Adlam}\p{Script=Hanifi_Rohingya}\p{Script=Yezidi}]/u;
         LETTER_RE = new RegExp("\\p{L}", "u");
         resolveLyricTextDirection = (text) => {
@@ -714,10 +714,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/runtime.ts
+    // folia/src/components/visualizer/runtime.ts
     var getRecentCompletedLine, getUpcomingLine, getUpcomingLines, getSubtitleNextLines, shouldPreheatLine, prepareActiveAndUpcoming, useVisualizerRuntime;
     var init_runtime = __esm({
-      "src/folia/components/visualizer/runtime.ts"() {
+      "folia/src/components/visualizer/runtime.ts"() {
         init_react_shim();
         getRecentCompletedLine = ({
           lines,
@@ -811,10 +811,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/utils/fontStacks.ts
+    // folia/src/utils/fontStacks.ts
     var MIN_FONT_WEIGHT, MAX_FONT_WEIGHT, FONT_WEIGHT_STEP, normalizeFontWeight, resolveThemeFontWeight, SUGAR_SERIF_FAMILY, BUILTIN_FONT_STACKS, TRANSLATION_FONT_STACKS, CSS_GENERIC_FONT_FAMILIES, quoteFontFamily, normalizeFontFamilyName, formatFontFamily, normalizeFontFamilyStack, buildCustomFontFamilyStack, getBuiltinThemeFontStack, resolveThemeFontStack, resolveThemeTranslationFontStack;
     var init_fontStacks = __esm({
-      "src/folia/utils/fontStacks.ts"() {
+      "folia/src/utils/fontStacks.ts"() {
         MIN_FONT_WEIGHT = 100;
         MAX_FONT_WEIGHT = 900;
         FONT_WEIGHT_STEP = 10;
@@ -902,10 +902,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/VisualizerShell.tsx
+    // folia/src/components/visualizer/VisualizerShell.tsx
     var VisualizerShell, VisualizerShell_default;
     var init_VisualizerShell = __esm({
-      "src/folia/components/visualizer/VisualizerShell.tsx"() {
+      "folia/src/components/visualizer/VisualizerShell.tsx"() {
         init_react_shim();
         init_fontStacks();
         init_jsx_runtime_shim();
@@ -939,10 +939,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/utils/lyrics/alternateText.ts
+    // folia/src/utils/lyrics/alternateText.ts
     var resolveSingleTrackSubtitleMode, findAlternateText, resolveTrackText, resolveLyricAlternateText, resolveLyricSubtitleTracks, resolveSubtitleContentMode;
     var init_alternateText = __esm({
-      "src/folia/utils/lyrics/alternateText.ts"() {
+      "folia/src/utils/lyrics/alternateText.ts"() {
         resolveSingleTrackSubtitleMode = (mode) => mode === "both" ? "translation" : mode;
         findAlternateText = (alternateTexts, role) => alternateTexts?.find((entry) => entry.role === role && entry.text.trim())?.text.trim() ?? null;
         resolveTrackText = (source, role) => {
@@ -978,10 +978,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/utils/lyrics/subtitleOverlayLayout.ts
+    // folia/src/utils/lyrics/subtitleOverlayLayout.ts
     var DEFAULT_SUBTITLE_OVERLAY_LAYOUT, ROWS_ONLY_SUFFIX, subtitleOverlayPreviewsUpcoming, rowsLayoutOf, getSubtitleOverlayRows;
     var init_subtitleOverlayLayout = __esm({
-      "src/folia/utils/lyrics/subtitleOverlayLayout.ts"() {
+      "folia/src/utils/lyrics/subtitleOverlayLayout.ts"() {
         DEFAULT_SUBTITLE_OVERLAY_LAYOUT = "translation";
         ROWS_ONLY_SUFFIX = "|only";
         subtitleOverlayPreviewsUpcoming = (layout) => !layout.endsWith(ROWS_ONLY_SUFFIX);
@@ -990,10 +990,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/utils/lyrics/subtitleTrackStyle.ts
+    // folia/src/utils/lyrics/subtitleTrackStyle.ts
     var SECONDARY_TRACK_SIZE_FACTOR, SECONDARY_TRACK_OPACITY, SECONDARY_TRACK_FONT_WEIGHT_FALLBACK, SECONDARY_TRACK_GAP_EM;
     var init_subtitleTrackStyle = __esm({
-      "src/folia/utils/lyrics/subtitleTrackStyle.ts"() {
+      "folia/src/utils/lyrics/subtitleTrackStyle.ts"() {
         SECONDARY_TRACK_SIZE_FACTOR = 0.88;
         SECONDARY_TRACK_OPACITY = 0.82;
         SECONDARY_TRACK_FONT_WEIGHT_FALLBACK = 400;
@@ -1001,10 +1001,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/textMeasureCache.ts
+    // folia/src/utils/textMeasureCache.ts
     var rememberBounded, measurePrefixOffsets;
     var init_textMeasureCache = __esm({
-      "src/folia/components/visualizer/textMeasureCache.ts"() {
+      "folia/src/utils/textMeasureCache.ts"() {
         rememberBounded = (cache2, key, value, limit) => {
           if (!cache2.has(key) && cache2.size >= limit) {
             const oldest = cache2.keys().next();
@@ -1023,10 +1023,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/colorMix.ts
+    // folia/src/utils/colorMix.ts
     var clamp2, mix, FALLBACK_RGB, isFiniteChannel, formatRgba, readColor, parsedColors, PARSED_COLOR_LIMIT, parseColor, colorWithAlpha, parseColorChannels, resolveGlowColorStrength, mixColors;
     var init_colorMix = __esm({
-      "src/folia/components/visualizer/colorMix.ts"() {
+      "folia/src/utils/colorMix.ts"() {
         init_textMeasureCache();
         clamp2 = (value, min, max) => Math.max(min, Math.min(max, value));
         mix = (from, to3, amount) => from + (to3 - from) * amount;
@@ -1101,10 +1101,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/hooks/usePlayerBottomBarBottomPx.ts
+    // folia/src/hooks/usePlayerBottomBarBottomPx.ts
     var SUBTITLE_BOTTOM_WITH_BAR_PX, SUBTITLE_BOTTOM_WITHOUT_BAR_PX, usePlayerSubtitleBottomPx, usePlayerSubtitleYieldsToDock;
     var init_usePlayerBottomBarBottomPx = __esm({
-      "src/folia/hooks/usePlayerBottomBarBottomPx.ts"() {
+      "folia/src/hooks/usePlayerBottomBarBottomPx.ts"() {
         SUBTITLE_BOTTOM_WITH_BAR_PX = 96;
         SUBTITLE_BOTTOM_WITHOUT_BAR_PX = 32;
         usePlayerSubtitleBottomPx = (isPlayerChromeHidden = false) => isPlayerChromeHidden ? SUBTITLE_BOTTOM_WITHOUT_BAR_PX : SUBTITLE_BOTTOM_WITH_BAR_PX;
@@ -1112,10 +1112,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/VisualizerSubtitleOverlay.tsx
+    // folia/src/components/visualizer/VisualizerSubtitleOverlay.tsx
     var hasReadableText, getUpcomingLyricsClassName, resolveVisualizerSubtitleOverlayContent, VisualizerSubtitleOverlay, VisualizerSubtitleOverlay_default;
     var init_VisualizerSubtitleOverlay = __esm({
-      "src/folia/components/visualizer/VisualizerSubtitleOverlay.tsx"() {
+      "folia/src/components/visualizer/VisualizerSubtitleOverlay.tsx"() {
         init_framer_motion();
         init_fontStacks();
         init_alternateText();
@@ -1289,10 +1289,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/subtitleFontSizes.ts
+    // folia/src/components/visualizer/subtitleFontSizes.ts
     var clampSize, resolveSubtitleFontSizes;
     var init_subtitleFontSizes = __esm({
-      "src/folia/components/visualizer/subtitleFontSizes.ts"() {
+      "folia/src/components/visualizer/subtitleFontSizes.ts"() {
         clampSize = (min, preferred, max, scale) => `clamp(${(min * scale).toFixed(3)}rem, ${(preferred * scale).toFixed(3)}vw, ${(max * scale).toFixed(3)}rem)`;
         resolveSubtitleFontSizes = (lyricsFontScale = 1) => {
           const scale = Number.isFinite(lyricsFontScale) && lyricsFontScale > 0 ? lyricsFontScale : 1;
@@ -1304,10 +1304,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/utils/lyrics/graphemeTiming.ts
+    // folia/src/utils/lyrics/graphemeTiming.ts
     var graphemeSegmenter, splitLyricGraphemes, buildEvenGraphemeTimings, buildWordGraphemeTimings, findGraphemeSequence, buildLineGraphemeTimeline;
     var init_graphemeTiming = __esm({
-      "src/folia/utils/lyrics/graphemeTiming.ts"() {
+      "folia/src/utils/lyrics/graphemeTiming.ts"() {
         graphemeSegmenter = typeof Intl !== "undefined" && Intl.Segmenter ? new Intl.Segmenter(void 0, { granularity: "grapheme" }) : null;
         splitLyricGraphemes = (text) => {
           if (!text) {
@@ -1418,10 +1418,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/utils/lyrics/wordSegmentation.ts
+    // folia/src/utils/lyrics/wordSegmentation.ts
     var PUNCTUATION_ONLY, isWordLikeText, segmentsFromBoundaries, segmentTextWords, isValidWordSegmentation, EDGE_WHITESPACE, splitEdgeWhitespace, segmentLyricWords, getWordSegmentationKey, hasWordSegmentationOverride;
     var init_wordSegmentation = __esm({
-      "src/folia/utils/lyrics/wordSegmentation.ts"() {
+      "folia/src/utils/lyrics/wordSegmentation.ts"() {
         init_graphemeTiming();
         PUNCTUATION_ONLY = /^[\s\p{P}\p{S}]+$/u;
         isWordLikeText = (text) => !PUNCTUATION_ONLY.test(text);
@@ -1475,10 +1475,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/utils/lyrics/cjkSemanticLayout.ts
+    // folia/src/utils/lyrics/cjkSemanticLayout.ts
     var CJK_REGEX, APOSTROPHE_ONLY_REGEX, CONTRACTION_SUFFIX_REGEX, DIRECT_CONTRACTION_REGEX, TRAILING_APOSTROPHE_REGEX, TRAILING_WORD_CHAR_REGEX, INLINE_CONTRACTION_REGEX, STICKY_TRAILING_PUNCTUATION_REGEX, hasCjkText, createSingleWordLayoutUnits, getWordSegments, appendWordsToUnit, cloneUnit, appendUnitToStickyUnit, canAttachToPrevious, endsWithApostrophe, isApostropheOnlyUnit, isContractionSuffixUnit, isDirectContractionUnit, isStickyTrailingPunctuationUnit, hasAttachedTrailingPunctuation, hasInlineContraction, stripWhitespace, mapSegmentsToWords, buildCjkSemanticLayoutUnits, applyStickyPunctuationLayoutUnits, buildPostLyricLayoutUnits, buildDisplayWordsFromLayoutUnits;
     var init_cjkSemanticLayout = __esm({
-      "src/folia/utils/lyrics/cjkSemanticLayout.ts"() {
+      "folia/src/utils/lyrics/cjkSemanticLayout.ts"() {
         init_wordSegmentation();
         CJK_REGEX = /[\u4e00-\u9fa5\u3040-\u30ff\uac00-\ud7af]/;
         APOSTROPHE_ONLY_REGEX = /^['’]\s*$/;
@@ -1653,10 +1653,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/wordColoring.ts
+    // folia/src/components/visualizer/wordColoring.ts
     var CJK_REGEX2, isCJK, normalizeWordColorToken, resolveWordColorEntryText, resolveWordColorEntryColor, rangesOverlap, selectNonOverlappingRanges, prepareWordColorMatchers, buildWordColorRangesFromMatchers, buildWordColorRanges, resolveWordColor, resolveTokenColorMap;
     var init_wordColoring = __esm({
-      "src/folia/components/visualizer/wordColoring.ts"() {
+      "folia/src/components/visualizer/wordColoring.ts"() {
         CJK_REGEX2 = /[\u4e00-\u9fa5\u3040-\u30ff\uac00-\ud7af]/;
         isCJK = (text) => CJK_REGEX2.test(text);
         normalizeWordColorToken = (text) => text.toLowerCase().replace(/[^\w]/g, "");
@@ -1820,10 +1820,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/utils/glowBlurQuantize.ts
+    // folia/src/utils/glowBlurQuantize.ts
     var GLOW_BLUR_QUANTIZE_STORAGE_KEY, isLinuxRuntime, readStoredGlowBlurQuantize, glowBlurQuantized, isGlowBlurQuantized, quantizeShadowBlur, setCanvasTextGlow, clearCanvasTextGlow, GLOW_FILTER_SIGMA, fillGlowText;
     var init_glowBlurQuantize = __esm({
-      "src/folia/utils/glowBlurQuantize.ts"() {
+      "folia/src/utils/glowBlurQuantize.ts"() {
         GLOW_BLUR_QUANTIZE_STORAGE_KEY = "visualizer_glow_blur_quantize";
         isLinuxRuntime = () => {
           if (typeof window === "undefined") return false;
@@ -1887,10 +1887,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/wordGlow.ts
+    // folia/src/components/visualizer/wordGlow.ts
     var DROP_SHADOW_RADIUS_SCALE, DROP_SHADOW_INNER_ALPHA, withAlpha, textShadowAt, dropShadowAt, glowRadii, glowKeyframes, wordGlowVariants;
     var init_wordGlow = __esm({
-      "src/folia/components/visualizer/wordGlow.ts"() {
+      "folia/src/components/visualizer/wordGlow.ts"() {
         init_colorMix();
         init_glowBlurQuantize();
         DROP_SHADOW_RADIUS_SCALE = 0.4;
@@ -1975,10 +1975,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/glowWordTiming.ts
+    // folia/src/components/visualizer/glowWordTiming.ts
     var resolveGlowWordRenderProfile, getGlowWordActiveEndTime, getGlowWordDisplayDuration, getGlowWordLineContainerMotion;
     var init_glowWordTiming = __esm({
-      "src/folia/components/visualizer/glowWordTiming.ts"() {
+      "folia/src/components/visualizer/glowWordTiming.ts"() {
         init_renderHints();
         resolveGlowWordRenderProfile = (line2) => {
           if (!line2) {
@@ -2043,10 +2043,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/glowWordVariants.ts
+    // folia/src/components/visualizer/glowWordVariants.ts
     var GLOW_WORD_ACTIVE_SCALE, buildGlowWordLayoutVariants, glowWordBodyVariants;
     var init_glowWordVariants = __esm({
-      "src/folia/components/visualizer/glowWordVariants.ts"() {
+      "folia/src/components/visualizer/glowWordVariants.ts"() {
         GLOW_WORD_ACTIVE_SCALE = 1.4;
         buildGlowWordLayoutVariants = (animationIntensity, enableWordRotation = true) => ({
           waiting: ({ config } = {}) => {
@@ -2126,10 +2126,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/glowWordOverlap.ts
+    // folia/src/components/visualizer/glowWordOverlap.ts
     var GLOW_WORD_LINE_HEIGHT, GLYPH_HEIGHT_EM, PASSED_TURN_SAMPLES, measureCanvas, measureGlowWordWidth, reachAt, getGlowWordReach, getGlowWordPairGap, getGlowWordOverflow;
     var init_glowWordOverlap = __esm({
-      "src/folia/components/visualizer/glowWordOverlap.ts"() {
+      "folia/src/components/visualizer/glowWordOverlap.ts"() {
         init_glowWordVariants();
         GLOW_WORD_LINE_HEIGHT = 1.22;
         GLYPH_HEIGHT_EM = 1;
@@ -2192,10 +2192,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/GlowWord.tsx
+    // folia/src/components/visualizer/GlowWord.tsx
     var GlowWord;
     var init_GlowWord = __esm({
-      "src/folia/components/visualizer/GlowWord.tsx"() {
+      "folia/src/components/visualizer/GlowWord.tsx"() {
         init_react_shim();
         init_framer_motion();
         init_graphemeTiming();
@@ -2316,10 +2316,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/useOverlapFit.ts
+    // folia/src/components/visualizer/useOverlapFit.ts
     var OVERLAP_FIT_LINE_ATTRIBUTE, OVERLAP_FIT_ROW_ATTRIBUTE, MIN_FIT, FIT_SLACK, useOverlapFit;
     var init_useOverlapFit = __esm({
-      "src/folia/components/visualizer/useOverlapFit.ts"() {
+      "folia/src/components/visualizer/useOverlapFit.ts"() {
         init_react_shim();
         OVERLAP_FIT_LINE_ATTRIBUTE = "data-overlap-fit-line";
         OVERLAP_FIT_ROW_ATTRIBUTE = "data-overlap-fit-row";
@@ -2351,14 +2351,14 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/classic/Visualizer.tsx
+    // folia/src/components/visualizer/classic/Visualizer.tsx
     var Visualizer_exports = {};
     __export(Visualizer_exports, {
       default: () => Visualizer_default
     });
     var clampClassicBreathingFloatMultiplier, clampClassicWordSpacing, resolveClassicTuning, TEXT_HIDDEN_EXIT, Visualizer, Visualizer_default;
     var init_Visualizer = __esm({
-      "src/folia/components/visualizer/classic/Visualizer.tsx"() {
+      "folia/src/components/visualizer/classic/Visualizer.tsx"() {
         init_react_shim();
         init_framer_motion();
         init_i18n();
@@ -2706,14 +2706,14 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/still/VisualizerStill.tsx
+    // folia/src/components/visualizer/still/VisualizerStill.tsx
     var VisualizerStill_exports = {};
     __export(VisualizerStill_exports, {
       default: () => VisualizerStill_default
     });
     var VisualizerStill, VisualizerStill_default;
     var init_VisualizerStill = __esm({
-      "src/folia/components/visualizer/still/VisualizerStill.tsx"() {
+      "folia/src/components/visualizer/still/VisualizerStill.tsx"() {
         init_react_shim();
         init_fontStacks();
         init_VisualizerShell();
@@ -6385,7 +6385,7 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/utils/lyrics/sentenceLayout.ts
+    // folia/src/utils/lyrics/sentenceLayout.ts
     function findRegexMatch(regex, text, fromIndex = 0) {
       regex.lastIndex = fromIndex;
       const match = regex.exec(text);
@@ -6397,7 +6397,7 @@ function __mpStylesBundle() {
     }
     var CJK_REGEX3, hasCjkText2, SentenceLayout;
     var init_sentenceLayout = __esm({
-      "src/folia/utils/lyrics/sentenceLayout.ts"() {
+      "folia/src/utils/lyrics/sentenceLayout.ts"() {
         CJK_REGEX3 = /[\u4e00-\u9fa5\u3040-\u30ff\uac00-\ud7af]/;
         hasCjkText2 = (text) => CJK_REGEX3.test(text);
         SentenceLayout = class _SentenceLayout {
@@ -6807,14 +6807,14 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/tilt/VisualizerTilt.tsx
+    // folia/src/components/visualizer/tilt/VisualizerTilt.tsx
     var VisualizerTilt_exports = {};
     __export(VisualizerTilt_exports, {
       default: () => VisualizerTilt_default
     });
     var CHAR_REF_LENGTH, LOG_OFFSET, LINE_THRESHOLDS, determineLineCount, REM_PX, RESPLIT_THRESHOLD, SCALE_FLOOR_NORMAL, SCALE_FLOOR_TILT, getAvailableWidth, GRAPHEME_SEGMENTER, findSegmentWordRange, buildCharTimings, getCharPulseIntensity, measureAtSize, seededRandom, buildTiltLayout, TiltLine, VisualizerTilt, VisualizerTilt_default;
     var init_VisualizerTilt = __esm({
-      "src/folia/components/visualizer/tilt/VisualizerTilt.tsx"() {
+      "folia/src/components/visualizer/tilt/VisualizerTilt.tsx"() {
         init_react_shim();
         init_framer_motion();
         init_i18n();
@@ -7397,10 +7397,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/partita/partitaLayout.ts
+    // folia/src/components/visualizer/partita/partitaLayout.ts
     var EMPTY_PARTITA_LAYOUT, PARTITA_LAYOUT_CACHE_LIMIT, PARTITA_WORD_LAYOUT_STYLE, PARTITA_PREHEAT_WINDOW, graphemeSegmenter2, splitGraphemes, clamp3, clampPartitaStagger, resolvePartitaTuning, buildPartitaWordConfigs, getActiveColor, buildSequentialColumns, buildPartitaLayoutCacheKey, getOrBuildPartitaLayout;
     var init_partitaLayout = __esm({
-      "src/folia/components/visualizer/partita/partitaLayout.ts"() {
+      "folia/src/components/visualizer/partita/partitaLayout.ts"() {
         init_types();
         init_cjkSemanticLayout();
         init_wordSegmentation();
@@ -7590,10 +7590,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/partita/PartitaChunk.tsx
+    // folia/src/components/visualizer/partita/PartitaChunk.tsx
     var PartitaChunk;
     var init_PartitaChunk = __esm({
-      "src/folia/components/visualizer/partita/PartitaChunk.tsx"() {
+      "folia/src/components/visualizer/partita/PartitaChunk.tsx"() {
         init_react_shim();
         init_framer_motion();
         init_GlowWord();
@@ -7779,10 +7779,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/partita/partitaOverlap.ts
+    // folia/src/components/visualizer/partita/partitaOverlap.ts
     var WORD_GAP, BREATH_EM, WORD_GAP_EM_AT_MOST, CHUNK_PADDING_Y, lengthOf, rowReach, getPartitaOverlapSpacing;
     var init_partitaOverlap = __esm({
-      "src/folia/components/visualizer/partita/partitaOverlap.ts"() {
+      "folia/src/components/visualizer/partita/partitaOverlap.ts"() {
         init_glowWordOverlap();
         WORD_GAP = "0.8rem";
         BREATH_EM = 0.05;
@@ -7836,14 +7836,14 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/partita/VisualizerPartita.tsx
+    // folia/src/components/visualizer/partita/VisualizerPartita.tsx
     var VisualizerPartita_exports = {};
     __export(VisualizerPartita_exports, {
       default: () => VisualizerPartita_default
     });
     var OVERLAP_MEASURE_PX, TEXT_HIDDEN_EXIT2, VisualizerPartita, VisualizerPartita_default;
     var init_VisualizerPartita = __esm({
-      "src/folia/components/visualizer/partita/VisualizerPartita.tsx"() {
+      "folia/src/components/visualizer/partita/VisualizerPartita.tsx"() {
         init_react_shim();
         init_framer_motion();
         init_i18n();
@@ -8089,10 +8089,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/claddagh/claddaghTimeline.ts
+    // folia/src/components/visualizer/claddagh/claddaghTimeline.ts
     var isCJKChar, getVisualLength, adjustCladdaghTimeline, getFractionalActiveIndex, clamp4, getLineWordOffset, getLinePlaybackProgress, shouldHoldCladdaghFrameForPlaybackReset;
     var init_claddaghTimeline = __esm({
-      "src/folia/components/visualizer/claddagh/claddaghTimeline.ts"() {
+      "folia/src/components/visualizer/claddagh/claddaghTimeline.ts"() {
         isCJKChar = (char) => {
           return /[\u4e00-\u9fa5\u3040-\u30ff\uac00-\ud7af]/.test(char);
         };
@@ -8226,10 +8226,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/claddagh/claddaghLayout.ts
+    // folia/src/components/visualizer/claddagh/claddaghLayout.ts
     var CLADDAGH_MAX_ARC_SPAN, CLADDAGH_LETTER_SPACING_EM, CLADDAGH_BASE_TRACKING_EM, CLADDAGH_BACK_FOLLOW_RATIO, CLADDAGH_BACK_ORBIT_FOLLOW_RATIO, CLADDAGH_NEXT_LINE_ENTRY_LEAD_SECONDS, CLADDAGH_SPACING_CACHE_LIMIT, claddaghSpacingCache, getFallbackGraphemeWidth, normalizeReadableAngle, measureCladdaghTextWidth, measureCladdaghGraphemeOffsets, buildMeasuredSpacingInfo;
     var init_claddaghLayout = __esm({
-      "src/folia/components/visualizer/claddagh/claddaghLayout.ts"() {
+      "folia/src/components/visualizer/claddagh/claddaghLayout.ts"() {
         init_layout();
         init_claddaghTimeline();
         init_textMeasureCache();
@@ -8301,10 +8301,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/utils/frameRateLimiter.ts
+    // folia/src/utils/frameRateLimiter.ts
     var requestUncappedAnimationFrame, cancelUncappedAnimationFrame;
     var init_frameRateLimiter = __esm({
-      "src/folia/utils/frameRateLimiter.ts"() {
+      "folia/src/utils/frameRateLimiter.ts"() {
         requestUncappedAnimationFrame = (callback) => {
           const frameWindow2 = window;
           return (frameWindow2.__foliaNativeRequestAnimationFrame ?? window.requestAnimationFrame).call(window, callback);
@@ -8316,10 +8316,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/claddagh/claddaghGlow.ts
+    // folia/src/components/visualizer/claddagh/claddaghGlow.ts
     var CLADDAGH_GLOW_DROP_SHADOW_SCALE, CLADDAGH_CHORUS_DROP_SHADOW_SCALE, CLADDAGH_CHORUS_MIDDLE_ALPHA, buildCladdaghGlowFilter;
     var init_claddaghGlow = __esm({
-      "src/folia/components/visualizer/claddagh/claddaghGlow.ts"() {
+      "folia/src/components/visualizer/claddagh/claddaghGlow.ts"() {
         init_colorMix();
         init_claddaghTimeline();
         CLADDAGH_GLOW_DROP_SHADOW_SCALE = 0.5;
@@ -8337,10 +8337,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/claddagh/CladdaghRingLine.tsx
+    // folia/src/components/visualizer/claddagh/CladdaghRingLine.tsx
     var ringSettleCallbacks, ringSettleFrame, ringSettledAt, runRingSettle, joinRingSettle, isRingSettleStillToCome, CLADDAGH_TRANSLATION_FONT_RATIO, RingLine;
     var init_CladdaghRingLine = __esm({
-      "src/folia/components/visualizer/claddagh/CladdaghRingLine.tsx"() {
+      "folia/src/components/visualizer/claddagh/CladdaghRingLine.tsx"() {
         init_react_shim();
         init_graphemeTiming();
         init_fontStacks();
@@ -8784,14 +8784,14 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/claddagh/VisualizerCladdagh.tsx
+    // folia/src/components/visualizer/claddagh/VisualizerCladdagh.tsx
     var VisualizerCladdagh_exports = {};
     __export(VisualizerCladdagh_exports, {
       default: () => VisualizerCladdagh_default
     });
     var VisualizerCladdagh, VisualizerCladdagh_default;
     var init_VisualizerCladdagh = __esm({
-      "src/folia/components/visualizer/claddagh/VisualizerCladdagh.tsx"() {
+      "folia/src/components/visualizer/claddagh/VisualizerCladdagh.tsx"() {
         init_react_shim();
         init_framer_motion();
         init_types();
@@ -9088,10 +9088,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/utils/lyricRenderQuality.ts
+    // folia/src/utils/lyricRenderQuality.ts
     var LYRIC_RENDER_SCALES, DEFAULT_LYRIC_RENDER_QUALITY, DEFAULT_LYRIC_RENDER_OVERRIDE, MAX_LYRIC_PIXEL_RATIO, isLyricRenderScale, normalizeLyricRenderOverride, resolveLyricRenderQuality, resolveLyricPixelRatio, resolveLyricAntialias;
     var init_lyricRenderQuality = __esm({
-      "src/folia/utils/lyricRenderQuality.ts"() {
+      "folia/src/utils/lyricRenderQuality.ts"() {
         LYRIC_RENDER_SCALES = [0.5, 0.75, 1, 1.5, 2];
         DEFAULT_LYRIC_RENDER_QUALITY = { scale: 1, antialias: "auto" };
         DEFAULT_LYRIC_RENDER_OVERRIDE = { scale: "global", antialias: "global" };
@@ -9117,10 +9117,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/renderQuality/useLyricRenderQuality.ts
+    // folia/src/components/visualizer/renderQuality/useLyricRenderQuality.ts
     var GLOBAL_QUALITY, useLyricRenderQuality;
     var init_useLyricRenderQuality = __esm({
-      "src/folia/components/visualizer/renderQuality/useLyricRenderQuality.ts"() {
+      "folia/src/components/visualizer/renderQuality/useLyricRenderQuality.ts"() {
         init_react_shim();
         init_lyricRenderQuality();
         GLOBAL_QUALITY = { scale: 1, antialias: "auto" };
@@ -9128,10 +9128,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/cadenza/cadenzaOverlayNodes.ts
+    // folia/src/components/visualizer/cadenza/cadenzaOverlayNodes.ts
     var createOverlayWordNodes, writeOverlayWord, writeOverlayGlyphShadow, syncOverlayGlyphSpans, clearOverlayWordNodes;
     var init_cadenzaOverlayNodes = __esm({
-      "src/folia/components/visualizer/cadenza/cadenzaOverlayNodes.ts"() {
+      "folia/src/components/visualizer/cadenza/cadenzaOverlayNodes.ts"() {
         createOverlayWordNodes = () => {
           const outer = document.createElement("div");
           outer.className = "absolute left-0 top-0";
@@ -9215,10 +9215,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/cadenza/cadenzaEnvelopes.ts
+    // folia/src/components/visualizer/cadenza/cadenzaEnvelopes.ts
     var graphemeSegmenter3, splitGraphemes2, clamp5, mix2, easeOutCubic, easeInOutQuad, ACTIVE_PULSE_FREQUENCY, isCJK3, getWordStatus, getWordProgress, getClassicKeyframedGlow, getClassicGlowEnvelope, getClassicCharGlow, getClassicBodyMix, getClassicLineEnvelope, getClassicPassedDrift, resolveLineRenderTiming, buildDomTextShadow;
     var init_cadenzaEnvelopes = __esm({
-      "src/folia/components/visualizer/cadenza/cadenzaEnvelopes.ts"() {
+      "folia/src/components/visualizer/cadenza/cadenzaEnvelopes.ts"() {
         init_renderHints();
         init_colorMix();
         graphemeSegmenter3 = typeof Intl !== "undefined" ? new Intl.Segmenter(void 0, { granularity: "grapheme" }) : null;
@@ -9438,10 +9438,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/cadenza/cadenzaFragments.ts
+    // folia/src/components/visualizer/cadenza/cadenzaFragments.ts
     var getActiveColor2, buildSegmentMetas, findWordRanges, cursorToGlobalOffset, getPartialSegmentWidth, widthBetweenOffsets, buildLineFragments;
     var init_cadenzaFragments = __esm({
-      "src/folia/components/visualizer/cadenza/cadenzaFragments.ts"() {
+      "folia/src/components/visualizer/cadenza/cadenzaFragments.ts"() {
         init_graphemeTiming();
         init_wordColoring();
         init_cadenzaEnvelopes();
@@ -9600,10 +9600,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/cadenza/cadenzaPlacements.ts
+    // folia/src/components/visualizer/cadenza/cadenzaPlacements.ts
     var buildEmphasisMap, buildWordPlacements;
     var init_cadenzaPlacements = __esm({
-      "src/folia/components/visualizer/cadenza/cadenzaPlacements.ts"() {
+      "folia/src/components/visualizer/cadenza/cadenzaPlacements.ts"() {
         init_cadenzaEnvelopes();
         buildEmphasisMap = (lineData, isInterlude) => {
           const emphasisMap = /* @__PURE__ */ new Map();
@@ -9873,10 +9873,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/cadenza/cadenzaPreparedState.ts
+    // folia/src/components/visualizer/cadenza/cadenzaPreparedState.ts
     var chooseFontPx, buildCanvasFont, buildPreparedState;
     var init_cadenzaPreparedState = __esm({
-      "src/folia/components/visualizer/cadenza/cadenzaPreparedState.ts"() {
+      "folia/src/components/visualizer/cadenza/cadenzaPreparedState.ts"() {
         init_layout();
         init_fontStacks();
         init_cadenzaEnvelopes();
@@ -9935,14 +9935,14 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/cadenza/VisualizerCadenza.tsx
+    // folia/src/components/visualizer/cadenza/VisualizerCadenza.tsx
     var VisualizerCadenza_exports = {};
     __export(VisualizerCadenza_exports, {
       default: () => VisualizerCadenza_default
     });
     var STATUS_DRAW_ORDER, VisualizerCadenza, VisualizerCadenza_default;
     var init_VisualizerCadenza = __esm({
-      "src/folia/components/visualizer/cadenza/VisualizerCadenza.tsx"() {
+      "folia/src/components/visualizer/cadenza/VisualizerCadenza.tsx"() {
         init_react_shim();
         init_framer_motion();
         init_i18n();
@@ -10401,10 +10401,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/fume/backgroundConfig.ts
+    // folia/src/components/visualizer/fume/backgroundConfig.ts
     var fumeBackgroundConfig;
     var init_backgroundConfig = __esm({
-      "src/folia/components/visualizer/fume/backgroundConfig.ts"() {
+      "folia/src/components/visualizer/fume/backgroundConfig.ts"() {
         init_types();
         fumeBackgroundConfig = (props) => ({
           ...props.background,
@@ -10416,10 +10416,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/fume/FumeBackground.ts
+    // folia/src/components/visualizer/fume/FumeBackground.ts
     var clamp6, mix3, hashString, seeded, buildShapePath, shapeLineGradients, traceShape, normalizeBounds, choosePaperHaloAnchor, buildFumeBackgroundScene, lineGradients, LINE_GRADIENT_LIMIT, drawFumeBackground;
     var init_FumeBackground = __esm({
-      "src/folia/components/visualizer/fume/FumeBackground.ts"() {
+      "folia/src/components/visualizer/fume/FumeBackground.ts"() {
         init_colorMix();
         init_textMeasureCache();
         clamp6 = (value, min, max) => Math.max(min, Math.min(max, value));
@@ -10786,10 +10786,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/fume/fumeMath.ts
+    // folia/src/components/visualizer/fume/fumeMath.ts
     var graphemeSegmenter4, splitGraphemes3, clamp7, mix4, quadraticBezier, easeOutCubic2, easeInCubic, easeInOutCubic, resolveDelayedGlowEnvelope, isCJK4, hashString2, seeded2;
     var init_fumeMath = __esm({
-      "src/folia/components/visualizer/fume/fumeMath.ts"() {
+      "folia/src/components/visualizer/fume/fumeMath.ts"() {
         graphemeSegmenter4 = typeof Intl !== "undefined" ? new Intl.Segmenter(void 0, { granularity: "grapheme" }) : null;
         splitGraphemes3 = (text) => {
           if (!text) return [];
@@ -10835,10 +10835,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/fume/fumeReveal.ts
+    // folia/src/components/visualizer/fume/fumeReveal.ts
     var buildWordRangesFromWords, resolveWordRevealProgress, resolvePrintedGlyphsInRange, hasRevealCompletedByLineEnd, resolveLinePassCutoffTime, resolveVisualProgressWithCutoff, resolvePrintedGraphemeCount, resolvePrintedGraphemeProgress;
     var init_fumeReveal = __esm({
-      "src/folia/components/visualizer/fume/fumeReveal.ts"() {
+      "folia/src/components/visualizer/fume/fumeReveal.ts"() {
         init_graphemeTiming();
         init_renderHints();
         init_fumeMath();
@@ -10990,10 +10990,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/fume/fumeTextMeasure.ts
+    // folia/src/components/visualizer/fume/fumeTextMeasure.ts
     var FUME_PRETEXT_OPTIONS, buildSegmentMetas2, cursorToGlobalOffset2, getPartialSegmentWidth2, widthBetweenOffsets2, buildGlyphOffsets, resolveGlyphAdvance, buildRenderSegments, buildFontSpec, segmentMeasureCanvas, SEGMENT_MEASURE_CACHE_LIMIT, segmentMeasureCache, measureSegmentGlyphOffsets, buildWordRangeIndexByOffset, countRenderableGraphemes, FIT_GUESS_MARGIN, LINEAR_FROM_PX, PIXEL_EDGE_PX, sizeRegime, lineMeasuresFor, countLines, noteFit, prepareLineAt, fitIn, fitsOnOneLine, chooseSingleLineFontPx, resolveRenderLineOffset, resolveSegmentGlyphOffset, resolveSegmentGlyphAdvance;
     var init_fumeTextMeasure = __esm({
-      "src/folia/components/visualizer/fume/fumeTextMeasure.ts"() {
+      "folia/src/components/visualizer/fume/fumeTextMeasure.ts"() {
         init_layout();
         init_fontStacks();
         init_fumeMath();
@@ -11267,10 +11267,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/fume/fumeCamera.ts
+    // folia/src/components/visualizer/fume/fumeCamera.ts
     var CAMERA_SCALE_MIN, CAMERA_SCALE_MAX, OVERVIEW_CAMERA_SOURCE, FUME_CAMERA_TELEPORT_TRIGGER_SCREENS, resolveSteppedBlockFocusPoint, resolveSmoothBlockFocusPoint, resolveBlockEntryFocusPoint, resolveCameraScaleForBlock, resolveCameraRetargetDuration, resolveOverviewRetargetDuration, resolveOverviewFlightBridge, resolveArticleOverviewCamera, resolveFocusBlock;
     var init_fumeCamera = __esm({
-      "src/folia/components/visualizer/fume/fumeCamera.ts"() {
+      "folia/src/components/visualizer/fume/fumeCamera.ts"() {
         init_renderHints();
         init_fumeMath();
         init_fumeReveal();
@@ -11535,10 +11535,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/fume/fumeCameraStep.ts
+    // folia/src/components/visualizer/fume/fumeCameraStep.ts
     var createFumeCameraState, syncFumeCameraToArticle, stepFumeCamera, FUME_BACKGROUND_PARALLAX_X, FUME_BACKGROUND_PARALLAX_Y, FUME_BACKGROUND_SCALE_FACTOR, FUME_BACKGROUND_VERTICAL_OFFSET_RATIO, resolveFumeBackgroundView;
     var init_fumeCameraStep = __esm({
-      "src/folia/components/visualizer/fume/fumeCameraStep.ts"() {
+      "folia/src/components/visualizer/fume/fumeCameraStep.ts"() {
         init_fumeMath();
         init_fumeReveal();
         init_fumeCamera();
@@ -11878,10 +11878,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/fume/fumeTextStyle.ts
+    // folia/src/components/visualizer/fume/fumeTextStyle.ts
     var lastFumePassedFadeDurationCache, resolvePassedTextStyle, resolvePassedDimAmount, resolveFumePassedFadeDuration, getActiveColor3;
     var init_fumeTextStyle = __esm({
-      "src/folia/components/visualizer/fume/fumeTextStyle.ts"() {
+      "folia/src/components/visualizer/fume/fumeTextStyle.ts"() {
         init_renderHints();
         init_wordColoring();
         init_fumeMath();
@@ -11936,7 +11936,7 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/fume/fumeArticleLayout.ts
+    // folia/src/components/visualizer/fume/fumeArticleLayout.ts
     function* buildArticleLayoutAttempt(lines, viewport, layoutTheme, lyricsFontScale, fumeTuning, options, lineMeasures) {
       if (viewport.width <= 0 || viewport.height <= 0 || lines.length === 0) {
         return null;
@@ -12255,7 +12255,7 @@ function __mpStylesBundle() {
     }
     var nowMs, createFumeLayoutTiming, LAYOUT_SLICE_MS, runLayoutInSlices, chooseNaturalBlockVariant, chooseFallbackHeroBlockIndex, chooseBlockVariant, buildLayoutCacheKey;
     var init_fumeArticleLayout = __esm({
-      "src/folia/components/visualizer/fume/fumeArticleLayout.ts"() {
+      "folia/src/components/visualizer/fume/fumeArticleLayout.ts"() {
         init_layout();
         init_fontStacks();
         init_renderHints();
@@ -12371,10 +12371,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/fume/fumeBlockFrame.ts
+    // folia/src/components/visualizer/fume/fumeBlockFrame.ts
     var resolveFumeGlowBases, isFumeBlockOnScreen, resolveFumeBlockTiming, resolveFumeStaticLayers;
     var init_fumeBlockFrame = __esm({
-      "src/folia/components/visualizer/fume/fumeBlockFrame.ts"() {
+      "folia/src/components/visualizer/fume/fumeBlockFrame.ts"() {
         init_renderHints();
         init_colorMix();
         init_fumeMath();
@@ -12464,10 +12464,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/fume/fumeCanvasText.ts
+    // folia/src/components/visualizer/fume/fumeCanvasText.ts
     var buildCanvasFont2, buildTextStyleKey, roundShadowBlur, drawRenderTextRun, createStaticBlockSnapshot, drawFumeLiveBlock;
     var init_fumeCanvasText = __esm({
-      "src/folia/components/visualizer/fume/fumeCanvasText.ts"() {
+      "folia/src/components/visualizer/fume/fumeCanvasText.ts"() {
         init_fontStacks();
         init_colorMix();
         init_glowBlurQuantize();
@@ -12778,10 +12778,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/fume/fumeLiveRaster.ts
+    // folia/src/components/visualizer/fume/fumeLiveRaster.ts
     var LIVE_IDLE_MS, LIVE_CANVAS_GRANULE, LIVE_RASTER_LEVELS_PER_OCTAVE, resolveLiveRasterScale, FumeLiveRaster;
     var init_fumeLiveRaster = __esm({
-      "src/folia/components/visualizer/fume/fumeLiveRaster.ts"() {
+      "folia/src/components/visualizer/fume/fumeLiveRaster.ts"() {
         init_fumeCanvasText();
         LIVE_IDLE_MS = 5e3;
         LIVE_CANVAS_GRANULE = 256;
@@ -12839,10 +12839,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/fume/fumeStage.ts
+    // folia/src/components/visualizer/fume/fumeStage.ts
     var readFumeAudioLevels;
     var init_fumeStage = __esm({
-      "src/folia/components/visualizer/fume/fumeStage.ts"() {
+      "folia/src/components/visualizer/fume/fumeStage.ts"() {
         readFumeAudioLevels = ({ audioPower, audioBands }) => ({
           power: audioPower.get(),
           bass: audioBands.bass.get(),
@@ -12854,10 +12854,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/fume/useFumeCanvasStage.ts
+    // folia/src/components/visualizer/fume/useFumeCanvasStage.ts
     var SNAPSHOT_IDLE_MS, useFumeCanvasStage, releaseSnapshots;
     var init_useFumeCanvasStage = __esm({
-      "src/folia/components/visualizer/fume/useFumeCanvasStage.ts"() {
+      "folia/src/components/visualizer/fume/useFumeCanvasStage.ts"() {
         init_react_shim();
         init_FumeBackground();
         init_glowBlurQuantize();
@@ -13118,10 +13118,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/styleTransition/firstFrame.ts
+    // folia/src/components/visualizer/styleTransition/firstFrame.ts
     var FirstFrameContext, useFirstFrameDrawn, LayerUnseenContext;
     var init_firstFrame = __esm({
-      "src/folia/components/visualizer/styleTransition/firstFrame.ts"() {
+      "folia/src/components/visualizer/styleTransition/firstFrame.ts"() {
         init_react_shim();
         FirstFrameContext = createContext(null);
         useFirstFrameDrawn = () => {
@@ -13135,22 +13135,22 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/preview/frozenPicture.ts
+    // folia/src/components/visualizer/preview/frozenPicture.ts
     var ARRIVING_MARK;
     var init_frozenPicture = __esm({
-      "src/folia/components/visualizer/preview/frozenPicture.ts"() {
+      "folia/src/components/visualizer/preview/frozenPicture.ts"() {
         ARRIVING_MARK = "data-picture-arriving";
       }
     });
   
-    // src/folia/components/visualizer/fume/VisualizerFume.tsx
+    // folia/src/components/visualizer/fume/VisualizerFume.tsx
     var VisualizerFume_exports = {};
     __export(VisualizerFume_exports, {
       default: () => VisualizerFume_default
     });
     var FUME_LAYOUT_CACHE_SIZE, fumeLayoutCache, keepFumeLayout, LAYOUT_REBUILD_DEBOUNCE_MS, VisualizerFume, VisualizerFume_default;
     var init_VisualizerFume = __esm({
-      "src/folia/components/visualizer/fume/VisualizerFume.tsx"() {
+      "folia/src/components/visualizer/fume/VisualizerFume.tsx"() {
         init_react_shim();
         init_framer_motion();
         init_lucide_react();
@@ -13543,10 +13543,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/services/beatFx/beatEffects.ts
+    // folia/src/services/beatFx/beatEffects.ts
     var BEAT_EFFECT_IDS, smartBeatActive, beatEffectPartId;
     var init_beatEffects = __esm({
-      "src/folia/services/beatFx/beatEffects.ts"() {
+      "folia/src/services/beatFx/beatEffects.ts"() {
         BEAT_EFFECT_IDS = {
           sonnetLensTear: "sonnet.lensTear",
           dioramaRipple: "diorama.ripple",
@@ -13568,10 +13568,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/cameraBar.ts
+    // folia/src/components/visualizer/machi/cameraBar.ts
     var open, listeners, setOpen, closeMachiCameraBar, toggleMachiCameraBar, isMachiCameraBarOpen, subscribeMachiCameraBar;
     var init_cameraBar = __esm({
-      "src/folia/components/visualizer/machi/cameraBar.ts"() {
+      "folia/src/components/visualizer/machi/cameraBar.ts"() {
         open = false;
         listeners = /* @__PURE__ */ new Set();
         setOpen = (next) => {
@@ -13591,10 +13591,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/types.ts
+    // folia/src/components/visualizer/machi/types.ts
     var MACHI_SCENE_IDS, MACHI_TIMES_OF_DAY, MACHI_WEATHERS, MACHI_CAMERA_MODES, MACHI_FOCUS_MODES, MACHI_VIEW_LIMITS, MACHI_DOF_LIMITS, MACHI_APERTURE_STOPS, MACHI_MOTION_SPEED_LIMITS, MACHI_RENDER_SCALES, MACHI_ANTIALIAS_MODES, MACHI_FOLLOW_GLOBAL, MACHI_DETAIL_LEVELS, MACHI_QUALITY_REVISION, MACHI_QUALITY_PRESETS, DEFAULT_MACHI_QUALITY, DEFAULT_MACHI_VIEW, DEFAULT_MACHI_VIEWS, DEFAULT_MACHI_TUNING;
     var init_types2 = __esm({
-      "src/folia/components/visualizer/machi/types.ts"() {
+      "folia/src/components/visualizer/machi/types.ts"() {
         MACHI_SCENE_IDS = ["konbini", "station", "kowloon"];
         MACHI_TIMES_OF_DAY = ["auto", "day", "dusk", "night"];
         MACHI_WEATHERS = ["auto", "clear", "rain", "snow", "fog"];
@@ -13653,10 +13653,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/cameraControls.ts
+    // folia/src/components/visualizer/machi/cameraControls.ts
     var MACHI_CAMERA_LABEL_KEYS, MACHI_FOCUS_LABEL_KEYS, signedReadout, MACHI_VIEW_SLIDERS, APERTURE_TRACK, MACHI_APERTURE_TRACK_MAX, machiApertureToTrack, machiApertureFromTrack, apertureReadout;
     var init_cameraControls = __esm({
-      "src/folia/components/visualizer/machi/cameraControls.ts"() {
+      "folia/src/components/visualizer/machi/cameraControls.ts"() {
         init_settings_card();
         init_types2();
         MACHI_CAMERA_LABEL_KEYS = {
@@ -13688,10 +13688,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/tuningDefinition.ts
+    // folia/src/components/visualizer/tuningDefinition.ts
     var modNumber, MOD_SWITCH, modChoice, numberWithin, defineVisualizerTuning;
     var init_tuningDefinition = __esm({
-      "src/folia/components/visualizer/tuningDefinition.ts"() {
+      "folia/src/components/visualizer/tuningDefinition.ts"() {
         modNumber = (min, max, step) => step === void 0 ? { type: "number", min, max } : { type: "number", min, max, step };
         MOD_SWITCH = { type: "boolean" };
         modChoice = (options) => ({ type: "choice", options });
@@ -13703,10 +13703,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/visualizerSeedHash.ts
+    // folia/src/components/visualizer/visualizerSeedHash.ts
     var hashVisualizerSeed, mixVisualizerSeed, visualizerHash01, createVisualizerRng, createVisualizerRngAt;
     var init_visualizerSeedHash = __esm({
-      "src/folia/components/visualizer/visualizerSeedHash.ts"() {
+      "folia/src/components/visualizer/visualizerSeedHash.ts"() {
         hashVisualizerSeed = (value) => {
           let hash2 = 2166136261;
           for (let index = 0; index < value.length; index += 1) {
@@ -13733,10 +13733,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/machiTuning.ts
+    // folia/src/components/visualizer/machi/machiTuning.ts
     var SCENE_CHOICES, normalizeMachiView, normalizeMachiViews, normalizeMachiQuality, pinMachiQualityForExport, normalizeMachiTuning, resolveMachiSceneId;
     var init_machiTuning = __esm({
-      "src/folia/components/visualizer/machi/machiTuning.ts"() {
+      "folia/src/components/visualizer/machi/machiTuning.ts"() {
         init_tuningDefinition();
         init_visualizerSeedHash();
         init_types2();
@@ -13797,10 +13797,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/services/lucideIconResolver.ts
+    // folia/src/services/lucideIconResolver.ts
     var resolveLucideIcon, resolveLucideIconNode, getLucideIconStatus, loadLucideIcons, resolveLucideIconNames;
     var init_lucideIconResolver = __esm({
-      "src/folia/services/lucideIconResolver.ts"() {
+      "folia/src/services/lucideIconResolver.ts"() {
         resolveLucideIcon = (_name) => null;
         resolveLucideIconNode = (_name) => null;
         getLucideIconStatus = (_name) => "ready";
@@ -13809,20 +13809,20 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/stores/useAppViewStore.ts
+    // folia/src/stores/useAppViewStore.ts
     var STATE, useAppViewStore;
     var init_useAppViewStore = __esm({
-      "src/folia/stores/useAppViewStore.ts"() {
+      "folia/src/stores/useAppViewStore.ts"() {
         STATE = { view: "player" };
         useAppViewStore = (selector) => typeof selector === "function" ? selector(STATE) : STATE;
         useAppViewStore.getState = () => STATE;
       }
     });
   
-    // src/folia/components/visualizer/pixi/pixiRuntimeHost.ts
+    // folia/src/components/visualizer/pixi/pixiRuntimeHost.ts
     var isAbort, useVisualizerPixiHost;
     var init_pixiRuntimeHost = __esm({
-      "src/folia/components/visualizer/pixi/pixiRuntimeHost.ts"() {
+      "folia/src/components/visualizer/pixi/pixiRuntimeHost.ts"() {
         init_react_shim();
         init_firstFrame();
         isAbort = (error) => error instanceof DOMException && error.name === "AbortError";
@@ -13921,20 +13921,20 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/renderQuality/lyricRenderQualityPin.ts
+    // folia/src/components/visualizer/renderQuality/lyricRenderQualityPin.ts
     var QUALITY, useGlobalLyricRenderQuality, useLyricRenderQualityPin;
     var init_lyricRenderQualityPin = __esm({
-      "src/folia/components/visualizer/renderQuality/lyricRenderQualityPin.ts"() {
+      "folia/src/components/visualizer/renderQuality/lyricRenderQualityPin.ts"() {
         QUALITY = { scale: 1, antialias: "auto" };
         useGlobalLyricRenderQuality = () => QUALITY;
         useLyricRenderQualityPin = () => null;
       }
     });
   
-    // src/folia/components/visualizer/songHandover.ts
+    // folia/src/components/visualizer/songHandover.ts
     var EMPTY_COMMITTED_LINES, DEFAULT_INSTRUMENTAL_COMMIT_SECONDS, DEFAULT_READY_GRACE_MS, hashWordSegments, getLyricsSignature, decideSongCommit, isInstrumentalConfirmed, useVisualizerSongCommit;
     var init_songHandover = __esm({
-      "src/folia/components/visualizer/songHandover.ts"() {
+      "folia/src/components/visualizer/songHandover.ts"() {
         init_react_shim();
         EMPTY_COMMITTED_LINES = [];
         DEFAULT_INSTRUMENTAL_COMMIT_SECONDS = 2;
@@ -14045,10 +14045,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/MachiCameraBar.tsx
+    // folia/src/components/visualizer/machi/MachiCameraBar.tsx
     var TABS, lastTab, BarSlider, BarChoice, Viewfinder, MachiCameraBar, MachiCameraBar_default;
     var init_MachiCameraBar = __esm({
-      "src/folia/components/visualizer/machi/MachiCameraBar.tsx"() {
+      "folia/src/components/visualizer/machi/MachiCameraBar.tsx"() {
         init_react_shim();
         init_framer_motion();
         init_lucide_react();
@@ -28245,10 +28245,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/services/analysis/drumHits.ts
+    // folia/src/services/analysis/drumHits.ts
     var DRUM_KICK, DRUM_SNARE, DRUM_HAT, getDrumHits;
     var init_drumHits = __esm({
-      "src/folia/services/analysis/drumHits.ts"() {
+      "folia/src/services/analysis/drumHits.ts"() {
         DRUM_KICK = 1;
         DRUM_SNARE = 2;
         DRUM_HAT = 3;
@@ -28256,10 +28256,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/services/beatFx/beatFxLive.ts
+    // folia/src/services/beatFx/beatFxLive.ts
     var isBeatFxReady, getBeatEffectStrength, getBeatFxHeard, getBeatFxLastBeat, getBeatFxLastDownbeat, getBeatFxTrackScale, getBeatFxFiredCounts, getBeatFxEvents, getBeatFxIntensities, getBeatFxRotationSign, isBeatFxHearing, isBeatEffectPlaying;
     var init_beatFxLive = __esm({
-      "src/folia/services/beatFx/beatFxLive.ts"() {
+      "folia/src/services/beatFx/beatFxLive.ts"() {
         isBeatFxReady = () => false;
         getBeatEffectStrength = (_effectId) => 0;
         getBeatFxHeard = () => ({ key: "", time: null });
@@ -28275,10 +28275,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/services/beatFx/clock.ts
+    // folia/src/services/beatFx/clock.ts
     var BEAT_FX_WEAK_BEAT_FLOOR, resolveBeatFxAccentGain;
     var init_clock = __esm({
-      "src/folia/services/beatFx/clock.ts"() {
+      "folia/src/services/beatFx/clock.ts"() {
         BEAT_FX_WEAK_BEAT_FLOOR = 0.35;
         resolveBeatFxAccentGain = (event, trackScale) => {
           if (event?.rhythmic === false) return 0;
@@ -28288,10 +28288,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/engine/beatFx.ts
+    // folia/src/components/visualizer/machi/engine/beatFx.ts
     var MACHI_NEON_GROUPS, MACHI_BEAT, createMachiBeatFrame, resetMachiBeatFrame, machiNeonGroup, machiLightboxGroup, machiSwell, machiRippleWetness, lastAtOrBefore, groupSwells, neonLife, addNeonBeat, writeNeonFrame, resetNeon, resolveMachiNeonPulse, resolveMachiSteadyNeonPulse, machiDrumHitsAt, pickedCache, pickedDrumHits, pickDrumHits, keptKicks, keptSnares, resolveMachiDrumRipples, resolveMachiScreenFlash, machiSwellPlace, resolveMachiSteadyScreenFlash;
     var init_beatFx = __esm({
-      "src/folia/components/visualizer/machi/engine/beatFx.ts"() {
+      "folia/src/components/visualizer/machi/engine/beatFx.ts"() {
         init_drumHits();
         init_clock();
         MACHI_NEON_GROUPS = 3;
@@ -29310,10 +29310,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/engine/camera.ts
+    // folia/src/components/visualizer/machi/engine/camera.ts
     var DEG, MACHI_CAMERA_LIMITS, DRIFT_RAMP_SECONDS, resolveMachiDrift, MARGIN, SUBTITLE_RESERVE, CAMERA_DISTANCE, CROP_FROM_BOTTOM, orbitDirection, clamp8, sameView, MachiCamera;
     var init_camera = __esm({
-      "src/folia/components/visualizer/machi/engine/camera.ts"() {
+      "folia/src/components/visualizer/machi/engine/camera.ts"() {
         init_three_esm();
         init_OrbitControls();
         DEG = Math.PI / 180;
@@ -29730,10 +29730,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/engine/clock.ts
+    // folia/src/components/visualizer/machi/engine/clock.ts
     var MAX_STEP_SECONDS, MachiClock;
     var init_clock2 = __esm({
-      "src/folia/components/visualizer/machi/engine/clock.ts"() {
+      "folia/src/components/visualizer/machi/engine/clock.ts"() {
         MAX_STEP_SECONDS = 0.1;
         MachiClock = class {
           /** 氛围时间（秒），只在没暂停时前进。 */
@@ -29762,10 +29762,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/utils/lyrics/estimatedLineTiming.ts
+    // folia/src/utils/lyrics/estimatedLineTiming.ts
     var buildTimedWords;
     var init_estimatedLineTiming = __esm({
-      "src/folia/utils/lyrics/estimatedLineTiming.ts"() {
+      "folia/src/utils/lyrics/estimatedLineTiming.ts"() {
         init_graphemeTiming();
         buildTimedWords = (text, startTime, endTime) => {
           const duration = Math.max(endTime - startTime, 0.1);
@@ -29828,16 +29828,16 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/utils/lyrics/ttmlConversion.ts
+    // folia/src/utils/lyrics/ttmlConversion.ts
     var init_ttmlConversion = __esm({
-      "src/folia/utils/lyrics/ttmlConversion.ts"() {
+      "folia/src/utils/lyrics/ttmlConversion.ts"() {
       }
     });
   
-    // src/folia/utils/lyrics/parserCore.ts
+    // folia/src/utils/lyrics/parserCore.ts
     var INTERLUDE_FULL_TEXT, isInterludeLine, attachInterludes, finalizeParsedLyricLines;
     var init_parserCore = __esm({
-      "src/folia/utils/lyrics/parserCore.ts"() {
+      "folia/src/utils/lyrics/parserCore.ts"() {
         init_renderHints();
         init_estimatedLineTiming();
         init_ttml();
@@ -29888,10 +29888,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/engine/director.ts
+    // folia/src/components/visualizer/machi/engine/director.ts
     var BOARD_HOLD_SECONDS, BOARD_LEAD_SECONDS, resolveMachiBoardTarget, sameBoardTarget, isChorusLine, resolveMachiChorus, resolveMachiFlicker, MachiAudioFollower, buildMachiLightningTimes, resolveMachiLightning, resolveMachiTickerText;
     var init_director = __esm({
-      "src/folia/components/visualizer/machi/engine/director.ts"() {
+      "folia/src/components/visualizer/machi/engine/director.ts"() {
         init_parserCore();
         init_renderHints();
         init_visualizerSeedHash();
@@ -29970,10 +29970,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/engine/environment.ts
+    // folia/src/components/visualizer/machi/engine/environment.ts
     var MACHI_DAYLIGHT, smoothstep, resolveMachiDaylightAt, resolveMachiDaylight, AUTO_WEATHER, resolveMachiWeatherKind, resolveMachiEnvironmentTarget, createMachiEnvironmentState, TAU, approach, stepMachiEnvironment, sameMachiEnvironment, resolveMachiEnvironmentLook;
     var init_environment = __esm({
-      "src/folia/components/visualizer/machi/engine/environment.ts"() {
+      "folia/src/components/visualizer/machi/engine/environment.ts"() {
         init_visualizerSeedHash();
         MACHI_DAYLIGHT = { night: 0, dusk: 0.45, day: 1 };
         smoothstep = (edge0, edge1, x4) => {
@@ -30064,10 +30064,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/engine/sheen.ts
+    // folia/src/components/visualizer/machi/engine/sheen.ts
     var MACHI_GLOSS, PAINT_KEYS, GLASS_KEYS, CHROME_KEYS, METAL_KEYS, GROUND_KEYS, machiGlossFor, PARS, DIRECTIONAL, injectMachiSheen;
     var init_sheen = __esm({
-      "src/folia/components/visualizer/machi/engine/sheen.ts"() {
+      "folia/src/components/visualizer/machi/engine/sheen.ts"() {
         init_three_esm();
         MACHI_GLOSS = {
           /** 墙、木头、布：湿了才有一点。 */
@@ -30127,10 +30127,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/engine/snow.ts
+    // folia/src/components/visualizer/machi/engine/snow.ts
     var MACHI_SNOW_MAX_ROOFS, createMachiSnowUniforms, setMachiSnowRoofs, VERTEX_PARS, VERTEX, FRAGMENT_PARS, FRAGMENT, injectMachiSnow;
     var init_snow = __esm({
-      "src/folia/components/visualizer/machi/engine/snow.ts"() {
+      "folia/src/components/visualizer/machi/engine/snow.ts"() {
         init_three_esm();
         MACHI_SNOW_MAX_ROOFS = 4;
         createMachiSnowUniforms = () => ({
@@ -30208,10 +30208,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/engine/fx/ground.ts
+    // folia/src/components/visualizer/machi/engine/fx/ground.ts
     var PARS2, OUTPUT, REFLECT_STRENGTH, MachiGround;
     var init_ground = __esm({
-      "src/folia/components/visualizer/machi/engine/fx/ground.ts"() {
+      "folia/src/components/visualizer/machi/engine/fx/ground.ts"() {
         init_three_esm();
         init_beatFx();
         init_sheen();
@@ -31621,10 +31621,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/engine/programWarmup.ts
+    // folia/src/components/visualizer/machi/engine/programWarmup.ts
     var POLL_MS, GIVE_UP_MS, yieldToMain, compileInto, programsOf, checkedPrograms, reportBrokenPrograms, waitForPrograms;
     var init_programWarmup = __esm({
-      "src/folia/components/visualizer/machi/engine/programWarmup.ts"() {
+      "folia/src/components/visualizer/machi/engine/programWarmup.ts"() {
         POLL_MS = 12;
         GIVE_UP_MS = 8e3;
         yieldToMain = () => {
@@ -32005,10 +32005,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/engine/fx/postPasses.ts
+    // folia/src/components/visualizer/machi/engine/fx/postPasses.ts
     var FULLSCREEN_VERTEX, NOISE_GLSL, GLOW_GLSL, createGlowUniforms, fullscreenMaterial, ATMOSPHERE_FRAGMENT, MachiAtmospherePass, BRIGHT_FRAGMENT, STREAK_BLUR_FRAGMENT, halfFloatTarget, MachiStreakPass;
     var init_postPasses = __esm({
-      "src/folia/components/visualizer/machi/engine/fx/postPasses.ts"() {
+      "folia/src/components/visualizer/machi/engine/fx/postPasses.ts"() {
         init_three_esm();
         init_Pass();
         FULLSCREEN_VERTEX = /* glsl */
@@ -32292,10 +32292,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/engine/fx/bloomPass.ts
+    // folia/src/components/visualizer/machi/engine/fx/bloomPass.ts
     var KERNEL_SIZES, BLUR_X, BLUR_Y, gaussian, blurTaps, BLUR_FRAGMENT, blurMaterial, HIGH_PASS_FRAGMENT, MachiBloomPass;
     var init_bloomPass = __esm({
-      "src/folia/components/visualizer/machi/engine/fx/bloomPass.ts"() {
+      "folia/src/components/visualizer/machi/engine/fx/bloomPass.ts"() {
         init_three_esm();
         init_Pass();
         init_UnrealBloomPass();
@@ -32471,10 +32471,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/engine/fx/lensPass.ts
+    // folia/src/components/visualizer/machi/engine/fx/lensPass.ts
     var LEVEL_MAX_COC, LEVELS, MAX_TAPS, COC_GLSL, PREFILTER_FRAGMENT, DOWNSAMPLE_FRAGMENT, GATHER_FRAGMENT, TENT_FRAGMENT, LENS_FRAGMENT, resolveMachiBokehLevel, MachiLensPass;
     var init_lensPass = __esm({
-      "src/folia/components/visualizer/machi/engine/fx/lensPass.ts"() {
+      "folia/src/components/visualizer/machi/engine/fx/lensPass.ts"() {
         init_three_esm();
         init_Pass();
         init_postPasses();
@@ -32853,10 +32853,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/engine/fx/post.ts
+    // folia/src/components/visualizer/machi/engine/fx/post.ts
     var BLOOM_SCALE, passMaterials, createSceneTarget, MachiPost;
     var init_post = __esm({
-      "src/folia/components/visualizer/machi/engine/fx/post.ts"() {
+      "folia/src/components/visualizer/machi/engine/fx/post.ts"() {
         init_three_esm();
         init_EffectComposer();
         init_FXAAPass();
@@ -33052,10 +33052,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/engine/lens.ts
+    // folia/src/components/visualizer/machi/engine/lens.ts
     var MACHI_BASE_COC, MACHI_REFERENCE_APERTURE, resolveMachiLens;
     var init_lens = __esm({
-      "src/folia/components/visualizer/machi/engine/lens.ts"() {
+      "folia/src/components/visualizer/machi/engine/lens.ts"() {
         MACHI_BASE_COC = 0.012;
         MACHI_REFERENCE_APERTURE = 8;
         resolveMachiLens = (tuning, zoom) => {
@@ -33071,10 +33071,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/engine/quality.ts
+    // folia/src/components/visualizer/machi/engine/quality.ts
     var SHADOW_MAP_SIZES, REFLECTION_SCALES, MAX_DEVICE_RATIO, MAX_SUPERSAMPLED_RATIO, SUPERSAMPLE, PREVIEW_PIXEL_RATIO, SMAA_SAMPLES, LEVEL_DOWN, POST_AA_DOWN, SCALE_DOWN, DEGRADE_STEPS, DEGRADE_MAX_FRAME_MS, DEGRADE_MIN_FRAME_MS, DEGRADE_SLACK, DEGRADE_SLOW_CHECKS, DEGRADE_RELIEF, DEGRADE_STEADY, createMachiDegradeState, resolveMachiDegradeThreshold, stepMachiDegrade, settle, resolveMachiRenderQuality;
     var init_quality = __esm({
-      "src/folia/components/visualizer/machi/engine/quality.ts"() {
+      "folia/src/components/visualizer/machi/engine/quality.ts"() {
         init_lyricRenderQuality();
         SHADOW_MAP_SIZES = { off: 0, low: 1024, high: 2048 };
         REFLECTION_SCALES = { off: 0, low: 0.3, high: 0.5 };
@@ -33180,10 +33180,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/engine/fx/reflection.ts
+    // folia/src/components/visualizer/machi/engine/fx/reflection.ts
     var MACHI_REFLECT_LAYER, MachiReflection;
     var init_reflection = __esm({
-      "src/folia/components/visualizer/machi/engine/fx/reflection.ts"() {
+      "folia/src/components/visualizer/machi/engine/fx/reflection.ts"() {
         init_three_esm();
         init_programWarmup();
         MACHI_REFLECT_LAYER = 1;
@@ -33296,10 +33296,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/engine/fx/weather.ts
+    // folia/src/components/visualizer/machi/engine/fx/weather.ts
     var RAIN_TOP, MAX_ROOFS, GROUND_GLSL, RAIN_VERTEX, RAIN_FRAGMENT, SPLASH_VERTEX, SPLASH_FRAGMENT, DRIP_VERTEX, SNOW_VERTEX, SNOW_FRAGMENT, DRIP_FRAGMENT, additive, MachiWeather;
     var init_weather = __esm({
-      "src/folia/components/visualizer/machi/engine/fx/weather.ts"() {
+      "folia/src/components/visualizer/machi/engine/fx/weather.ts"() {
         init_three_esm();
         RAIN_TOP = 9.5;
         MAX_ROOFS = 4;
@@ -33705,10 +33705,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/engine/materials.ts
+    // folia/src/components/visualizer/machi/engine/materials.ts
     var flattenMachiPalette, MachiColorBlend, createToonGradient, MachiMaterials;
     var init_materials = __esm({
-      "src/folia/components/visualizer/machi/engine/materials.ts"() {
+      "folia/src/components/visualizer/machi/engine/materials.ts"() {
         init_three_esm();
         init_sheen();
         init_snow();
@@ -33890,10 +33890,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/utils/themeColorMath.ts
+    // folia/src/utils/themeColorMath.ts
     var FALLBACK_THEME_COLOR, clamp01, clampChannel, normalizeHue, parseThemeColor, rgbToHex, rgbToHsl, hslToRgb, hexToHsl, hslToHex, mixHexColors, getRelativeLuminance, getContrastRatio, getHueDistance, adjustLightnessForContrast;
     var init_themeColorMath = __esm({
-      "src/folia/utils/themeColorMath.ts"() {
+      "folia/src/utils/themeColorMath.ts"() {
         init_colorMix();
         FALLBACK_THEME_COLOR = "#4f7cff";
         clamp01 = (value) => Math.max(0, Math.min(1, value));
@@ -34014,10 +34014,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/engine/palette.ts
+    // folia/src/components/visualizer/machi/engine/palette.ts
     var MACHI_LIGHT_THEME_LUMINANCE, MACHI_BOARD_MIN_CONTRAST, CHROMATIC_SATURATION, CLASSIC_BRAND_TRIADS, PRODUCT_FALLBACK, ART, clampRange, hslOf, isChromatic, vivid, pullHue, tintDark, seedIndex, chromaticCandidates, resolveBrand, resolveBoard, resolveProducts, resolveMachiPalette;
     var init_palette = __esm({
-      "src/folia/components/visualizer/machi/engine/palette.ts"() {
+      "folia/src/components/visualizer/machi/engine/palette.ts"() {
         init_themeColorMath();
         init_visualizerSeedHash();
         MACHI_LIGHT_THEME_LUMINANCE = 0.4;
@@ -34196,10 +34196,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/engine/sky.ts
+    // folia/src/components/visualizer/machi/engine/sky.ts
     var MachiSky;
     var init_sky = __esm({
-      "src/folia/components/visualizer/machi/engine/sky.ts"() {
+      "folia/src/components/visualizer/machi/engine/sky.ts"() {
         init_three_esm();
         MachiSky = class {
           texture;
@@ -34227,10 +34227,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/engine/skyLights.ts
+    // folia/src/components/visualizer/machi/engine/skyLights.ts
     var DIRECTIONS, LIGHT_DISTANCE, SHADOW_REDRAW_STEP, MachiSkyLights;
     var init_skyLights = __esm({
-      "src/folia/components/visualizer/machi/engine/skyLights.ts"() {
+      "folia/src/components/visualizer/machi/engine/skyLights.ts"() {
         init_three_esm();
         init_environment();
         DIRECTIONS = {
@@ -34322,10 +34322,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/engine/actors/schedules.ts
+    // folia/src/components/visualizer/machi/engine/actors/schedules.ts
     var MACHI_CAR_SPEED, CAR_WINDOW, laneLength, resolveMachiCar;
     var init_schedules = __esm({
-      "src/folia/components/visualizer/machi/engine/actors/schedules.ts"() {
+      "folia/src/components/visualizer/machi/engine/actors/schedules.ts"() {
         init_visualizerSeedHash();
         MACHI_CAR_SPEED = 6.5;
         CAR_WINDOW = 9.5;
@@ -34351,10 +34351,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lucidePath2d.ts
+    // folia/src/components/visualizer/lucidePath2d.ts
     var lucideIconPath2d;
     var init_lucidePath2d = __esm({
-      "src/folia/components/visualizer/lucidePath2d.ts"() {
+      "folia/src/components/visualizer/lucidePath2d.ts"() {
         lucideIconPath2d = (node2, into = new Path2D()) => {
           node2.forEach((entry) => {
             const [tag, attrs, children] = entry;
@@ -34389,10 +34389,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/engine/signRaster.ts
+    // folia/src/components/visualizer/machi/engine/signRaster.ts
     var MACHI_REFERENCE_PX, fontSpec, measureContext2, createMachiMeasure, createCanvas, context2d, drawIcon, strokeNeonText, fitFont, wrapText, paintMachiBoard, paintMachiLedStrip;
     var init_signRaster = __esm({
-      "src/folia/components/visualizer/machi/engine/signRaster.ts"() {
+      "folia/src/components/visualizer/machi/engine/signRaster.ts"() {
         init_lucideIconResolver();
         init_lucidePath2d();
         MACHI_REFERENCE_PX = 100;
@@ -34520,10 +34520,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/engine/actors/nobori.ts
+    // folia/src/components/visualizer/machi/engine/actors/nobori.ts
     var FLAG, WAVE_SEGMENTS, WAVE_PARS, WAVE_VERTEX, drawVertical, MachiNobori;
     var init_nobori = __esm({
-      "src/folia/components/visualizer/machi/engine/actors/nobori.ts"() {
+      "folia/src/components/visualizer/machi/engine/actors/nobori.ts"() {
         init_three_esm();
         init_signRaster();
         FLAG = { width: 0.46, height: 1.5, bottom: 0.62 };
@@ -34899,10 +34899,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/engine/geometry/shapes.ts
+    // folia/src/components/visualizer/machi/engine/geometry/shapes.ts
     var activeCache, sharedGeometries, withGeometryCache, roundedBox, mesh, boxAt, boxSpan, cylinderAt, tubeBetween, sagWire, group, normalizeForMerge, bakeStatic;
     var init_shapes = __esm({
-      "src/folia/components/visualizer/machi/engine/geometry/shapes.ts"() {
+      "folia/src/components/visualizer/machi/engine/geometry/shapes.ts"() {
         init_three_esm();
         init_RoundedBoxGeometry();
         init_BufferGeometryUtils();
@@ -35056,10 +35056,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/engine/actors/traffic.ts
+    // folia/src/components/visualizer/machi/engine/actors/traffic.ts
     var WHEEL_RADIUS, MACHI_TRAFFIC_CAR, CAR_COLORS, TAXI_INDEX, createBaseClippingPlanes, clipToBase, createSoftEllipseTexture, MachiTraffic;
     var init_traffic = __esm({
-      "src/folia/components/visualizer/machi/engine/actors/traffic.ts"() {
+      "folia/src/components/visualizer/machi/engine/actors/traffic.ts"() {
         init_three_esm();
         init_shapes();
         init_reflection();
@@ -35229,10 +35229,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/engine/fx/lightCones.ts
+    // folia/src/components/visualizer/machi/engine/fx/lightCones.ts
     var VERTEX2, FRAGMENT2, cone, MachiLightCones;
     var init_lightCones = __esm({
-      "src/folia/components/visualizer/machi/engine/fx/lightCones.ts"() {
+      "folia/src/components/visualizer/machi/engine/fx/lightCones.ts"() {
         init_three_esm();
         init_BufferGeometryUtils();
         VERTEX2 = /* glsl */
@@ -35334,10 +35334,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/engine/fx/steam.ts
+    // folia/src/components/visualizer/machi/engine/fx/steam.ts
     var VERTEX3, FRAGMENT3, MachiSteam;
     var init_steam = __esm({
-      "src/folia/components/visualizer/machi/engine/fx/steam.ts"() {
+      "folia/src/components/visualizer/machi/engine/fx/steam.ts"() {
         init_three_esm();
         VERTEX3 = /* glsl */
         `
@@ -35436,10 +35436,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/scenes/konbini/layout.ts
+    // folia/src/components/visualizer/machi/scenes/konbini/layout.ts
     var DEG2, BASE, LEVEL, ROAD, STORE, DOOR, FASCIA, BOARD, KONBINI_VIEW, PROPS;
     var init_layout2 = __esm({
-      "src/folia/components/visualizer/machi/scenes/konbini/layout.ts"() {
+      "folia/src/components/visualizer/machi/scenes/konbini/layout.ts"() {
         DEG2 = Math.PI / 180;
         BASE = { half: 6, depth: 0.6, radius: 0.12 };
         LEVEL = {
@@ -35513,10 +35513,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/engine/geometry/plinth.ts
+    // folia/src/components/visualizer/machi/engine/geometry/plinth.ts
     var MACHI_BASE, buildMachiPlinth, SURFACE_LIFT, machiSurface;
     var init_plinth = __esm({
-      "src/folia/components/visualizer/machi/engine/geometry/plinth.ts"() {
+      "folia/src/components/visualizer/machi/engine/geometry/plinth.ts"() {
         init_three_esm();
         init_shapes();
         MACHI_BASE = { half: 6, depth: 0.6, radius: 0.12 };
@@ -35548,10 +35548,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/scenes/konbini/base.ts
+    // folia/src/components/visualizer/machi/scenes/konbini/base.ts
     var buildLots, buildRoadPaint, buildRoadFixtures, buildKonbiniBase;
     var init_base = __esm({
-      "src/folia/components/visualizer/machi/scenes/konbini/base.ts"() {
+      "folia/src/components/visualizer/machi/scenes/konbini/base.ts"() {
         init_three_esm();
         init_layout2();
         init_plinth();
@@ -35674,10 +35674,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/scenes/konbini/interior.ts
+    // folia/src/components/visualizer/machi/scenes/konbini/interior.ts
     var SHELF_ROWS, SHELF_X, SHELF_DEPTH, SHELF_HEIGHT, SHELF_LEVELS, FRIDGE, buildGondola, fillGondola, buildFridge, fillFridge, buildCounter, buildFixtures, buildCeilingLights, productBatch, buildKonbiniInterior;
     var init_interior = __esm({
-      "src/folia/components/visualizer/machi/scenes/konbini/interior.ts"() {
+      "folia/src/components/visualizer/machi/scenes/konbini/interior.ts"() {
         init_three_esm();
         init_visualizerSeedHash();
         init_layout2();
@@ -35884,10 +35884,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/paragraphStructure.ts
+    // folia/src/components/visualizer/paragraphStructure.ts
     var DEFAULT_PARAGRAPH_STRUCTURE_PARAMS, clamp9, median, buildStructureLines, resolveParagraphGapThreshold, metadataChanged, splitOversizedDraft, draftParagraphs, countWordLike, classifyParagraph;
     var init_paragraphStructure = __esm({
-      "src/folia/components/visualizer/paragraphStructure.ts"() {
+      "folia/src/components/visualizer/paragraphStructure.ts"() {
         init_renderHints();
         init_wordSegmentation();
         DEFAULT_PARAGRAPH_STRUCTURE_PARAMS = {
@@ -35971,10 +35971,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/scenes/konbini/konbiniDoor.ts
+    // folia/src/components/visualizer/machi/scenes/konbini/konbiniDoor.ts
     var KONBINI_DOOR_TIMING, DOOR_CYCLE, buildKonbiniDoorEvents, easeOutCubic3, easeInOutCubic2, resolveKonbiniDoorOpenness;
     var init_konbiniDoor = __esm({
-      "src/folia/components/visualizer/machi/scenes/konbini/konbiniDoor.ts"() {
+      "folia/src/components/visualizer/machi/scenes/konbini/konbiniDoor.ts"() {
         init_parserCore();
         init_renderHints();
         init_paragraphStructure();
@@ -36025,10 +36025,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/scenes/konbini/konbiniLights.ts
+    // folia/src/components/visualizer/machi/scenes/konbini/konbiniLights.ts
     var createPoolTexture, KonbiniLights;
     var init_konbiniLights = __esm({
-      "src/folia/components/visualizer/machi/scenes/konbini/konbiniLights.ts"() {
+      "folia/src/components/visualizer/machi/scenes/konbini/konbiniLights.ts"() {
         init_three_esm();
         init_layout2();
         createPoolTexture = (round) => {
@@ -36156,10 +36156,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/scenes/konbini/konbiniSeed.ts
+    // folia/src/components/visualizer/machi/scenes/konbini/konbiniSeed.ts
     var resolveKonbiniVariation;
     var init_konbiniSeed = __esm({
-      "src/folia/components/visualizer/machi/scenes/konbini/konbiniSeed.ts"() {
+      "folia/src/components/visualizer/machi/scenes/konbini/konbiniSeed.ts"() {
         init_visualizerSeedHash();
         resolveKonbiniVariation = (seed) => {
           const random = createVisualizerRng(`machi:${seed}`);
@@ -36184,10 +36184,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/engine/ledStrip.ts
+    // folia/src/components/visualizer/machi/engine/ledStrip.ts
     var TEXTURE, VERTEX4, FRAGMENT4, MachiLedStrip;
     var init_ledStrip = __esm({
-      "src/folia/components/visualizer/machi/engine/ledStrip.ts"() {
+      "folia/src/components/visualizer/machi/engine/ledStrip.ts"() {
         init_three_esm();
         init_signRaster();
         TEXTURE = { width: 4096, height: 96 };
@@ -36306,10 +36306,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/engine/boardLayout.ts
+    // folia/src/components/visualizer/machi/engine/boardLayout.ts
     var MAX_ROWS, SINGLE_ROW_FILL, LINE_GAP, ROW_PENALTY, CJK_PATTERN, STICKY_PUNCTUATION, tokenize, tokenText, rowWidth, splitRows, layoutMachiBoardLine, placeRows, layoutMachiBoardCard, resolveMachiBoardReveal;
     var init_boardLayout = __esm({
-      "src/folia/components/visualizer/machi/engine/boardLayout.ts"() {
+      "folia/src/components/visualizer/machi/engine/boardLayout.ts"() {
         init_graphemeTiming();
         MAX_ROWS = 3;
         SINGLE_ROW_FILL = 0.56;
@@ -36463,10 +36463,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/engine/lyricScreen.ts
+    // folia/src/components/visualizer/machi/engine/lyricScreen.ts
     var TEXTURE_WIDTH, SWITCH_SECONDS, CELLS_X, PEAK, POOL_SIZE, VERTEX5, FRAGMENT5, MachiLyricScreen;
     var init_lyricScreen = __esm({
-      "src/folia/components/visualizer/machi/engine/lyricScreen.ts"() {
+      "folia/src/components/visualizer/machi/engine/lyricScreen.ts"() {
         init_three_esm();
         init_wordColoring();
         init_boardLayout();
@@ -36740,10 +36740,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/scenes/konbini/konbiniSignPaint.ts
+    // folia/src/components/visualizer/machi/scenes/konbini/konbiniSignPaint.ts
     var paintKonbiniFascia, paintKonbiniPylon, paintKonbiniPoster, paintKonbiniRoofLogo, paintKonbiniNeon, paintKonbiniAFrame;
     var init_konbiniSignPaint = __esm({
-      "src/folia/components/visualizer/machi/scenes/konbini/konbiniSignPaint.ts"() {
+      "folia/src/components/visualizer/machi/scenes/konbini/konbiniSignPaint.ts"() {
         init_signRaster();
         paintKonbiniFascia = (canvas3, paint) => {
           const context = context2d(canvas3);
@@ -36905,10 +36905,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/scenes/konbini/konbiniSigns.ts
+    // folia/src/components/visualizer/machi/scenes/konbini/konbiniSigns.ts
     var canvasTexture, placedPlane, KonbiniSigns;
     var init_konbiniSigns = __esm({
-      "src/folia/components/visualizer/machi/scenes/konbini/konbiniSigns.ts"() {
+      "folia/src/components/visualizer/machi/scenes/konbini/konbiniSigns.ts"() {
         init_three_esm();
         init_wordColoring();
         init_beatFx();
@@ -37111,10 +37111,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/scenes/konbini/props.ts
+    // folia/src/components/visualizer/machi/scenes/konbini/props.ts
     var v2, buildVendingMachine, buildBicycle, buildAcUnit, buildStreetLamp, buildUtilityPole, buildPylon, buildCurveMirror, buildStopSign, buildTrash, buildUmbrellas, buildAFrame, buildKonbiniSongProps, buildKonbiniProps;
     var init_props = __esm({
-      "src/folia/components/visualizer/machi/scenes/konbini/props.ts"() {
+      "folia/src/components/visualizer/machi/scenes/konbini/props.ts"() {
         init_three_esm();
         init_layout2();
         init_shapes();
@@ -37508,10 +37508,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/scenes/konbini/store.ts
+    // folia/src/components/visualizer/machi/scenes/konbini/store.ts
     var x0, x1, z0, z1, wall, buildShell, buildGlazing, buildDoor, buildRoof, buildFascia, buildBoardTower, buildKonbiniStore;
     var init_store = __esm({
-      "src/folia/components/visualizer/machi/scenes/konbini/store.ts"() {
+      "folia/src/components/visualizer/machi/scenes/konbini/store.ts"() {
         init_three_esm();
         init_reflection();
         init_layout2();
@@ -37771,10 +37771,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/scenes/konbini/konbiniScene.ts
+    // folia/src/components/visualizer/machi/scenes/konbini/konbiniScene.ts
     var KONBINI_ART, BIKE_COLORS, UMBRELLA_COLORS, resolveKonbiniArt, DOOR_SHADOW_STEP, KONBINI_GLOWS, LANE_REACH, KONBINI_LANES, framingPoints, konbiniDrips, isInside, KonbiniScene, KONBINI_SCENE;
     var init_konbiniScene = __esm({
-      "src/folia/components/visualizer/machi/scenes/konbini/konbiniScene.ts"() {
+      "folia/src/components/visualizer/machi/scenes/konbini/konbiniScene.ts"() {
         init_three_esm();
         init_themeColorMath();
         init_schedules();
@@ -38120,10 +38120,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/scenes/kowloon/layout.ts
+    // folia/src/components/visualizer/machi/scenes/kowloon/layout.ts
     var DEG3, LEVEL2, FLOORS, BLOCKS, leftFaceAt, BAR, BAR_SIGN, TICKER, SCREEN, HANGING_SIGNS, SIGN_DEPTH, ROOF_BILLBOARD, HOLOGRAM, STALL, STALL_TABLE, POLE, VENDING, KOWLOON_VIEW;
     var init_layout3 = __esm({
-      "src/folia/components/visualizer/machi/scenes/kowloon/layout.ts"() {
+      "folia/src/components/visualizer/machi/scenes/kowloon/layout.ts"() {
         DEG3 = Math.PI / 180;
         LEVEL2 = {
           ground: 0.02,
@@ -38187,10 +38187,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/scenes/kowloon/bar.ts
+    // folia/src/components/visualizer/machi/scenes/kowloon/bar.ts
     var BOTTLE_COLORS, buildKowloonBar;
     var init_bar = __esm({
-      "src/folia/components/visualizer/machi/scenes/kowloon/bar.ts"() {
+      "folia/src/components/visualizer/machi/scenes/kowloon/bar.ts"() {
         init_three_esm();
         init_visualizerSeedHash();
         init_reflection();
@@ -38313,10 +38313,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/scenes/kowloon/blocks.ts
+    // folia/src/components/visualizer/machi/scenes/kowloon/blocks.ts
     var WINDOW_LIGHTS, WINDOW_WEIGHTS, CLOTHES, UP, facesOf, insideAnyBlock, insideAny, facePoint, faceBounds, hitsAny, faceBox, pickWeighted, instanced, buildKowloonBlocks, buildRoofClutter;
     var init_blocks = __esm({
-      "src/folia/components/visualizer/machi/scenes/kowloon/blocks.ts"() {
+      "folia/src/components/visualizer/machi/scenes/kowloon/blocks.ts"() {
         init_three_esm();
         init_visualizerSeedHash();
         init_shapes();
@@ -38599,10 +38599,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/scenes/kowloon/kowloonLights.ts
+    // folia/src/components/visualizer/machi/scenes/kowloon/kowloonLights.ts
     var KowloonLights;
     var init_kowloonLights = __esm({
-      "src/folia/components/visualizer/machi/scenes/kowloon/kowloonLights.ts"() {
+      "folia/src/components/visualizer/machi/scenes/kowloon/kowloonLights.ts"() {
         init_three_esm();
         init_traffic();
         init_layout3();
@@ -38684,10 +38684,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/scenes/kowloon/hologram.ts
+    // folia/src/components/visualizer/machi/scenes/kowloon/hologram.ts
     var resolveKowloonHologramText, TEXTURE2, SWITCH_SECONDS2, PANEL_VERTEX, PANEL_FRAGMENT, BEAM_FRAGMENT, additive2, KowloonHologram;
     var init_hologram = __esm({
-      "src/folia/components/visualizer/machi/scenes/kowloon/hologram.ts"() {
+      "folia/src/components/visualizer/machi/scenes/kowloon/hologram.ts"() {
         init_three_esm();
         init_signRaster();
         resolveKowloonHologramText = (target, lines, song) => {
@@ -38916,10 +38916,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/scenes/kowloon/kowloonSignPaint.ts
+    // folia/src/components/visualizer/machi/scenes/kowloon/kowloonSignPaint.ts
     var CJK, NEON_BACKGROUND, resolveKowloonVerticalText, roundRect, paintPanel, writeText, paintKowloonSign, drawCocktail, paintKowloonBarSign;
     var init_kowloonSignPaint = __esm({
-      "src/folia/components/visualizer/machi/scenes/kowloon/kowloonSignPaint.ts"() {
+      "folia/src/components/visualizer/machi/scenes/kowloon/kowloonSignPaint.ts"() {
         init_signRaster();
         CJK = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/u;
         NEON_BACKGROUND = "#130f19";
@@ -39068,10 +39068,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/scenes/kowloon/kowloonSigns.ts
+    // folia/src/components/visualizer/machi/scenes/kowloon/kowloonSigns.ts
     var VERTICAL_SHOPS, HORIZONTAL_SHOPS, NEON_COLORS, BOX_STYLES, PX_PER_METER, ATLAS_WIDTH, ATLAS_PAD, ATLAS_SLOTS, packAtlas, atlasFace, resolveKowloonTickerText, KowloonSigns;
     var init_kowloonSigns = __esm({
-      "src/folia/components/visualizer/machi/scenes/kowloon/kowloonSigns.ts"() {
+      "folia/src/components/visualizer/machi/scenes/kowloon/kowloonSigns.ts"() {
         init_three_esm();
         init_BufferGeometryUtils();
         init_themeColorMath();
@@ -39364,10 +39364,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/scenes/kowloon/street.ts
+    // folia/src/components/visualizer/machi/scenes/kowloon/street.ts
     var v3, hangingSignBox, kowloonWindowAvoid, kowloonScreenFront, buildGround, buildShopfronts, buildHangingSigns, buildRoofBillboard, buildStall, buildPole, buildCables, buildProps, buildScooter, buildKowloonStreet, kowloonFramingPoints;
     var init_street = __esm({
-      "src/folia/components/visualizer/machi/scenes/kowloon/street.ts"() {
+      "folia/src/components/visualizer/machi/scenes/kowloon/street.ts"() {
         init_three_esm();
         init_visualizerSeedHash();
         init_plinth();
@@ -39720,10 +39720,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/scenes/kowloon/kowloonScene.ts
+    // folia/src/components/visualizer/machi/scenes/kowloon/kowloonScene.ts
     var KOWLOON_ART, resolveKowloonArt, KOWLOON_GLOWS, blockOf, kowloonRoofs, smoothNight, KowloonScene, KOWLOON_SCENE;
     var init_kowloonScene = __esm({
-      "src/folia/components/visualizer/machi/scenes/kowloon/kowloonScene.ts"() {
+      "folia/src/components/visualizer/machi/scenes/kowloon/kowloonScene.ts"() {
         init_three_esm();
         init_themeColorMath();
         init_visualizerSeedHash();
@@ -40037,10 +40037,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/scenes/station/layout.ts
+    // folia/src/components/visualizer/machi/scenes/station/layout.ts
     var DEG4, LEVEL3, ROAD2, CANOPY, ISLANDS, APRON, TRUCK, TRUCK_SCREEN, STALLS, CAR, PUMP_CAR, KEI_TRUCK, APRON_PROPS, PYLON, MOTEL_SIGN, LOT_LAMP, STATION_VIEW;
     var init_layout4 = __esm({
-      "src/folia/components/visualizer/machi/scenes/station/layout.ts"() {
+      "folia/src/components/visualizer/machi/scenes/station/layout.ts"() {
         DEG4 = Math.PI / 180;
         LEVEL3 = {
           road: 0,
@@ -40124,10 +40124,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/scenes/station/stationLights.ts
+    // folia/src/components/visualizer/machi/scenes/station/stationLights.ts
     var StationLights;
     var init_stationLights = __esm({
-      "src/folia/components/visualizer/machi/scenes/station/stationLights.ts"() {
+      "folia/src/components/visualizer/machi/scenes/station/stationLights.ts"() {
         init_three_esm();
         init_traffic();
         init_layout4();
@@ -40213,10 +40213,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/scenes/station/stationSeed.ts
+    // folia/src/components/visualizer/machi/scenes/station/stationSeed.ts
     var STALL_PATTERNS, resolveStationVariation;
     var init_stationSeed = __esm({
-      "src/folia/components/visualizer/machi/scenes/station/stationSeed.ts"() {
+      "folia/src/components/visualizer/machi/scenes/station/stationSeed.ts"() {
         init_visualizerSeedHash();
         STALL_PATTERNS = [
           ["taxi", "sedan", "taxi"],
@@ -40249,10 +40249,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/scenes/station/stationSignPaint.ts
+    // folia/src/components/visualizer/machi/scenes/station/stationSignPaint.ts
     var paintStationCanopy, SEGMENTS, drawSevenSegment, paintStationPylon, paintMotelTall, paintMotelName, paintMotelVacancy;
     var init_stationSignPaint = __esm({
-      "src/folia/components/visualizer/machi/scenes/station/stationSignPaint.ts"() {
+      "folia/src/components/visualizer/machi/scenes/station/stationSignPaint.ts"() {
         init_signRaster();
         paintStationCanopy = (canvas3, paint) => {
           const context = context2d(canvas3);
@@ -40429,10 +40429,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/scenes/station/stationSigns.ts
+    // folia/src/components/visualizer/machi/scenes/station/stationSigns.ts
     var BULB_VERTEX, BULB_FRAGMENT, canvasTexture2, placedPlane2, formatClock, StationSigns;
     var init_stationSigns = __esm({
-      "src/folia/components/visualizer/machi/scenes/station/stationSigns.ts"() {
+      "folia/src/components/visualizer/machi/scenes/station/stationSigns.ts"() {
         init_three_esm();
         init_wordColoring();
         init_beatFx();
@@ -40674,10 +40674,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/scenes/station/structures.ts
+    // folia/src/components/visualizer/machi/scenes/station/structures.ts
     var v4, buildStationGround, buildCanopy, buildIslands, buildPylon2, buildMotelSign, buildLotLamp, buildStationProps, stationFramingPoints;
     var init_structures = __esm({
-      "src/folia/components/visualizer/machi/scenes/station/structures.ts"() {
+      "folia/src/components/visualizer/machi/scenes/station/structures.ts"() {
         init_three_esm();
         init_plinth();
         init_shapes();
@@ -40943,10 +40943,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/scenes/station/vehicles.ts
+    // folia/src/components/visualizer/machi/scenes/station/vehicles.ts
     var WHEEL_RADIUS2, wheel, buildParkedCar, buildAdTruck;
     var init_vehicles = __esm({
-      "src/folia/components/visualizer/machi/scenes/station/vehicles.ts"() {
+      "folia/src/components/visualizer/machi/scenes/station/vehicles.ts"() {
         init_three_esm();
         init_shapes();
         init_layout4();
@@ -41064,10 +41064,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/scenes/station/stationScene.ts
+    // folia/src/components/visualizer/machi/scenes/station/stationScene.ts
     var CAR_COLORS2, TAXI_LIVERIES, STATION_ART, resolveStationArt, STATION_GLOWS, LANE_REACH2, STATION_LANES, hazardOn, stationDrips, StationScene, STATION_SCENE;
     var init_stationScene = __esm({
-      "src/folia/components/visualizer/machi/scenes/station/stationScene.ts"() {
+      "folia/src/components/visualizer/machi/scenes/station/stationScene.ts"() {
         init_three_esm();
         init_visualizerSeedHash();
         init_nobori();
@@ -41404,10 +41404,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/scenes/index.ts
+    // folia/src/components/visualizer/machi/scenes/index.ts
     var MACHI_SCENES;
     var init_scenes = __esm({
-      "src/folia/components/visualizer/machi/scenes/index.ts"() {
+      "folia/src/components/visualizer/machi/scenes/index.ts"() {
         init_konbiniScene();
         init_kowloonScene();
         init_stationScene();
@@ -41419,18 +41419,18 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/services/analysis/gpuActivity.ts
+    // folia/src/services/analysis/gpuActivity.ts
     var isGpuAnalysisActive;
     var init_gpuActivity = __esm({
-      "src/folia/services/analysis/gpuActivity.ts"() {
+      "folia/src/services/analysis/gpuActivity.ts"() {
         isGpuAnalysisActive = (_now) => false;
       }
     });
   
-    // src/folia/stores/useVisualizerSettingsStore.ts
+    // folia/src/stores/useVisualizerSettingsStore.ts
     var STATE2, useVisualizerSettingsStore;
     var init_useVisualizerSettingsStore = __esm({
-      "src/folia/stores/useVisualizerSettingsStore.ts"() {
+      "folia/src/stores/useVisualizerSettingsStore.ts"() {
         STATE2 = {
           smartBeat: { mode: "off", effects: {} },
           visualizerFrameRate: 60
@@ -41443,10 +41443,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/degradeStatus.ts
+    // folia/src/components/visualizer/machi/degradeStatus.ts
     var degraded, listeners2, notify, reportMachiDegrade, withdrawMachiDegrade;
     var init_degradeStatus = __esm({
-      "src/folia/components/visualizer/machi/degradeStatus.ts"() {
+      "folia/src/components/visualizer/machi/degradeStatus.ts"() {
         degraded = /* @__PURE__ */ new Map();
         listeners2 = /* @__PURE__ */ new Set();
         notify = () => listeners2.forEach((listener) => listener());
@@ -41461,10 +41461,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/shownScene.ts
+    // folia/src/components/visualizer/machi/shownScene.ts
     var shown, listeners3, notify2, reportMachiShownScene, withdrawMachiShownScene;
     var init_shownScene = __esm({
-      "src/folia/components/visualizer/machi/shownScene.ts"() {
+      "folia/src/components/visualizer/machi/shownScene.ts"() {
         shown = /* @__PURE__ */ new Map();
         listeners3 = /* @__PURE__ */ new Set();
         notify2 = () => listeners3.forEach((listener) => listener());
@@ -41479,14 +41479,14 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/createMachiRuntime.ts
+    // folia/src/components/visualizer/machi/createMachiRuntime.ts
     var createMachiRuntime_exports = {};
     __export(createMachiRuntime_exports, {
       MachiRuntime: () => MachiRuntime
     });
     var throwIfAborted, themeKey, INTENSITY_SCALE, TRAFFIC_CHANCE, DEGRADE_WINDOW_MS, DEGRADE_SETTLE_MS, SIGN_REPAINT_DEBOUNCE_MS, PREHEAT_LEAD_SECONDS, DEG5, CLOCK_CHECK_MS, SCENE_FADE_OUT, SCENE_FADE_IN, WHITE, lerpColor, qualityKey, MachiRuntime;
     var init_createMachiRuntime = __esm({
-      "src/folia/components/visualizer/machi/createMachiRuntime.ts"() {
+      "folia/src/components/visualizer/machi/createMachiRuntime.ts"() {
         init_three_esm();
         init_drumHits();
         init_beatEffects();
@@ -42416,7 +42416,7 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/VisualizerMachi.tsx
+    // folia/src/components/visualizer/machi/VisualizerMachi.tsx
     var VisualizerMachi_exports = {};
     __export(VisualizerMachi_exports, {
       MACHI_FALLBACK_ICONS: () => MACHI_FALLBACK_ICONS,
@@ -42424,7 +42424,7 @@ function __mpStylesBundle() {
     });
     var EMPTY_LINES, MACHI_FALLBACK_ICONS, loadMachiIcons, VisualizerMachi, VisualizerMachi_default;
     var init_VisualizerMachi = __esm({
-      "src/folia/components/visualizer/machi/VisualizerMachi.tsx"() {
+      "folia/src/components/visualizer/machi/VisualizerMachi.tsx"() {
         init_react_shim();
         init_i18n();
         init_lucideIconResolver();
@@ -42684,10 +42684,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/i18n/config.ts
+    // folia/src/i18n/config.ts
     var i18n, config_default;
     var init_config = __esm({
-      "src/folia/i18n/config.ts"() {
+      "folia/src/i18n/config.ts"() {
         i18n = {
           language: "zh",
           t: (key, fallback) => typeof fallback === "string" ? fallback : key,
@@ -42697,10 +42697,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/services/monetPortraitImage.ts
+    // folia/src/services/monetPortraitImage.ts
     var isSupportedMonetPortraitFile, buildStoredMonetPortraitImage, saveMonetPortraitImage, clearMonetPortraitImage;
     var init_monetPortraitImage = __esm({
-      "src/folia/services/monetPortraitImage.ts"() {
+      "folia/src/services/monetPortraitImage.ts"() {
         isSupportedMonetPortraitFile = (_file) => false;
         buildStoredMonetPortraitImage = (_file) => ({ id: "", url: "" });
         saveMonetPortraitImage = async (_image) => void 0;
@@ -42708,18 +42708,18 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/stores/useStatusMessageStore.ts
+    // folia/src/stores/useStatusMessageStore.ts
     var setStatusMessage;
     var init_useStatusMessageStore = __esm({
-      "src/folia/stores/useStatusMessageStore.ts"() {
+      "folia/src/stores/useStatusMessageStore.ts"() {
         setStatusMessage = (_message) => void 0;
       }
     });
   
-    // src/folia/stores/useVisualizerAssetStore.ts
+    // folia/src/stores/useVisualizerAssetStore.ts
     var STATE3, useVisualizerAssetStore;
     var init_useVisualizerAssetStore = __esm({
-      "src/folia/stores/useVisualizerAssetStore.ts"() {
+      "folia/src/stores/useVisualizerAssetStore.ts"() {
         STATE3 = {
           cappellaAvatars: [],
           cappellaEmoji: [],
@@ -42737,10 +42737,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/monet/portraitUpload.ts
+    // folia/src/components/visualizer/monet/portraitUpload.ts
     var monetPortraitActions;
     var init_portraitUpload = __esm({
-      "src/folia/components/visualizer/monet/portraitUpload.ts"() {
+      "folia/src/components/visualizer/monet/portraitUpload.ts"() {
         init_config();
         init_monetPortraitImage();
         init_useStatusMessageStore();
@@ -42776,10 +42776,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/monet/tuning.ts
+    // folia/src/components/visualizer/monet/tuning.ts
     var fontScale, portraitSource, isChromeVisibility, resolveMonetChromeVisibility, MONET_CUSTOM_DESCRIPTION_MAX_LENGTH, customDescription, resolveStoredMonetTuning, tuning_default2;
     var init_tuning = __esm({
-      "src/folia/components/visualizer/monet/tuning.ts"() {
+      "folia/src/components/visualizer/monet/tuning.ts"() {
         init_types();
         init_lyricRenderQuality();
         init_tuningDefinition();
@@ -42869,10 +42869,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/hooks/useElementWidth.ts
+    // folia/src/hooks/useElementWidth.ts
     var useElementWidth;
     var init_useElementWidth = __esm({
-      "src/folia/hooks/useElementWidth.ts"() {
+      "folia/src/hooks/useElementWidth.ts"() {
         init_react_shim();
         useElementWidth = (ref) => {
           const [width, setWidth] = useState(0);
@@ -42898,10 +42898,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/monet/AudioOverlay.tsx
+    // folia/src/components/visualizer/monet/AudioOverlay.tsx
     var BAR_COUNT, MIN_RAW_SPECTRUM_BIN, buildSpectrumAnchors, sampleSpectrumProfile, sampleRawSpectrumProfile, drawStaticBars, AudioOverlay, AudioOverlay_default;
     var init_AudioOverlay = __esm({
-      "src/folia/components/visualizer/monet/AudioOverlay.tsx"() {
+      "folia/src/components/visualizer/monet/AudioOverlay.tsx"() {
         init_react_shim();
         init_lyricRenderQuality();
         init_colorMix();
@@ -43173,18 +43173,18 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/hooks/useLucideIcons.ts
+    // folia/src/hooks/useLucideIcons.ts
     var useLucideIcons;
     var init_useLucideIcons = __esm({
-      "src/folia/hooks/useLucideIcons.ts"() {
+      "folia/src/hooks/useLucideIcons.ts"() {
         useLucideIcons = (_names) => 0;
       }
     });
   
-    // src/folia/components/visualizer/monet/MonetFloatingDecor.tsx
+    // folia/src/components/visualizer/monet/MonetFloatingDecor.tsx
     var PARTICLE_COUNT, buildParticles, MonetFloatingDecor, MonetFloatingDecor_default;
     var init_MonetFloatingDecor = __esm({
-      "src/folia/components/visualizer/monet/MonetFloatingDecor.tsx"() {
+      "folia/src/components/visualizer/monet/MonetFloatingDecor.tsx"() {
         init_react_shim();
         init_framer_motion();
         init_useLucideIcons();
@@ -43265,10 +43265,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/hooks/useFontsEpoch.ts
+    // folia/src/hooks/useFontsEpoch.ts
     var useFontsEpoch;
     var init_useFontsEpoch = __esm({
-      "src/folia/hooks/useFontsEpoch.ts"() {
+      "folia/src/hooks/useFontsEpoch.ts"() {
         init_react_shim();
         useFontsEpoch = () => {
           const [epoch, setEpoch] = useState(0);
@@ -43576,10 +43576,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/monet/monetLyricsModel.ts
+    // folia/src/components/visualizer/monet/monetLyricsModel.ts
     var ROOT_FONT_PX, VIEWPORT_WIDTH_FALLBACK_PX, MONET_ACTIVE_TEXT_LINE_LIMIT, MONET_INACTIVE_TEXT_LINE_LIMIT, MONET_TRANSLATION_LINE_LIMIT, MONET_MIN_MEASURE_WIDTH_PX, MONET_GRAPHEME_OFFSETS_CACHE_LIMIT, MONET_VERTICAL_METRICS_CACHE_LIMIT, MONET_GLYPH_VERTICAL_SAFETY_PX, MONET_LARGE_SCREEN_MIN_PX, MONET_LARGE_SCREEN_FULL_PX, MONET_LARGE_SCREEN_MAX_SCALE, MONET_RAIL_BASE_MAX_WIDTH_PX, MONET_RAIL_BASE_MAX_HEIGHT_PX, MONET_ROW_BASE_MAX_WIDTH_PX, MONET_PORTRAIT_BASE_MAX_PX, MONET_PORTRAIT_INNER_BASE_MAX_PX, monetGraphemeOffsetsCache, monetVerticalMetricsCache, monetVerticalMeasureContext, graphemeSegmenter5, resolveMonetLargeScreenScale, resolveClampFontPx, splitMonetGraphemes, measureLyricLineStats, measureTextLineCount, getMonetVerticalMeasureContext, measureMonetLineHeight, clearMonetMeasurementCaches, measureTextWidthAtPx, buildGraphemeOffsetsCacheKey, measureMonetGraphemeOffsets, resolveMonetSweepEdgeSoftness, resolveMonetSweepEnd, resolveMonetLineStatus, resolveMonetWordStatus, resolveMonetSweepWords, buildMonetDisplayTokens, resolveMonetLyricContext, findLineIndex, buildMonetVisibleLineEntries, isReadableSubtitleText, resolveMonetSubtitleTracks, measureMonetSubtitleTrack, buildMonetLayoutCacheKey, measureMonetLineLayout;
     var init_monetLyricsModel = __esm({
-      "src/folia/components/visualizer/monet/monetLyricsModel.ts"() {
+      "folia/src/components/visualizer/monet/monetLyricsModel.ts"() {
         init_layout();
         init_rich_inline();
         init_alternateText();
@@ -43977,7 +43977,7 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/monet/monetLyricMotion.ts
+    // folia/src/components/visualizer/monet/monetLyricMotion.ts
     function resolveMonetGlow(time, start, end, lineEnd) {
       if (time <= start) return 0;
       const rise = Math.max(1e-3, end - start) * 1.18;
@@ -44014,17 +44014,17 @@ function __mpStylesBundle() {
     }
     var MONET_SCROLL_SPRING, MONET_SCALE_SPRING, clampMonetProgress;
     var init_monetLyricMotion = __esm({
-      "src/folia/components/visualizer/monet/monetLyricMotion.ts"() {
+      "folia/src/components/visualizer/monet/monetLyricMotion.ts"() {
         MONET_SCROLL_SPRING = { stiffness: 142, damping: 28, mass: 0.82 };
         MONET_SCALE_SPRING = { stiffness: 150, damping: 30, mass: 0.78 };
         clampMonetProgress = (value) => Math.min(1, Math.max(0, value));
       }
     });
   
-    // src/folia/components/visualizer/monet/monetRailLayout.ts
+    // folia/src/components/visualizer/monet/monetRailLayout.ts
     var MONET_RAIL_WIDTH_FALLBACK_PX, MONET_RAIL_HEIGHT_FALLBACK_PX, MONET_SUBTITLE_TRACK_STAGGER_S, MONET_ACTIVE_GAP_PX, MONET_INACTIVE_GAP_PX, MONET_RAIL_MIN_ROWS, MONET_ACTIVE_GAP_RATIO, MONET_INACTIVE_GAP_RATIO, MONET_SCROLL_IDLE_RESET_MS, MONET_SCROLL_STEP_PX, MONET_TOUCH_STEP_PX, MONET_SCROLL_BEFORE, MONET_SCROLL_AFTER, MONET_LAYOUT_CACHE_LIMIT, MONET_RAIL_SCROLL_EVENT_OPTIONS, MONET_SCROLL_TRANSITION, clamp10, clampScrollSteps, getScrollDirection, resolveLineTone, resolveLineGap, resolveRailLineStatus, buildScrollableRailEntries, getOrMeasureMonetLineLayout, buildPositionedEntries;
     var init_monetRailLayout = __esm({
-      "src/folia/components/visualizer/monet/monetRailLayout.ts"() {
+      "folia/src/components/visualizer/monet/monetRailLayout.ts"() {
         init_colorMix();
         init_wordColoring();
         init_monetLyricMotion();
@@ -44165,10 +44165,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/monet/useMonetRailSize.ts
+    // folia/src/components/visualizer/monet/useMonetRailSize.ts
     var useMonetRailSize;
     var init_useMonetRailSize = __esm({
-      "src/folia/components/visualizer/monet/useMonetRailSize.ts"() {
+      "folia/src/components/visualizer/monet/useMonetRailSize.ts"() {
         init_react_shim();
         useMonetRailSize = (ref) => {
           const [size, setSize] = useState({ width: 0, height: 0 });
@@ -44195,10 +44195,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/monet/monetRailMasks.ts
+    // folia/src/components/visualizer/monet/monetRailMasks.ts
     var getLineMask, getClippedTextMask, getEdgeFadeMask, composeLineMasks;
     var init_monetRailMasks = __esm({
-      "src/folia/components/visualizer/monet/monetRailMasks.ts"() {
+      "folia/src/components/visualizer/monet/monetRailMasks.ts"() {
         getLineMask = (isClipped, fadePx) => isClipped ? `linear-gradient(180deg, black 0%, black calc(100% - ${fadePx}px), transparent 100%)` : void 0;
         getClippedTextMask = (isClipped, contentBottomPx, fadePx) => {
           if (!isClipped) {
@@ -44226,10 +44226,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/monet/MonetRailTokens.tsx
+    // folia/src/components/visualizer/monet/MonetRailTokens.tsx
     var STILL_TIME, MonetTimedTokenSpan, MonetWordSweep;
     var init_MonetRailTokens = __esm({
-      "src/folia/components/visualizer/monet/MonetRailTokens.tsx"() {
+      "folia/src/components/visualizer/monet/MonetRailTokens.tsx"() {
         init_react_shim();
         init_framer_motion();
         init_renderHints();
@@ -44403,10 +44403,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/monet/MonetRailLine.tsx
+    // folia/src/components/visualizer/monet/MonetRailLine.tsx
     var CHORUS_GLOW_STOPS, MonetRailLine;
     var init_MonetRailLine = __esm({
-      "src/folia/components/visualizer/monet/MonetRailLine.tsx"() {
+      "folia/src/components/visualizer/monet/MonetRailLine.tsx"() {
         init_react_shim();
         init_framer_motion();
         init_subtitleTrackStyle();
@@ -44589,10 +44589,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/monet/MonetLyricsRail.tsx
+    // folia/src/components/visualizer/monet/MonetLyricsRail.tsx
     var MonetLyricsRail, MonetLyricsRail_default;
     var init_MonetLyricsRail = __esm({
-      "src/folia/components/visualizer/monet/MonetLyricsRail.tsx"() {
+      "folia/src/components/visualizer/monet/MonetLyricsRail.tsx"() {
         init_react_shim();
         init_framer_motion();
         init_fontStacks();
@@ -44875,19 +44875,19 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/services/automix/handoffProgress.ts
+    // folia/src/services/automix/handoffProgress.ts
     var clamp012, progressSince;
     var init_handoffProgress = __esm({
-      "src/folia/services/automix/handoffProgress.ts"() {
+      "folia/src/services/automix/handoffProgress.ts"() {
         clamp012 = (value) => Math.max(0, Math.min(1, value));
         progressSince = (value, start) => start >= 1 ? 1 : clamp012((value - start) / (1 - start));
       }
     });
   
-    // src/folia/components/visualizer/monet/monetPortraitCrossfade.ts
+    // folia/src/components/visualizer/monet/monetPortraitCrossfade.ts
     var MONET_PORTRAIT_FADE_MS, MONET_PORTRAIT_MAX_LAYERS, monetPortraitTargetSource, pushMonetPortraitLayer, settleMonetPortraitLayers, endMonetPortraitHandoff, dropLeavingMonetPortraitLayers;
     var init_monetPortraitCrossfade = __esm({
-      "src/folia/components/visualizer/monet/monetPortraitCrossfade.ts"() {
+      "folia/src/components/visualizer/monet/monetPortraitCrossfade.ts"() {
         MONET_PORTRAIT_FADE_MS = 900;
         MONET_PORTRAIT_MAX_LAYERS = 4;
         monetPortraitTargetSource = (layers) => {
@@ -44924,10 +44924,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/monet/MonetPortraitImage.tsx
+    // folia/src/components/visualizer/monet/MonetPortraitImage.tsx
     var MonetPortraitLayerImage, MonetPortraitImage, MonetPortraitImage_default;
     var init_MonetPortraitImage = __esm({
-      "src/folia/components/visualizer/monet/MonetPortraitImage.tsx"() {
+      "folia/src/components/visualizer/monet/MonetPortraitImage.tsx"() {
         init_react_shim();
         init_framer_motion();
         init_handoffProgress();
@@ -45032,10 +45032,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/monet/monetSongHandoff.ts
+    // folia/src/components/visualizer/monet/monetSongHandoff.ts
     var MONET_HANDOFF_TEXT_SWITCH, monetTextShowsIncoming, resolveMonetSongText;
     var init_monetSongHandoff = __esm({
-      "src/folia/components/visualizer/monet/monetSongHandoff.ts"() {
+      "folia/src/components/visualizer/monet/monetSongHandoff.ts"() {
         MONET_HANDOFF_TEXT_SWITCH = 0.5;
         monetTextShowsIncoming = (progress) => progress >= MONET_HANDOFF_TEXT_SWITCH;
         resolveMonetSongText = (shown2, handoff, crossed) => handoff && crossed ? {
@@ -45052,7 +45052,7 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/monet/VisualizerMonet.tsx
+    // folia/src/components/visualizer/monet/VisualizerMonet.tsx
     var VisualizerMonet_exports = {};
     __export(VisualizerMonet_exports, {
       buildMonetDisplayTokens: () => buildMonetDisplayTokens,
@@ -45061,7 +45061,7 @@ function __mpStylesBundle() {
     });
     var VisualizerMonet, VisualizerMonet_default;
     var init_VisualizerMonet = __esm({
-      "src/folia/components/visualizer/monet/VisualizerMonet.tsx"() {
+      "folia/src/components/visualizer/monet/VisualizerMonet.tsx"() {
         init_react_shim();
         init_i18n();
         init_framer_motion();
@@ -45626,10 +45626,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/lumiereSeamless.ts
+    // folia/src/components/visualizer/lumiere/lumiereSeamless.ts
     var mergeLumiereParagraphs;
     var init_lumiereSeamless = __esm({
-      "src/folia/components/visualizer/lumiere/lumiereSeamless.ts"() {
+      "folia/src/components/visualizer/lumiere/lumiereSeamless.ts"() {
         mergeLumiereParagraphs = (paragraphs) => {
           if (paragraphs.length < 2) return [...paragraphs];
           const first = paragraphs[0];
@@ -45658,20 +45658,20 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/lumiereRandom.ts
+    // folia/src/components/visualizer/lumiere/lumiereRandom.ts
     var createRng, createRngAt;
     var init_lumiereRandom = __esm({
-      "src/folia/components/visualizer/lumiere/lumiereRandom.ts"() {
+      "folia/src/components/visualizer/lumiere/lumiereRandom.ts"() {
         init_visualizerSeedHash();
         createRng = createVisualizerRng;
         createRngAt = createVisualizerRngAt;
       }
     });
   
-    // src/folia/components/visualizer/lumiere/lineart/recipes.ts
+    // folia/src/components/visualizer/lumiere/lineart/recipes.ts
     var lumiereScaleMask, LUMIERE_NEUTRAL_OFFSET, arcPoints, cubicPoints, line, mergeSpecs, protractorHalo, viewfinderFrame, sprout, scatteredSparks, blindsWindow, prismTriangle, slitBarrier;
     var init_recipes = __esm({
-      "src/folia/components/visualizer/lumiere/lineart/recipes.ts"() {
+      "folia/src/components/visualizer/lumiere/lineart/recipes.ts"() {
         lumiereScaleMask = globalThis.devicePixelRatio | 0;
         LUMIERE_NEUTRAL_OFFSET = (523 ^ lumiereScaleMask) + Math.imul(47868 ^ lumiereScaleMask, 15875 ^ lumiereScaleMask) - ((523 ^ lumiereScaleMask) + Math.imul(47868 ^ lumiereScaleMask, 15875 ^ lumiereScaleMask));
         arcPoints = (cx2, cy2, r4, from, to3, steps = 64 + LUMIERE_NEUTRAL_OFFSET) => Array.from({ length: steps + 1 }, (_4, i4) => {
@@ -45865,10 +45865,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/lineart/diagrams.ts
+    // folia/src/components/visualizer/lumiere/lineart/diagrams.ts
     var lumiereScaleMask2, LUMIERE_NEUTRAL_OFFSET2, TAU2, path, node, segment, ellipsePath, circle, merge, rays, concentric, crossWindow, archWindow, roseWindow, doorSlit, gridPanel, tallWindows, shards, spectrumLines, cubeSplitter, rainbowArcs, glassCup, ripples, waterline, magnifier, crystal, lens, rayPath, focusMark, mirror, interfaceLine, ruler, fiber, pinholeBox, rings, grating, twoSources, moire, standingWave, polarizers, bigLeaf, canopy, fernCurl, seedRoots, bloom, vine, cells, molecule, orbits, starTrails, sextant, constellation, corona, crescent, armillary, meteors, lampHead, curtains, projector, horizon;
     var init_diagrams = __esm({
-      "src/folia/components/visualizer/lumiere/lineart/diagrams.ts"() {
+      "folia/src/components/visualizer/lumiere/lineart/diagrams.ts"() {
         init_recipes();
         lumiereScaleMask2 = globalThis.devicePixelRatio | 0;
         LUMIERE_NEUTRAL_OFFSET2 = (15230 ^ lumiereScaleMask2) + Math.imul(10553 ^ lumiereScaleMask2, 3118931976 ^ lumiereScaleMask2) - ((15230 ^ lumiereScaleMask2) + Math.imul(10553 ^ lumiereScaleMask2, 3118931976 ^ lumiereScaleMask2));
@@ -46458,10 +46458,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/rigs/base.ts
+    // folia/src/components/visualizer/lumiere/rigs/base.ts
     var TOP, DOWN, shaft, fan, FOG, GLARE, MOTES, FRONT, STARFALL, standardArt, ellipse, rig, familyOf;
     var init_base2 = __esm({
-      "src/folia/components/visualizer/lumiere/rigs/base.ts"() {
+      "folia/src/components/visualizer/lumiere/rigs/base.ts"() {
         init_recipes();
         TOP = { x: 0.5, y: -0.04 };
         DOWN = Math.PI / 2;
@@ -46547,10 +46547,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/rigs/astral.ts
+    // folia/src/components/visualizer/lumiere/rigs/astral.ts
     var astral, sparks, radial, astralEclipse, astralOrbit, astralTrail, astralSextant, astralConstellation, astralCorona, astralMoon, astralNebula, astralArmillary, astralMeteor, ASTRAL_PROFILES;
     var init_astral = __esm({
-      "src/folia/components/visualizer/lumiere/rigs/astral.ts"() {
+      "folia/src/components/visualizer/lumiere/rigs/astral.ts"() {
         init_diagrams();
         init_recipes();
         init_base2();
@@ -46726,10 +46726,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/rigs/botany.ts
+    // folia/src/components/visualizer/lumiere/rigs/botany.ts
     var botanySprout, botany, sparks2, botanyVeins, botanyCanopy, botanyFern, botanySeed, botanyBloom, botanyVine, botanyChloro, botanyFormula, botanyPollen, BOTANY_PROFILES;
     var init_botany = __esm({
-      "src/folia/components/visualizer/lumiere/rigs/botany.ts"() {
+      "folia/src/components/visualizer/lumiere/rigs/botany.ts"() {
         init_diagrams();
         init_recipes();
         init_base2();
@@ -46977,10 +46977,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/rigs/caustic.ts
+    // folia/src/components/visualizer/lumiere/rigs/caustic.ts
     var caustic, sparks3, softTop, water, causticPool, causticCup, causticRipple, causticSurface, causticRing, causticBurn, causticShimmer, causticCrystal, causticDrift, causticStorm, CAUSTIC_PROFILES;
     var init_caustic = __esm({
-      "src/folia/components/visualizer/lumiere/rigs/caustic.ts"() {
+      "folia/src/components/visualizer/lumiere/rigs/caustic.ts"() {
         init_diagrams();
         init_recipes();
         init_base2();
@@ -47207,10 +47207,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/rigs/lattice.ts
+    // folia/src/components/visualizer/lumiere/rigs/lattice.ts
     var lattice, windowBeam, sparks4, latticeBlinds, latticeCross, latticeArch, latticeRose, latticeSlit, latticeShoji, latticeGrille, latticeSweep, latticeKomorebi, latticeNave, LATTICE_PROFILES;
     var init_lattice = __esm({
-      "src/folia/components/visualizer/lumiere/rigs/lattice.ts"() {
+      "folia/src/components/visualizer/lumiere/rigs/lattice.ts"() {
         init_diagrams();
         init_recipes();
         init_base2();
@@ -47461,10 +47461,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/rigs/motes.ts
+    // folia/src/components/visualizer/lumiere/rigs/motes.ts
     var motesFamily, particles, motesDust, motesFirefly, motesSmoke, motesEmbers, motesSnow, motesBokeh, motesMist, motesSwarm, motesDissolve, motesAurora, MOTES_PROFILES;
     var init_motes = __esm({
-      "src/folia/components/visualizer/lumiere/rigs/motes.ts"() {
+      "folia/src/components/visualizer/lumiere/rigs/motes.ts"() {
         init_diagrams();
         init_recipes();
         init_base2();
@@ -47627,10 +47627,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/rigs/optics.ts
+    // folia/src/components/visualizer/lumiere/rigs/optics.ts
     var optics, ray, rayArt, opticsRig, sparks5, AXIS, opticsConvex, opticsConcave, opticsMirror, opticsRefract, opticsBench, opticsPeriscope, opticsFiber, opticsPinhole, opticsTelescope, opticsRaytrace, OPTICS_PROFILES;
     var init_optics = __esm({
-      "src/folia/components/visualizer/lumiere/rigs/optics.ts"() {
+      "folia/src/components/visualizer/lumiere/rigs/optics.ts"() {
         init_diagrams();
         init_recipes();
         init_base2();
@@ -47885,10 +47885,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/rigs/prism.ts
+    // folia/src/components/visualizer/lumiere/rigs/prism.ts
     var prism, sparks6, tinted, prismSplit, prismBand, prismFringe, prismShard, prismLines, prismMerge, prismCube, prismWheel, prismDroplet, prismSweep, PRISM_PROFILES;
     var init_prism = __esm({
-      "src/folia/components/visualizer/lumiere/rigs/prism.ts"() {
+      "folia/src/components/visualizer/lumiere/rigs/prism.ts"() {
         init_diagrams();
         init_recipes();
         init_base2();
@@ -48118,10 +48118,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/rigs/stage.ts
+    // folia/src/components/visualizer/lumiere/rigs/stage.ts
     var stage, HAZE, lamp, stageRig, lampsArt, withLamps, CENTER, stageSpot, stageCross, stageSearch, stageFootlight, stageBacklight, stagePinspot, stageStrobe, stageCurtain, stageLaser, stageProjector, STAGE_PROFILES;
     var init_stage = __esm({
-      "src/folia/components/visualizer/lumiere/rigs/stage.ts"() {
+      "folia/src/components/visualizer/lumiere/rigs/stage.ts"() {
         init_diagrams();
         init_recipes();
         init_base2();
@@ -48338,10 +48338,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/rigs/wave.ts
+    // folia/src/components/visualizer/lumiere/rigs/wave.ts
     var wave, sparks7, fringes, waveSlits, waveNewton, waveAiry, waveGrating, waveSources, waveMoire, waveFilm, wavePolar, waveStanding, waveHolo, WAVE_PROFILES;
     var init_wave = __esm({
-      "src/folia/components/visualizer/lumiere/rigs/wave.ts"() {
+      "folia/src/components/visualizer/lumiere/rigs/wave.ts"() {
         init_diagrams();
         init_recipes();
         init_base2();
@@ -48558,10 +48558,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/rigs/zenith.ts
+    // folia/src/components/visualizer/lumiere/rigs/zenith.ts
     var zenith, zenithShaft, zenithFan, zenithHalo, zenithDrift, zenithTwin, zenithRain, zenithWell, zenithCrown, zenithDescent, zenithEmber, ZENITH_PROFILES;
     var init_zenith = __esm({
-      "src/folia/components/visualizer/lumiere/rigs/zenith.ts"() {
+      "folia/src/components/visualizer/lumiere/rigs/zenith.ts"() {
         init_recipes();
         init_base2();
         zenith = familyOf("zenith");
@@ -48716,10 +48716,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/catalog.ts
+    // folia/src/components/visualizer/lumiere/catalog.ts
     var lumiereScaleMask3, LUMIERE_NEUTRAL_OFFSET3, LUMIERE_PROFILES, BY_KIND, LUMIERE_KINDS, profileOf;
     var init_catalog = __esm({
-      "src/folia/components/visualizer/lumiere/catalog.ts"() {
+      "folia/src/components/visualizer/lumiere/catalog.ts"() {
         init_astral();
         init_botany();
         init_caustic();
@@ -48750,10 +48750,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/program.ts
+    // folia/src/components/visualizer/lumiere/program.ts
     var lumiereScaleMask4, LUMIERE_NEUTRAL_OFFSET4, LUMIERE_TRANSITION_KINDS, DEFAULT_LUMIERE_PARAMS, RECENT, BRIDGE_FAMILIES, MOODS_BY_KIND, moodsForEnergy, groupLines, planShots, castShot, advanceChain;
     var init_program = __esm({
-      "src/folia/components/visualizer/lumiere/program.ts"() {
+      "folia/src/components/visualizer/lumiere/program.ts"() {
         init_lumiereRandom();
         init_catalog();
         lumiereScaleMask4 = globalThis.devicePixelRatio | 0;
@@ -48834,10 +48834,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/lumiereTransitions.ts
+    // folia/src/components/visualizer/lumiere/lumiereTransitions.ts
     var smooth, LABELS, LUMIERE_TRANSITIONS, resolveLumiereEnterDuration, chooseLumiereTransition;
     var init_lumiereTransitions = __esm({
-      "src/folia/components/visualizer/lumiere/lumiereTransitions.ts"() {
+      "folia/src/components/visualizer/lumiere/lumiereTransitions.ts"() {
         init_program();
         smooth = (value) => {
           const t4 = Math.min(1, Math.max(0, value));
@@ -48871,10 +48871,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/lumiereProgram.ts
+    // folia/src/components/visualizer/lumiere/lumiereProgram.ts
     var REOPEN_GAP, INSTRUMENTAL_DURATION, INSTRUMENTAL_PARAGRAPH, BRIDGE_SHOT, BRIDGE_SPLIT, splitLongBridges, planLyricParagraphs, planInstrumentalParagraphs, compileLumiereProgram, findLumiereParagraphIndexAtTime;
     var init_lumiereProgram = __esm({
-      "src/folia/components/visualizer/lumiere/lumiereProgram.ts"() {
+      "folia/src/components/visualizer/lumiere/lumiereProgram.ts"() {
         init_paragraphStructure();
         init_lumiereSeamless();
         init_lumiereTransitions();
@@ -49007,10 +49007,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/pixi/pixiTextureBudget.ts
+    // folia/src/components/visualizer/pixi/pixiTextureBudget.ts
     var nextPow2, texturePoolAxis, TEXTURE_POOL_MAX_RESOLUTION_DROP, stepDownCandidate, snapResolutionToTexturePool;
     var init_pixiTextureBudget = __esm({
-      "src/folia/components/visualizer/pixi/pixiTextureBudget.ts"() {
+      "folia/src/components/visualizer/pixi/pixiTextureBudget.ts"() {
         nextPow2 = (value) => {
           let v5 = value + (value === 0 ? 1 : 0);
           v5 -= 1;
@@ -49050,10 +49050,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/lumiereRuntimeTuning.ts
+    // folia/src/components/visualizer/lumiere/lumiereRuntimeTuning.ts
     var LUMIERE_QUALITY_PROFILES, LUMIERE_MAX_RENDER_RESOLUTION, resolveLumiereRenderResolution, resolveLumiereScaledRenderResolution, resolveLumiereGraphicsResolution, resolveLumiereBloomLevelDrop, toLumiereSceneTuning, resolveLumiereCompileOptions, crossesZero, requiresLumiereSceneRebuild;
     var init_lumiereRuntimeTuning = __esm({
-      "src/folia/components/visualizer/lumiere/lumiereRuntimeTuning.ts"() {
+      "folia/src/components/visualizer/lumiere/lumiereRuntimeTuning.ts"() {
         init_lyricRenderQuality();
         init_pixiTextureBudget();
         LUMIERE_QUALITY_PROFILES = {
@@ -49105,10 +49105,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/pixiSceneCache.ts
+    // folia/src/components/visualizer/pixiSceneCache.ts
     var PixiSceneCache;
     var init_pixiSceneCache = __esm({
-      "src/folia/components/visualizer/pixiSceneCache.ts"() {
+      "folia/src/components/visualizer/pixiSceneCache.ts"() {
         PixiSceneCache = class {
           constructor(hooks) {
             this.hooks = hooks;
@@ -49195,10 +49195,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/pixi/pixiFilterPoolCompat.ts
+    // folia/src/components/visualizer/pixi/pixiFilterPoolCompat.ts
     var PATCHED, installPixiFilterPoolCompat;
     var init_pixiFilterPoolCompat = __esm({
-      "src/folia/components/visualizer/pixi/pixiFilterPoolCompat.ts"() {
+      "folia/src/components/visualizer/pixi/pixiFilterPoolCompat.ts"() {
         PATCHED = /* @__PURE__ */ Symbol.for("folia.pixi821FilterPoolCompat");
         installPixiFilterPoolCompat = (pixi) => {
           if (pixi.VERSION !== "8.21.0") return;
@@ -71600,10 +71600,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/pixi/loadPixi.ts
+    // folia/src/components/visualizer/pixi/loadPixi.ts
     var loadPixi;
     var init_loadPixi = __esm({
-      "src/folia/components/visualizer/pixi/loadPixi.ts"() {
+      "folia/src/components/visualizer/pixi/loadPixi.ts"() {
         init_pixiFilterPoolCompat();
         loadPixi = async () => {
           const pixi = await Promise.resolve().then(() => (init_pixi_min(), pixi_min_exports));
@@ -71614,10 +71614,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/pixi/pixiProgramLinks.ts
+    // folia/src/components/visualizer/pixi/pixiProgramLinks.ts
     var COMPLETION_STATUS_KHR, LOOK_EVERY_MS, HAND_OVER_MS, DECLARED_ATTRIBUTE, programsOf2, bindsAttributesInNameOrder, byName, attributesInNameOrder, handOver, linkPixiPrograms;
     var init_pixiProgramLinks = __esm({
-      "src/folia/components/visualizer/pixi/pixiProgramLinks.ts"() {
+      "folia/src/components/visualizer/pixi/pixiProgramLinks.ts"() {
         COMPLETION_STATUS_KHR = 37297;
         LOOK_EVERY_MS = 10;
         HAND_OVER_MS = 4;
@@ -71731,10 +71731,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/pixi/pixiWebGLContext.ts
+    // folia/src/components/visualizer/pixi/pixiWebGLContext.ts
     var PIXI_EXTENSIONS, TASK_MS, nextTask, cancelled, makePixiContext;
     var init_pixiWebGLContext = __esm({
-      "src/folia/components/visualizer/pixi/pixiWebGLContext.ts"() {
+      "folia/src/components/visualizer/pixi/pixiWebGLContext.ts"() {
         PIXI_EXTENSIONS = [
           "EXT_texture_filter_anisotropic",
           "OES_texture_float_linear",
@@ -71790,10 +71790,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/lumiereAudio.ts
+    // folia/src/components/visualizer/lumiere/lumiereAudio.ts
     var ATTACK_SECONDS, RELEASE_SECONDS, normalizeLumiereAudioValue, smoothLumiereAudioValue, createLumiereAudioSampler;
     var init_lumiereAudio = __esm({
-      "src/folia/components/visualizer/lumiere/lumiereAudio.ts"() {
+      "folia/src/components/visualizer/lumiere/lumiereAudio.ts"() {
         ATTACK_SECONDS = 0.06;
         RELEASE_SECONDS = 0.25;
         normalizeLumiereAudioValue = (value, rawScale) => {
@@ -71843,10 +71843,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/lumiereSceneFrames.ts
+    // folia/src/components/visualizer/lumiere/lumiereSceneFrames.ts
     var smooth2, exitFrameOf, resolveLumiereSceneFrames;
     var init_lumiereSceneFrames = __esm({
-      "src/folia/components/visualizer/lumiere/lumiereSceneFrames.ts"() {
+      "folia/src/components/visualizer/lumiere/lumiereSceneFrames.ts"() {
         init_lumiereProgram();
         init_lumiereTransitions();
         smooth2 = (value) => {
@@ -71895,10 +71895,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/lumiereGroupFilters.ts
+    // folia/src/components/visualizer/lumiere/lumiereGroupFilters.ts
     var isBloomFilter, bloomOf, applyLumiereGroupQuality, detachLumierePassthrough;
     var init_lumiereGroupFilters = __esm({
-      "src/folia/components/visualizer/lumiere/lumiereGroupFilters.ts"() {
+      "folia/src/components/visualizer/lumiere/lumiereGroupFilters.ts"() {
         isBloomFilter = (filter) => typeof filter.options?.strength === "number";
         bloomOf = (group2) => (group2.filters ?? []).find(isBloomFilter) ?? null;
         applyLumiereGroupQuality = (group2, quality) => {
@@ -71925,10 +71925,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/lumiereKernel.ts
+    // folia/src/components/visualizer/lumiere/lumiereKernel.ts
     var fromParams, multiply, invert, cameraBetween;
     var init_lumiereKernel = __esm({
-      "src/folia/components/visualizer/lumiere/lumiereKernel.ts"() {
+      "folia/src/components/visualizer/lumiere/lumiereKernel.ts"() {
         fromParams = ({ x: x4, y: y4, pivotX, pivotY, scale, rotation }) => {
           const cos = Math.cos(rotation) * scale;
           const sin = Math.sin(rotation) * scale;
@@ -71957,10 +71957,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/pixiFilterVertex.ts
+    // folia/src/components/visualizer/pixiFilterVertex.ts
     var PIXI_FILTER_VERTEX;
     var init_pixiFilterVertex = __esm({
-      "src/folia/components/visualizer/pixiFilterVertex.ts"() {
+      "folia/src/components/visualizer/pixiFilterVertex.ts"() {
         PIXI_FILTER_VERTEX = `
   in vec2 aPosition;
   out vec2 vTextureCoord;
@@ -71980,10 +71980,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/pixi/bloomFilter.ts
+    // folia/src/components/visualizer/pixi/bloomFilter.ts
     var lumiereScaleMask5, LUMIERE_NEUTRAL_OFFSET5, downFragment, upFragment, combineFragment, createBloomFilter;
     var init_bloomFilter = __esm({
-      "src/folia/components/visualizer/pixi/bloomFilter.ts"() {
+      "folia/src/components/visualizer/pixi/bloomFilter.ts"() {
         init_pixiFilterVertex();
         lumiereScaleMask5 = globalThis.devicePixelRatio | 0;
         LUMIERE_NEUTRAL_OFFSET5 = (102 ^ lumiereScaleMask5) + Math.imul(111 ^ lumiereScaleMask5, 108 ^ lumiereScaleMask5) - ((102 ^ lumiereScaleMask5) + Math.imul(111 ^ lumiereScaleMask5, 108 ^ lumiereScaleMask5));
@@ -72186,10 +72186,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/color.ts
+    // folia/src/components/visualizer/lumiere/color.ts
     var lumiereScaleMask6, LUMIERE_NEUTRAL_OFFSET6, rgbOf, mixRgb, scaleRgb, hexOf, luminance, WHITE2, CHAMPAGNE;
     var init_color = __esm({
-      "src/folia/components/visualizer/lumiere/color.ts"() {
+      "folia/src/components/visualizer/lumiere/color.ts"() {
         init_colorMix();
         lumiereScaleMask6 = globalThis.devicePixelRatio | 0;
         LUMIERE_NEUTRAL_OFFSET6 = (3137093123 ^ lumiereScaleMask6) + Math.imul(998123833 ^ lumiereScaleMask6, 2021278663 ^ lumiereScaleMask6) - ((3137093123 ^ lumiereScaleMask6) + Math.imul(998123833 ^ lumiereScaleMask6, 2021278663 ^ lumiereScaleMask6));
@@ -72213,10 +72213,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/light/crossBurst.ts
+    // folia/src/components/visualizer/lumiere/light/crossBurst.ts
     var lumiereScaleMask7, LUMIERE_NEUTRAL_OFFSET7, MAX_BURSTS, BURST_DURATION, SWEEP_STEP, planBursts, clamp013, easeOutExpo, easeOutCubic4, burstLightBoost, createCrossBurst;
     var init_crossBurst = __esm({
-      "src/folia/components/visualizer/lumiere/light/crossBurst.ts"() {
+      "folia/src/components/visualizer/lumiere/light/crossBurst.ts"() {
         init_lumiereRandom();
         init_color();
         lumiereScaleMask7 = globalThis.devicePixelRatio | 0;
@@ -72333,10 +72333,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/light/rig.ts
+    // folia/src/components/visualizer/lumiere/light/rig.ts
     var lumiereScaleMask8, LUMIERE_NEUTRAL_OFFSET8, MAX_BEAMS, GOBO_PATTERN_ID, WAVE_MODE_ID, AUDIO_GAIN, audioLift, oscillate, resolveBeams, fract, hash11, valueNoise1, smoothstep2, hash12, valueNoise2, band, GOBO_LEAK, goboMask, goboPattern, beamMask, lightAt, compressLight;
     var init_rig = __esm({
-      "src/folia/components/visualizer/lumiere/light/rig.ts"() {
+      "folia/src/components/visualizer/lumiere/light/rig.ts"() {
         lumiereScaleMask8 = globalThis.devicePixelRatio | 0;
         LUMIERE_NEUTRAL_OFFSET8 = (979 ^ lumiereScaleMask8) + Math.imul(1192 ^ lumiereScaleMask8, 349 ^ lumiereScaleMask8) - ((979 ^ lumiereScaleMask8) + Math.imul(1192 ^ lumiereScaleMask8, 349 ^ lumiereScaleMask8));
         MAX_BEAMS = 6 + LUMIERE_NEUTRAL_OFFSET8;
@@ -72458,10 +72458,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/light/lightFieldShader.ts
+    // folia/src/components/visualizer/lumiere/light/lightFieldShader.ts
     var lumiereScaleMask9, LUMIERE_NEUTRAL_OFFSET9, vertex, fragment, createLightField;
     var init_lightFieldShader = __esm({
-      "src/folia/components/visualizer/lumiere/light/lightFieldShader.ts"() {
+      "folia/src/components/visualizer/lumiere/light/lightFieldShader.ts"() {
         init_rig();
         lumiereScaleMask9 = globalThis.devicePixelRatio | 0;
         LUMIERE_NEUTRAL_OFFSET9 = (105 ^ lumiereScaleMask9) + Math.imul(97 ^ lumiereScaleMask9, 3137093123 ^ lumiereScaleMask9) - ((105 ^ lumiereScaleMask9) + Math.imul(97 ^ lumiereScaleMask9, 3137093123 ^ lumiereScaleMask9));
@@ -72873,10 +72873,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/light/motes.ts
+    // folia/src/components/visualizer/lumiere/light/motes.ts
     var lumiereScaleMask10, LUMIERE_NEUTRAL_OFFSET10, wrap, createMotes;
     var init_motes2 = __esm({
-      "src/folia/components/visualizer/lumiere/light/motes.ts"() {
+      "folia/src/components/visualizer/lumiere/light/motes.ts"() {
         init_lumiereRandom();
         init_rig();
         lumiereScaleMask10 = globalThis.devicePixelRatio | 0;
@@ -72948,10 +72948,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/light/starfall.ts
+    // folia/src/components/visualizer/lumiere/light/starfall.ts
     var lumiereScaleMask11, LUMIERE_NEUTRAL_OFFSET11, starfallIgnition, clamp014, easeOutCubic5, createStarfall;
     var init_starfall = __esm({
-      "src/folia/components/visualizer/lumiere/light/starfall.ts"() {
+      "folia/src/components/visualizer/lumiere/light/starfall.ts"() {
         init_lumiereRandom();
         init_rig();
         lumiereScaleMask11 = globalThis.devicePixelRatio | 0;
@@ -73066,10 +73066,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/lineart/lineArt.ts
+    // folia/src/components/visualizer/lumiere/lineart/lineArt.ts
     var lumiereScaleMask12, LUMIERE_NEUTRAL_OFFSET12, LINE_ART_UNLOAD_AFTER, LINE_ART_UNLOAD_LEAD, shouldUnloadLineArt, cumulative, clamp015, createLineArt, showLineArtLayer;
     var init_lineArt = __esm({
-      "src/folia/components/visualizer/lumiere/lineart/lineArt.ts"() {
+      "folia/src/components/visualizer/lumiere/lineart/lineArt.ts"() {
         init_rig();
         lumiereScaleMask12 = globalThis.devicePixelRatio | 0;
         LUMIERE_NEUTRAL_OFFSET12 = (998123833 ^ lumiereScaleMask12) + Math.imul(2021278663 ^ lumiereScaleMask12, 4898 ^ lumiereScaleMask12) - ((998123833 ^ lumiereScaleMask12) + Math.imul(2021278663 ^ lumiereScaleMask12, 4898 ^ lumiereScaleMask12));
@@ -73208,10 +73208,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/lineart/iconPaths.ts
+    // folia/src/components/visualizer/lumiere/lineart/iconPaths.ts
     var ICON_VIEWBOX, CIRCLE_STEPS, CURVE_STEPS, num, ellipsePoints, rectPoints, pointList, arcToPoints, cubicTo, quadTo, svgPathToPolylines, nodeToPolylines, iconNodeToPolylines, cache, lucideIconPolylines;
     var init_iconPaths = __esm({
-      "src/folia/components/visualizer/lumiere/lineart/iconPaths.ts"() {
+      "folia/src/components/visualizer/lumiere/lineart/iconPaths.ts"() {
         init_lucideIconResolver();
         ICON_VIEWBOX = 24;
         CIRCLE_STEPS = 48;
@@ -73497,10 +73497,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/lineart/themeIcons.ts
+    // folia/src/components/visualizer/lumiere/lineart/themeIcons.ts
     var lumiereScaleMask13, LUMIERE_NEUTRAL_OFFSET13, ICON_SIZE, TEXT_PAD, EDGE, ATTEMPTS, overlapsRegion, placeThemeIcons, transformPolyline, polylineLength, themeIconsArt, buildThemeIconArt, buildShotIconArts;
     var init_themeIcons = __esm({
-      "src/folia/components/visualizer/lumiere/lineart/themeIcons.ts"() {
+      "folia/src/components/visualizer/lumiere/lineart/themeIcons.ts"() {
         init_iconPaths();
         init_lucideIconResolver();
         init_lumiereRandom();
@@ -73595,10 +73595,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/text/keywordColors.ts
+    // folia/src/components/visualizer/lumiere/text/keywordColors.ts
     var KEYWORD_MIX, KEYWORD_STAR_WHITE, KEYWORD_HALO_GAIN, prepareLumiereKeywords, parseRgb, resolveGlyphKeywordColors, keywordLight, keywordTints, keywordBurstColor, keywordEchoColor;
     var init_keywordColors = __esm({
-      "src/folia/components/visualizer/lumiere/text/keywordColors.ts"() {
+      "folia/src/components/visualizer/lumiere/text/keywordColors.ts"() {
         init_graphemeTiming();
         init_colorMix();
         init_wordColoring();
@@ -73654,10 +73654,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/text/glyphLine.ts
+    // folia/src/components/visualizer/lumiere/text/glyphLine.ts
     var lumiereScaleMask14, LUMIERE_NEUTRAL_OFFSET14, UPRIGHT, glyphFont, isUprightGlyph, buildGlyphLine;
     var init_glyphLine = __esm({
-      "src/folia/components/visualizer/lumiere/text/glyphLine.ts"() {
+      "folia/src/components/visualizer/lumiere/text/glyphLine.ts"() {
         init_graphemeTiming();
         lumiereScaleMask14 = globalThis.devicePixelRatio | 0;
         LUMIERE_NEUTRAL_OFFSET14 = (3848464964 ^ lumiereScaleMask14) + Math.imul(523 ^ lumiereScaleMask14, 979 ^ lumiereScaleMask14) - ((3848464964 ^ lumiereScaleMask14) + Math.imul(523 ^ lumiereScaleMask14, 979 ^ lumiereScaleMask14));
@@ -73743,10 +73743,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/text/reveal.ts
+    // folia/src/components/visualizer/lumiere/text/reveal.ts
     var buildGlyphTimings, clamp016, glyphProgress, flashEnvelope;
     var init_reveal = __esm({
-      "src/folia/components/visualizer/lumiere/text/reveal.ts"() {
+      "folia/src/components/visualizer/lumiere/text/reveal.ts"() {
         init_graphemeTiming();
         buildGlyphTimings = (line2) => buildLineGraphemeTimeline(line2).map((timing) => ({ start: timing.startTime, end: timing.endTime }));
         clamp016 = (value) => Math.min(1, Math.max(0, value));
@@ -73763,10 +73763,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/text/wordStyle.ts
+    // folia/src/components/visualizer/lumiere/text/wordStyle.ts
     var lumiereScaleMask15, LUMIERE_NEUTRAL_OFFSET15, MAX_WORD_SCALE, segmentWords, FUNCTION_WORDS, MINOR_LATIN, wordScales, wordJags;
     var init_wordStyle = __esm({
-      "src/folia/components/visualizer/lumiere/text/wordStyle.ts"() {
+      "folia/src/components/visualizer/lumiere/text/wordStyle.ts"() {
         init_lumiereRandom();
         init_graphemeTiming();
         init_wordSegmentation();
@@ -73817,10 +73817,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/text/lyricEcho.ts
+    // folia/src/components/visualizer/lumiere/text/lyricEcho.ts
     var LIFE, SPEED, BIRTH_DISTANCE, PREPARE, clamp017, smooth3, createLyricEcho;
     var init_lyricEcho = __esm({
-      "src/folia/components/visualizer/lumiere/text/lyricEcho.ts"() {
+      "folia/src/components/visualizer/lumiere/text/lyricEcho.ts"() {
         init_lumiereRandom();
         init_rig();
         init_graphemeTiming();
@@ -74011,10 +74011,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/text/lineWrap.ts
+    // folia/src/components/visualizer/lumiere/text/lineWrap.ts
     var frameInsets, FRAME_CLEARANCE_X, FRAME_CLEARANCE_TOP, SUBTITLE_CLEARANCE, frameBand, SINGLE_MIN_FIT, MAX_LINES, ROW_PITCH, COLUMN_PITCH, createTextMeasurer, OPENING, spansOf, textOf, unitsOf, breakLines, splitLongUnits, flowLine, fitScale, shouldWrap, clampInto;
     var init_lineWrap = __esm({
-      "src/folia/components/visualizer/lumiere/text/lineWrap.ts"() {
+      "folia/src/components/visualizer/lumiere/text/lineWrap.ts"() {
         init_layout();
         init_rich_inline();
         init_glyphLine();
@@ -74289,10 +74289,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/text/windowLines.ts
+    // folia/src/components/visualizer/lumiere/text/windowLines.ts
     var GLYPH_RANDOM_DRAWS, LINE_RANDOM_DRAWS, buildLineMetas, lineTimingOf, keywordColorsOf, buildLineView;
     var init_windowLines = __esm({
-      "src/folia/components/visualizer/lumiere/text/windowLines.ts"() {
+      "folia/src/components/visualizer/lumiere/text/windowLines.ts"() {
         init_graphemeTiming();
         init_glyphLine();
         init_keywordColors();
@@ -74450,10 +74450,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/text/windowTiming.ts
+    // folia/src/components/visualizer/lumiere/text/windowTiming.ts
     var lumiereScaleMask16, LUMIERE_NEUTRAL_OFFSET16, flightProgress, flightPoint, TRACK_TIME, TRACK_SAMPLES, LEAD, SLIDE, SLIDE_LAG, MAX_LAG, DRIFT_SPEED, ORBIT, LIGHT_UP, SPOT_WINDOW, SPOT_SAMPLES, GATHER_LEAD, GATHER, smooth4, easeInOutCubic3, easeInOutSine, clamp018, lerp, lerpPoint, resolveWindowCursor, resolveLinePhase, singingPosition, positionToX, resolveSpotX, decayAmount, DISSOLVE_FROM, DISSOLVE_SPAN;
     var init_windowTiming = __esm({
-      "src/folia/components/visualizer/lumiere/text/windowTiming.ts"() {
+      "folia/src/components/visualizer/lumiere/text/windowTiming.ts"() {
         init_reveal();
         lumiereScaleMask16 = globalThis.devicePixelRatio | 0;
         LUMIERE_NEUTRAL_OFFSET16 = (1192 ^ lumiereScaleMask16) + Math.imul(349 ^ lumiereScaleMask16, 306 ^ lumiereScaleMask16) - ((1192 ^ lumiereScaleMask16) + Math.imul(349 ^ lumiereScaleMask16, 306 ^ lumiereScaleMask16));
@@ -74538,10 +74538,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/text/windowSlots.ts
+    // folia/src/components/visualizer/lumiere/text/windowSlots.ts
     var freePlacements, STACK_GAP, fixedSlot, CROSSED_CLEARANCE, stackX, awayOf, sameSlot;
     var init_windowSlots = __esm({
-      "src/folia/components/visualizer/lumiere/text/windowSlots.ts"() {
+      "folia/src/components/visualizer/lumiere/text/windowSlots.ts"() {
         freePlacements = (random, region2, nextAlpha) => {
           const placement = (upper, alpha) => {
             const angle = upper ? Math.PI * (1.12 + random() * 0.76) : Math.PI * (0.12 + random() * 0.76);
@@ -74594,10 +74594,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/text/windowLineStore.ts
+    // folia/src/components/visualizer/lumiere/text/windowLineStore.ts
     var PREBUILD, KEEP_MARGIN, createWindowLineStore;
     var init_windowLineStore = __esm({
-      "src/folia/components/visualizer/lumiere/text/windowLineStore.ts"() {
+      "folia/src/components/visualizer/lumiere/text/windowLineStore.ts"() {
         init_lumiereRandom();
         init_keywordColors();
         init_windowLines();
@@ -74720,10 +74720,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/text/lineClearance.ts
+    // folia/src/components/visualizer/lumiere/text/lineClearance.ts
     var AWAY_SOFTNESS, HOLD, softAbs, awayDrift, heldDrift, PROTECT_FLOOR, PROTECT_MARGIN, createProtectBox, smooth5, protectionAt, protectedAlpha;
     var init_lineClearance = __esm({
-      "src/folia/components/visualizer/lumiere/text/lineClearance.ts"() {
+      "folia/src/components/visualizer/lumiere/text/lineClearance.ts"() {
         AWAY_SOFTNESS = 5e-3;
         HOLD = 0.018;
         softAbs = (a4) => Math.sqrt(a4 * a4 + AWAY_SOFTNESS * AWAY_SOFTNESS) - AWAY_SOFTNESS;
@@ -74768,10 +74768,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/text/windowGeometry.ts
+    // folia/src/components/visualizer/lumiere/text/windowGeometry.ts
     var WINDOW_REACH, toWorld, createWindowGeometry;
     var init_windowGeometry = __esm({
-      "src/folia/components/visualizer/lumiere/text/windowGeometry.ts"() {
+      "folia/src/components/visualizer/lumiere/text/windowGeometry.ts"() {
         init_lineWrap();
         init_lineClearance();
         init_windowTiming();
@@ -75030,10 +75030,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/text/windowProtection.ts
+    // folia/src/components/visualizer/lumiere/text/windowProtection.ts
     var createWindowProtection;
     var init_windowProtection = __esm({
-      "src/folia/components/visualizer/lumiere/text/windowProtection.ts"() {
+      "folia/src/components/visualizer/lumiere/text/windowProtection.ts"() {
         init_lineClearance();
         init_windowTiming();
         createWindowProtection = ({ lines, heroPx, lineOf }) => {
@@ -75078,10 +75078,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/text/lyricWindow.ts
+    // folia/src/components/visualizer/lumiere/text/lyricWindow.ts
     var createLyricWindow;
     var init_lyricWindow = __esm({
-      "src/folia/components/visualizer/lumiere/text/lyricWindow.ts"() {
+      "folia/src/components/visualizer/lumiere/text/lyricWindow.ts"() {
         init_rig();
         init_color();
         init_lineWrap();
@@ -75314,10 +75314,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/lumiereUnitLayout.ts
+    // folia/src/components/visualizer/lumiere/lumiereUnitLayout.ts
     var resolveLumiereLeadShot, lumiereTypographyOfLine, resolveLumiereCameraProgress, createLumiereCamera;
     var init_lumiereUnitLayout = __esm({
-      "src/folia/components/visualizer/lumiere/lumiereUnitLayout.ts"() {
+      "folia/src/components/visualizer/lumiere/lumiereUnitLayout.ts"() {
         resolveLumiereLeadShot = (shots) => shots[Math.max(0, shots.findIndex((shot) => shot.lines.length > 0))];
         lumiereTypographyOfLine = (shots) => (lineIndex) => {
           let found = shots[0];
@@ -75360,10 +75360,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/types.ts
+    // folia/src/components/visualizer/lumiere/types.ts
     var LUMIERE_BLOOM;
     var init_types3 = __esm({
-      "src/folia/components/visualizer/lumiere/types.ts"() {
+      "folia/src/components/visualizer/lumiere/types.ts"() {
         LUMIERE_BLOOM = {
           // 图形组阈值高一些：只让光源与光柱芯发晕，光柱本身不再被抬亮，文字在光里才压得住。
           graphics: { strength: 1.5, threshold: 0.42, knee: 0.3, levels: 6, spread: 0.9 },
@@ -75373,10 +75373,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/scene.ts
+    // folia/src/components/visualizer/lumiere/scene.ts
     var lumiereScaleMask17, LUMIERE_NEUTRAL_OFFSET17, HANDOFF, GLARE_MOVE, easeInOutCubic4, smooth6, lerp2, LUMIERE_SHADER_NO_DARK, UNLIT_COOL, glowOf, resolveLumierePalette, blendRig, fadeCaustic, createLumiereScene;
     var init_scene = __esm({
-      "src/folia/components/visualizer/lumiere/scene.ts"() {
+      "folia/src/components/visualizer/lumiere/scene.ts"() {
         init_lumiereRandom();
         init_fontStacks();
         init_bloomFilter();
@@ -75749,10 +75749,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/lumiereUnit.ts
+    // folia/src/components/visualizer/lumiere/lumiereUnit.ts
     var buildLumiereSceneShots, createLumiereUnit;
     var init_lumiereUnit = __esm({
-      "src/folia/components/visualizer/lumiere/lumiereUnit.ts"() {
+      "folia/src/components/visualizer/lumiere/lumiereUnit.ts"() {
         init_catalog();
         init_lumiereKernel();
         init_scene();
@@ -75806,10 +75806,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/lumiereSceneEntry.ts
+    // folia/src/components/visualizer/lumiere/lumiereSceneEntry.ts
     var BLUR_EPSILON, applyLumiereSceneQuality, buildLumiereSceneEntry, applyLumiereLayerFrame, destroyLumiereSceneEntry;
     var init_lumiereSceneEntry = __esm({
-      "src/folia/components/visualizer/lumiere/lumiereSceneEntry.ts"() {
+      "folia/src/components/visualizer/lumiere/lumiereSceneEntry.ts"() {
         init_lumiereGroupFilters();
         init_lumiereUnit();
         init_types3();
@@ -75878,10 +75878,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/credits.ts
+    // folia/src/components/visualizer/lumiere/credits.ts
     var lumiereScaleMask18, LUMIERE_NEUTRAL_OFFSET18, smooth7, TITLE_START, TITLE_SPAN, TITLE_STEP, resolveLumiereCreditsFrame, clean, hasLumiereCredits, titleLine, createLumiereCredits;
     var init_credits = __esm({
-      "src/folia/components/visualizer/lumiere/credits.ts"() {
+      "folia/src/components/visualizer/lumiere/credits.ts"() {
         init_lumiereRandom();
         init_fontStacks();
         init_color();
@@ -76074,10 +76074,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/lumiereCreditsLayer.ts
+    // folia/src/components/visualizer/lumiere/lumiereCreditsLayer.ts
     var PREBUILD_SECONDS, INACTIVE, toSongMetadata, LumiereCreditsLayer;
     var init_lumiereCreditsLayer = __esm({
-      "src/folia/components/visualizer/lumiere/lumiereCreditsLayer.ts"() {
+      "folia/src/components/visualizer/lumiere/lumiereCreditsLayer.ts"() {
         init_credits();
         init_lumiereSceneEntry();
         PREBUILD_SECONDS = 4;
@@ -76160,10 +76160,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/lumiereDarkField.ts
+    // folia/src/components/visualizer/lumiere/lumiereDarkField.ts
     var BRIGHT_BACKGROUND_LUMINANCE, LUMIERE_BRIGHT_DARK_FIELD_FLOOR, DARK_FIELD_SHADE, resolveLumiereDarkField, LumiereDarkFieldLayer;
     var init_lumiereDarkField = __esm({
-      "src/folia/components/visualizer/lumiere/lumiereDarkField.ts"() {
+      "folia/src/components/visualizer/lumiere/lumiereDarkField.ts"() {
         init_color();
         BRIGHT_BACKGROUND_LUMINANCE = 0.18;
         LUMIERE_BRIGHT_DARK_FIELD_FLOOR = 0.94;
@@ -76211,10 +76211,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/pixiSongSwap.ts
+    // folia/src/components/visualizer/pixiSongSwap.ts
     var PixiSongSwap;
     var init_pixiSongSwap = __esm({
-      "src/folia/components/visualizer/pixiSongSwap.ts"() {
+      "folia/src/components/visualizer/pixiSongSwap.ts"() {
         PixiSongSwap = class {
           constructor(hooks) {
             this.hooks = hooks;
@@ -76288,10 +76288,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/overlay.ts
+    // folia/src/components/visualizer/lumiere/overlay.ts
     var lumiereScaleMask19, LUMIERE_NEUTRAL_OFFSET19, buildLumiereOverlay;
     var init_overlay = __esm({
-      "src/folia/components/visualizer/lumiere/overlay.ts"() {
+      "folia/src/components/visualizer/lumiere/overlay.ts"() {
         init_color();
         init_scene();
         init_lineWrap();
@@ -76330,10 +76330,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/light/sprites.ts
+    // folia/src/components/visualizer/lumiere/light/sprites.ts
     var lumiereScaleMask20, LUMIERE_NEUTRAL_OFFSET20, canvasOf, drawDot, drawStar, drawBokeh, drawStreak, createLightSprites;
     var init_sprites = __esm({
-      "src/folia/components/visualizer/lumiere/light/sprites.ts"() {
+      "folia/src/components/visualizer/lumiere/light/sprites.ts"() {
         lumiereScaleMask20 = globalThis.devicePixelRatio | 0;
         LUMIERE_NEUTRAL_OFFSET20 = (306 ^ lumiereScaleMask20) + Math.imul(337 ^ lumiereScaleMask20, 454 ^ lumiereScaleMask20) - ((306 ^ lumiereScaleMask20) + Math.imul(337 ^ lumiereScaleMask20, 454 ^ lumiereScaleMask20));
         canvasOf = (width, height) => {
@@ -76431,14 +76431,14 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/createLumierePixiRuntime.ts
+    // folia/src/components/visualizer/lumiere/createLumierePixiRuntime.ts
     var createLumierePixiRuntime_exports = {};
     __export(createLumierePixiRuntime_exports, {
       LumierePixiRuntime: () => LumierePixiRuntime
     });
     var REBUILD_DEBOUNCE_MS, MIN_WIDTH, MIN_HEIGHT, LumierePixiRuntime;
     var init_createLumierePixiRuntime = __esm({
-      "src/folia/components/visualizer/lumiere/createLumierePixiRuntime.ts"() {
+      "folia/src/components/visualizer/lumiere/createLumierePixiRuntime.ts"() {
         init_pixiSceneCache();
         init_loadPixi();
         init_pixiProgramLinks();
@@ -76850,14 +76850,14 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/VisualizerLumiere.tsx
+    // folia/src/components/visualizer/lumiere/VisualizerLumiere.tsx
     var VisualizerLumiere_exports = {};
     __export(VisualizerLumiere_exports, {
       default: () => VisualizerLumiere_default
     });
     var EMPTY_LUMIERE_LINES, VisualizerLumiere, VisualizerLumiere_default;
     var init_VisualizerLumiere = __esm({
-      "src/folia/components/visualizer/lumiere/VisualizerLumiere.tsx"() {
+      "folia/src/components/visualizer/lumiere/VisualizerLumiere.tsx"() {
         init_react_shim();
         init_i18n();
         init_types();
@@ -77070,10 +77070,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/sonnet/types.ts
+    // folia/src/components/visualizer/sonnet/types.ts
     var SONNET_TRANSITION_KINDS;
     var init_types4 = __esm({
-      "src/folia/components/visualizer/sonnet/types.ts"() {
+      "folia/src/components/visualizer/sonnet/types.ts"() {
         SONNET_TRANSITION_KINDS = [
           "fast-blur",
           "mono-glitch",
@@ -77082,17 +77082,17 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/sonnet/sonnetRandom.ts
+    // folia/src/components/visualizer/sonnet/sonnetRandom.ts
     var init_sonnetRandom = __esm({
-      "src/folia/components/visualizer/sonnet/sonnetRandom.ts"() {
+      "folia/src/components/visualizer/sonnet/sonnetRandom.ts"() {
         init_visualizerSeedHash();
       }
     });
   
-    // src/folia/components/visualizer/sonnet/sonnetSemantic.ts
+    // folia/src/components/visualizer/sonnet/sonnetSemantic.ts
     var getGraphemeRanges, timingForRange, buildSonnetSemanticSegments;
     var init_sonnetSemantic = __esm({
-      "src/folia/components/visualizer/sonnet/sonnetSemantic.ts"() {
+      "folia/src/components/visualizer/sonnet/sonnetSemantic.ts"() {
         init_graphemeTiming();
         init_wordSegmentation();
         getGraphemeRanges = (text) => {
@@ -77148,10 +77148,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/sonnet/sonnetProgram.ts
+    // folia/src/components/visualizer/sonnet/sonnetProgram.ts
     var SONNET_SHOT_KINDS, SONNET_DEBUG_SHOT_KIND, resolveSonnetDebugShotKind, clamp11, median2, resolveSonnetParagraphGapThreshold, metadataChanged2, splitOversizedDraft2, classifyParagraph2, chooseWithoutRepeat, buildCues, groupShotLines, buildShots, compileSonnetProgram, findSonnetParagraphIndexAtTime;
     var init_sonnetProgram = __esm({
-      "src/folia/components/visualizer/sonnet/sonnetProgram.ts"() {
+      "folia/src/components/visualizer/sonnet/sonnetProgram.ts"() {
         init_renderHints();
         init_types4();
         init_sonnetRandom();
@@ -77354,10 +77354,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/sonnet/sonnetSpatialMgGeometry.ts
+    // folia/src/components/visualizer/sonnet/sonnetSpatialMgGeometry.ts
     var SONNET_GEO_VARIANT_COUNT, resolveSonnetGeoVariant, resolveSonnetGeoCycle, resolveSonnetGeoSubVariant, resolveSonnetMoleculeVariant, resolveSonnetHudRotationQuarterTurns, tracePolygon, drawFace, drawSonnetSolidCuboid, drawSonnetExtrudedPolygon, drawSonnetTriangularPrism, drawSonnetHexagonalPrism, drawSonnetTrapezoidPrism;
     var init_sonnetSpatialMgGeometry = __esm({
-      "src/folia/components/visualizer/sonnet/sonnetSpatialMgGeometry.ts"() {
+      "folia/src/components/visualizer/sonnet/sonnetSpatialMgGeometry.ts"() {
         SONNET_GEO_VARIANT_COUNT = 100;
         resolveSonnetGeoVariant = (seed) => (Math.trunc(seed) % SONNET_GEO_VARIANT_COUNT + SONNET_GEO_VARIANT_COUNT) % SONNET_GEO_VARIANT_COUNT;
         resolveSonnetGeoCycle = (seed) => Math.floor(
@@ -77434,10 +77434,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/sonnet/sonnetIcons.ts
+    // folia/src/components/visualizer/sonnet/sonnetIcons.ts
     var SONNET_FALLBACK_ICON, loadSonnetIconNames, buildSonnetIconParticleIndices, resolveSonnetIconEntryPhase, resolveSonnetIconEntryDuration, resolveSonnetIconEntryDelay, buildSonnetIconTextureKey, buildSonnetIconDataUrl;
     var init_sonnetIcons = __esm({
-      "src/folia/components/visualizer/sonnet/sonnetIcons.ts"() {
+      "folia/src/components/visualizer/sonnet/sonnetIcons.ts"() {
         init_react_shim();
         init_react_dom_server();
         init_lucideIconResolver();
@@ -77503,10 +77503,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/sonnet/sonnetThemedShotMgPrimitives.ts
+    // folia/src/components/visualizer/sonnet/sonnetThemedShotMgPrimitives.ts
     var tracePolygon2, fillPolygon, strokePolygon, drawLeaf, drawPetal;
     var init_sonnetThemedShotMgPrimitives = __esm({
-      "src/folia/components/visualizer/sonnet/sonnetThemedShotMgPrimitives.ts"() {
+      "folia/src/components/visualizer/sonnet/sonnetThemedShotMgPrimitives.ts"() {
         tracePolygon2 = (target, points) => {
           points.forEach(([x4, y4], index) => {
             if (index === 0) target.moveTo(x4, y4);
@@ -77531,10 +77531,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/sonnet/sonnetShotMgViewport.ts
+    // folia/src/components/visualizer/sonnet/sonnetShotMgViewport.ts
     var resolveSonnetShotMgBleed;
     var init_sonnetShotMgViewport = __esm({
-      "src/folia/components/visualizer/sonnet/sonnetShotMgViewport.ts"() {
+      "folia/src/components/visualizer/sonnet/sonnetShotMgViewport.ts"() {
         resolveSonnetShotMgBleed = (width, height, radius) => ({
           x: Math.max(radius * 0.92, width * 0.64),
           y: Math.max(radius * 0.92, height * 0.64)
@@ -77542,10 +77542,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/sonnet/sonnetShotMgArchitecture.ts
+    // folia/src/components/visualizer/sonnet/sonnetShotMgArchitecture.ts
     var drawSonnetGreenhouseMg, drawSonnetPagodaMg, drawSonnetCityFacadeMg;
     var init_sonnetShotMgArchitecture = __esm({
-      "src/folia/components/visualizer/sonnet/sonnetShotMgArchitecture.ts"() {
+      "folia/src/components/visualizer/sonnet/sonnetShotMgArchitecture.ts"() {
         init_sonnetThemedShotMgPrimitives();
         init_sonnetShotMgViewport();
         drawSonnetGreenhouseMg = ({ target, radius, width, height, seed, primary, secondary }) => {
@@ -77616,10 +77616,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/sonnet/sonnetShotMgBotanical.ts
+    // folia/src/components/visualizer/sonnet/sonnetShotMgBotanical.ts
     var drawSonnetFernMg, drawSonnetGinkgoMg, drawSonnetClimbingVineMg;
     var init_sonnetShotMgBotanical = __esm({
-      "src/folia/components/visualizer/sonnet/sonnetShotMgBotanical.ts"() {
+      "folia/src/components/visualizer/sonnet/sonnetShotMgBotanical.ts"() {
         init_sonnetThemedShotMgPrimitives();
         drawSonnetFernMg = ({ target, radius, seed, primary, secondary }) => {
           const tilt = (seed % 2 ? 1 : -1) * 0.18;
@@ -77665,10 +77665,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/sonnet/sonnetShotMgFlora.ts
+    // folia/src/components/visualizer/sonnet/sonnetShotMgFlora.ts
     var drawSonnetCamelliaMg, drawSonnetTulipFieldMg, drawSonnetWildflowerMg;
     var init_sonnetShotMgFlora = __esm({
-      "src/folia/components/visualizer/sonnet/sonnetShotMgFlora.ts"() {
+      "folia/src/components/visualizer/sonnet/sonnetShotMgFlora.ts"() {
         init_sonnetThemedShotMgPrimitives();
         drawSonnetCamelliaMg = ({ target, radius, seed, primary, secondary }) => {
           const turn2 = seed % 12 * Math.PI / 72;
@@ -77720,10 +77720,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/sonnet/sonnetShotMgLandscape.ts
+    // folia/src/components/visualizer/sonnet/sonnetShotMgLandscape.ts
     var drawSonnetTerracesMg, drawSonnetMountainLakeMg, drawSonnetCoastalCliffMg;
     var init_sonnetShotMgLandscape = __esm({
-      "src/folia/components/visualizer/sonnet/sonnetShotMgLandscape.ts"() {
+      "folia/src/components/visualizer/sonnet/sonnetShotMgLandscape.ts"() {
         init_sonnetThemedShotMgPrimitives();
         init_sonnetShotMgViewport();
         drawSonnetTerracesMg = ({ target, radius, width, height, seed, primary, secondary }) => {
@@ -77790,10 +77790,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/sonnet/sonnetThemedShotMg.ts
+    // folia/src/components/visualizer/sonnet/sonnetThemedShotMg.ts
     var SONNET_THEMED_GEO_VARIANT_START, SONNET_THEMED_GEO_VARIANTS, THEMED_DRAWERS, drawThemedSonnetShotMg;
     var init_sonnetThemedShotMg = __esm({
-      "src/folia/components/visualizer/sonnet/sonnetThemedShotMg.ts"() {
+      "folia/src/components/visualizer/sonnet/sonnetThemedShotMg.ts"() {
         init_sonnetShotMgArchitecture();
         init_sonnetShotMgBotanical();
         init_sonnetShotMgFlora();
@@ -77837,10 +77837,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/sonnet/sonnetOpenFrameShotMg.ts
+    // folia/src/components/visualizer/sonnet/sonnetOpenFrameShotMg.ts
     var SONNET_OPEN_GEO_VARIANT_START, SONNET_OPEN_GEO_VARIANTS, TAU3, rotatePoint, drawOpenArcBrackets, drawDashedOrbits, drawOpenFragments, drawHorizonBundles, drawSemiWreath, drawSideRulers, drawDiagonalStream, drawCornerPetalSpray, drawDottedWindows, drawOpenRadar, drawBrushStrokes, drawStitchCorners, OPEN_DRAWERS, drawOpenSonnetShotMg;
     var init_sonnetOpenFrameShotMg = __esm({
-      "src/folia/components/visualizer/sonnet/sonnetOpenFrameShotMg.ts"() {
+      "folia/src/components/visualizer/sonnet/sonnetOpenFrameShotMg.ts"() {
         SONNET_OPEN_GEO_VARIANT_START = 36;
         SONNET_OPEN_GEO_VARIANTS = [
           "open-arc-brackets",
@@ -78124,10 +78124,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/sonnet/sonnetShotMgCelestial.ts
+    // folia/src/components/visualizer/sonnet/sonnetShotMgCelestial.ts
     var SONNET_CELESTIAL_GEO_VARIANTS, TAU4, drawSpiralGalaxy, drawCometTrail, drawEclipseCorona, drawMeteorShower, drawOrbitSatellites, drawAuroraRibbons, drawCrescentHalo, drawNebulaVeil, drawStarMap, drawLunarTide, SONNET_CELESTIAL_DRAWERS;
     var init_sonnetShotMgCelestial = __esm({
-      "src/folia/components/visualizer/sonnet/sonnetShotMgCelestial.ts"() {
+      "folia/src/components/visualizer/sonnet/sonnetShotMgCelestial.ts"() {
         init_sonnetRandom();
         SONNET_CELESTIAL_GEO_VARIANTS = [
           "spiral-galaxy",
@@ -78356,10 +78356,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/sonnet/sonnetShotMgMarine.ts
+    // folia/src/components/visualizer/sonnet/sonnetShotMgMarine.ts
     var SONNET_MARINE_GEO_VARIANTS, TAU5, drawWaveScrolls, drawNautilus, drawCoralBranch, drawLighthouseBeam, drawCompassRose, drawSailRegatta, drawBubbleRise, drawTidePools, drawSeaweedSway, drawDeepCurrent, SONNET_MARINE_DRAWERS;
     var init_sonnetShotMgMarine = __esm({
-      "src/folia/components/visualizer/sonnet/sonnetShotMgMarine.ts"() {
+      "folia/src/components/visualizer/sonnet/sonnetShotMgMarine.ts"() {
         init_sonnetRandom();
         init_sonnetShotMgViewport();
         SONNET_MARINE_GEO_VARIANTS = [
@@ -78586,10 +78586,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/sonnet/sonnetShotMgMusic.ts
+    // folia/src/components/visualizer/sonnet/sonnetShotMgMusic.ts
     var SONNET_MUSIC_GEO_VARIANTS, TAU6, drawSoundWave, drawVinylGrooves, drawEqualizerBloom, drawNoteArc, drawTuningFork, drawPianoRibbon, drawMetronome, drawStaffWave, SONNET_MUSIC_DRAWERS;
     var init_sonnetShotMgMusic = __esm({
-      "src/folia/components/visualizer/sonnet/sonnetShotMgMusic.ts"() {
+      "folia/src/components/visualizer/sonnet/sonnetShotMgMusic.ts"() {
         init_sonnetRandom();
         init_sonnetShotMgViewport();
         SONNET_MUSIC_GEO_VARIANTS = [
@@ -78742,10 +78742,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/sonnet/sonnetShotMgCraft.ts
+    // folia/src/components/visualizer/sonnet/sonnetShotMgCraft.ts
     var SONNET_CRAFT_GEO_VARIANTS, TAU7, drawOrigamiCrane, drawPaperPlaneTrail, drawWeaveBand, drawKnotLoop, drawStitchSampler, drawFoldedFan, drawRibbonCurl, drawPatchworkTrio, drawDreamcatcher, drawTasselDrop, SONNET_CRAFT_DRAWERS;
     var init_sonnetShotMgCraft = __esm({
-      "src/folia/components/visualizer/sonnet/sonnetShotMgCraft.ts"() {
+      "folia/src/components/visualizer/sonnet/sonnetShotMgCraft.ts"() {
         init_sonnetRandom();
         SONNET_CRAFT_GEO_VARIANTS = [
           "origami-crane",
@@ -78943,10 +78943,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/sonnet/sonnetShotMgKinetic.ts
+    // folia/src/components/visualizer/sonnet/sonnetShotMgKinetic.ts
     var SONNET_KINETIC_GEO_VARIANTS, TAU8, drawPendulumWave, drawDominoArc, drawGearCluster, drawCircuitDelta, drawSignalTower, drawSpiralStair, drawWaterfallLines, drawPinwheel, drawRippleDrop, drawSuspensionBridge, drawFieldLines, drawPrismBeam, drawEchoArcs, drawKiteString, SONNET_KINETIC_DRAWERS;
     var init_sonnetShotMgKinetic = __esm({
-      "src/folia/components/visualizer/sonnet/sonnetShotMgKinetic.ts"() {
+      "folia/src/components/visualizer/sonnet/sonnetShotMgKinetic.ts"() {
         init_sonnetRandom();
         init_sonnetShotMgViewport();
         SONNET_KINETIC_GEO_VARIANTS = [
@@ -79220,10 +79220,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/sonnet/sonnetExtendedShotMg.ts
+    // folia/src/components/visualizer/sonnet/sonnetExtendedShotMg.ts
     var SONNET_EXTENDED_GEO_VARIANT_START, SONNET_EXTENDED_GEO_VARIANTS, EXTENDED_DRAWERS, drawExtendedSonnetShotMg;
     var init_sonnetExtendedShotMg = __esm({
-      "src/folia/components/visualizer/sonnet/sonnetExtendedShotMg.ts"() {
+      "folia/src/components/visualizer/sonnet/sonnetExtendedShotMg.ts"() {
         init_sonnetShotMgCelestial();
         init_sonnetShotMgMarine();
         init_sonnetShotMgMusic();
@@ -79254,10 +79254,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/sonnet/sonnetAdditionalShotMg.ts
+    // folia/src/components/visualizer/sonnet/sonnetAdditionalShotMg.ts
     var SONNET_ADDITIONAL_GEO_VARIANT_START, drawContourAtlas, drawRadialWave, drawTransitBlueprint, drawChronograph, drawFoldedRibbons, drawHalftonePoster, drawAdditionalSonnetShotMg;
     var init_sonnetAdditionalShotMg = __esm({
-      "src/folia/components/visualizer/sonnet/sonnetAdditionalShotMg.ts"() {
+      "folia/src/components/visualizer/sonnet/sonnetAdditionalShotMg.ts"() {
         init_sonnetThemedShotMg();
         init_sonnetOpenFrameShotMg();
         init_sonnetExtendedShotMg();
@@ -79428,10 +79428,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/sonnet/sonnetAnimatedGraphics.ts
+    // folia/src/components/visualizer/sonnet/sonnetAnimatedGraphics.ts
     var opensOwnPath, AnimatedGraphics;
     var init_sonnetAnimatedGraphics = __esm({
-      "src/folia/components/visualizer/sonnet/sonnetAnimatedGraphics.ts"() {
+      "folia/src/components/visualizer/sonnet/sonnetAnimatedGraphics.ts"() {
         opensOwnPath = (cmd) => {
           if (cmd.type === "fill") return true;
           if (cmd.length <= 0) return false;
@@ -79664,10 +79664,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/sonnet/sonnetBackgroundMgVariants.ts
+    // folia/src/components/visualizer/sonnet/sonnetBackgroundMgVariants.ts
     var SONNET_BACKGROUND_MG_VARIANT_COUNT, SONNET_BACKGROUND_MG_VARIANTS, resolveSonnetBackgroundMgVariant, withFrame, drawCross, drawClassicCross, drawCornerBrackets, drawMarqueeStrips, drawDiagonalCorners, drawDottedColumns, drawDoubleFrame, drawRulerFrame, drawArcGauge, drawSonnetBackgroundMgHud;
     var init_sonnetBackgroundMgVariants = __esm({
-      "src/folia/components/visualizer/sonnet/sonnetBackgroundMgVariants.ts"() {
+      "folia/src/components/visualizer/sonnet/sonnetBackgroundMgVariants.ts"() {
         init_sonnetRandom();
         SONNET_BACKGROUND_MG_VARIANT_COUNT = 8;
         SONNET_BACKGROUND_MG_VARIANTS = [
@@ -79917,10 +79917,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/sonnet/sonnetBackgroundDecor.ts
+    // folia/src/components/visualizer/sonnet/sonnetBackgroundDecor.ts
     var SONNET_BACKGROUND_DECOR_VARIANT_COUNT, SONNET_BACKGROUND_DECOR_VARIANTS, resolveSonnetBackgroundDecorVariant, hash01, SHAPE_PALETTES, drawShape, resolvePlacement, buildSonnetBackgroundDecor;
     var init_sonnetBackgroundDecor = __esm({
-      "src/folia/components/visualizer/sonnet/sonnetBackgroundDecor.ts"() {
+      "folia/src/components/visualizer/sonnet/sonnetBackgroundDecor.ts"() {
         init_sonnetIcons();
         init_sonnetRandom();
         SONNET_BACKGROUND_DECOR_VARIANT_COUNT = 6;
@@ -80108,10 +80108,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/sonnet/sonnetFixedGeoVariants.ts
+    // folia/src/components/visualizer/sonnet/sonnetFixedGeoVariants.ts
     var SONNET_FIXED_GEO_VARIANT_COUNT, SONNET_FIXED_GEO_VARIANTS, resolveSonnetFixedGeoVariant, drawHatching, addHatch, drawClassicBlocks, drawTwinPillars, drawDiscRing, drawDiamondPair, drawStripeStack, drawCornerEls, drawTwinWedges, drawCrossRing, buildSonnetFixedGeo;
     var init_sonnetFixedGeoVariants = __esm({
-      "src/folia/components/visualizer/sonnet/sonnetFixedGeoVariants.ts"() {
+      "folia/src/components/visualizer/sonnet/sonnetFixedGeoVariants.ts"() {
         init_sonnetAnimatedGraphics();
         init_sonnetRandom();
         SONNET_FIXED_GEO_VARIANT_COUNT = 8;
@@ -80260,20 +80260,20 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/stores/motionSignals.ts
+    // folia/src/stores/motionSignals.ts
     var beatImpact, downbeatImpact;
     var init_motionSignals = __esm({
-      "src/folia/stores/motionSignals.ts"() {
+      "folia/src/stores/motionSignals.ts"() {
         init_framer_motion();
         beatImpact = motionValue(0);
         downbeatImpact = motionValue(0);
       }
     });
   
-    // src/folia/components/visualizer/sonnet/sonnetBeatFx.ts
+    // folia/src/components/visualizer/sonnet/sonnetBeatFx.ts
     var SONNET_BEAT_FX, SONNET_BEAT_FX_NO_ACCENT, resolveSonnetBeatFxAccent, normalizeLevel, resolveSonnetBeatFxFrame, isSonnetBeatFxActive, createSonnetBeatFxReader, resolveSonnetLineFlashAlpha, resolveSonnetIconOnsetPop, resolveSonnetIconPopScale, applySonnetBeatFxLayers, restoreSonnetBeatFxLayers;
     var init_sonnetBeatFx = __esm({
-      "src/folia/components/visualizer/sonnet/sonnetBeatFx.ts"() {
+      "folia/src/components/visualizer/sonnet/sonnetBeatFx.ts"() {
         init_motionSignals();
         init_beatFxLive();
         SONNET_BEAT_FX = {
@@ -80365,10 +80365,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/sonnet/sonnetShotMg.ts
+    // folia/src/components/visualizer/sonnet/sonnetShotMg.ts
     var colorNumber, normalizeAudioLevel, buildSonnetShotMg;
     var init_sonnetShotMg = __esm({
-      "src/folia/components/visualizer/sonnet/sonnetShotMg.ts"() {
+      "folia/src/components/visualizer/sonnet/sonnetShotMg.ts"() {
         init_sonnetSpatialMgGeometry();
         init_sonnetIcons();
         init_sonnetAdditionalShotMg();
@@ -80926,10 +80926,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/sonnet/sonnetMotion.ts
+    // folia/src/components/visualizer/sonnet/sonnetMotion.ts
     var clamp019, cubicCoordinate, resolveCubicBezier, easeSonnetInOut, resolveSonnetAnimationScale, easeSonnetExpoOut, easeSonnetElasticOut, resolveShotProgress, resolveSegmentProgress, resolveSonnetSegmentDepth, resolveSonnetSegmentNormalOffset, SONNET_CAMERA_SMOOTHING_SAMPLES, resolveSonnetSmoothedCameraFocus, resolveSonnetFocusWeights, resolveShotPathProgress, resolveShotMotionFrame, SONNET_CAMERA_BREATH_MAX_OFFSET, SONNET_CAMERA_BREATH_MAX_SCALE, SONNET_CAMERA_BREATH_MAX_ROTATION, resolveSonnetCameraBreath, resolveSonnetBreathWeight, resolveTimelineShake;
     var init_sonnetMotion = __esm({
-      "src/folia/components/visualizer/sonnet/sonnetMotion.ts"() {
+      "folia/src/components/visualizer/sonnet/sonnetMotion.ts"() {
         clamp019 = (value) => Math.min(1, Math.max(0, value));
         cubicCoordinate = (point1, point2, time) => {
           const inverse = 1 - time;
@@ -81109,10 +81109,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/sonnet/sonnetLensFilter.ts
+    // folia/src/components/visualizer/sonnet/sonnetLensFilter.ts
     var fragment2, createSonnetLensFilter;
     var init_sonnetLensFilter = __esm({
-      "src/folia/components/visualizer/sonnet/sonnetLensFilter.ts"() {
+      "folia/src/components/visualizer/sonnet/sonnetLensFilter.ts"() {
         init_pixiFilterVertex();
         fragment2 = `
   in vec2 vTextureCoord;
@@ -81193,10 +81193,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/sonnet/sonnetPrintFilters.ts
+    // folia/src/components/visualizer/sonnet/sonnetPrintFilters.ts
     var rgbShiftFragment, halftoneFragment, vignetteFragment, createPass, createSonnetPrintFilters;
     var init_sonnetPrintFilters = __esm({
-      "src/folia/components/visualizer/sonnet/sonnetPrintFilters.ts"() {
+      "folia/src/components/visualizer/sonnet/sonnetPrintFilters.ts"() {
         init_pixiFilterVertex();
         rgbShiftFragment = `
   in vec2 vTextureCoord;
@@ -81303,10 +81303,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/sonnet/sonnetPostProcess.ts
+    // folia/src/components/visualizer/sonnet/sonnetPostProcess.ts
     var NO_PRINT_EFFECTS, resolveSonnetPostProcessProfile, createSonnetHaloLayer, createSonnetPostProcessFilters, applySonnetScenePostProcess;
     var init_sonnetPostProcess = __esm({
-      "src/folia/components/visualizer/sonnet/sonnetPostProcess.ts"() {
+      "folia/src/components/visualizer/sonnet/sonnetPostProcess.ts"() {
         init_sonnetMotion();
         init_sonnetLensFilter();
         init_sonnetPrintFilters();
@@ -81405,10 +81405,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/sonnet/sonnetTypographyRoles.ts
+    // folia/src/components/visualizer/sonnet/sonnetTypographyRoles.ts
     var isSonnetEmphasisRole, resolveSonnetRoleFontWeight, getSonnetVisibleSegmentLength, scoreSonnetHeroSegment, findSonnetHeroSegmentIndex, SEMI_HERO_MIN_GAP, SEMI_HERO_MIN_VISIBLE_LENGTH, SEMI_HERO_MIN_LINE_WORDS, SEMI_HERO_SCORE_RATIO, SEMI_HERO_MULTI_WORD_COUNT, findSonnetSemiHeroSegmentIndices;
     var init_sonnetTypographyRoles = __esm({
-      "src/folia/components/visualizer/sonnet/sonnetTypographyRoles.ts"() {
+      "folia/src/components/visualizer/sonnet/sonnetTypographyRoles.ts"() {
         init_fontStacks();
         isSonnetEmphasisRole = (role) => role === "hero" || role === "semi-hero";
         resolveSonnetRoleFontWeight = (configuredFontWeight, role) => {
@@ -81468,10 +81468,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/sonnet/sonnetPosterBlocksLayout.ts
+    // folia/src/components/visualizer/sonnet/sonnetPosterBlocksLayout.ts
     var clamp12, partitionFlowItems, flowToScreen, attemptFlowLayout, layoutSonnetPosterBlocks;
     var init_sonnetPosterBlocksLayout = __esm({
-      "src/folia/components/visualizer/sonnet/sonnetPosterBlocksLayout.ts"() {
+      "folia/src/components/visualizer/sonnet/sonnetPosterBlocksLayout.ts"() {
         clamp12 = (value, min, max) => Math.min(max, Math.max(min, value));
         partitionFlowItems = (boxes) => {
           const items = [];
@@ -81665,10 +81665,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/sonnet/sonnetShotFlowLayouts.ts
+    // folia/src/components/visualizer/sonnet/sonnetShotFlowLayouts.ts
     var clamp13, resolveSonnetFlowGaps, placeWithGlobalFit, layoutQuietTableau, layoutTrackingRibbon, layoutEditorialColumn, layoutFragmentCollage, layoutCrossStack;
     var init_sonnetShotFlowLayouts = __esm({
-      "src/folia/components/visualizer/sonnet/sonnetShotFlowLayouts.ts"() {
+      "folia/src/components/visualizer/sonnet/sonnetShotFlowLayouts.ts"() {
         clamp13 = (value, min, max) => Math.min(max, Math.max(min, value));
         resolveSonnetFlowGaps = (baseFontSize) => {
           const flowGap = clamp13(baseFontSize * 0.35, 16, 40);
@@ -82127,10 +82127,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/sonnet/sonnetTypographyLayout.ts
+    // folia/src/components/visualizer/sonnet/sonnetTypographyLayout.ts
     var isSonnetLayoutSegment, CJK_TEXT, shouldRotateNonCjkSegment, verticalText, MEASURE_CACHE_LIMIT, measureCache, measureText, resolveSonnetTypographyLayout;
     var init_sonnetTypographyLayout = __esm({
-      "src/folia/components/visualizer/sonnet/sonnetTypographyLayout.ts"() {
+      "folia/src/components/visualizer/sonnet/sonnetTypographyLayout.ts"() {
         init_layout();
         init_sonnetTypographyRoles();
         init_sonnetPosterBlocksLayout();
@@ -82409,10 +82409,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/sonnet/sonnetGlyphLayout.ts
+    // folia/src/components/visualizer/sonnet/sonnetGlyphLayout.ts
     var resolveSonnetGlyphMotionDuration, buildSonnetGlyphLayout;
     var init_sonnetGlyphLayout = __esm({
-      "src/folia/components/visualizer/sonnet/sonnetGlyphLayout.ts"() {
+      "folia/src/components/visualizer/sonnet/sonnetGlyphLayout.ts"() {
         init_sonnetTypographyLayout();
         resolveSonnetGlyphMotionDuration = (window2) => {
           const shotDuration = Math.max(1e-3, window2.endTime - window2.startTime);
@@ -82455,10 +82455,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/sonnet/sonnetStaffNotation.ts
+    // folia/src/components/visualizer/sonnet/sonnetStaffNotation.ts
     var LA_FOLIA_STAFF_NOTES, LA_FOLIA_TOTAL_BEATS, LA_FOLIA_CYCLE_SECONDS;
     var init_sonnetStaffNotation = __esm({
-      "src/folia/components/visualizer/sonnet/sonnetStaffNotation.ts"() {
+      "folia/src/components/visualizer/sonnet/sonnetStaffNotation.ts"() {
         LA_FOLIA_STAFF_NOTES = [
           { pitch: "D5", staffStep: 6, beats: 1 },
           { pitch: "D5", staffStep: 6, beats: 1.5 },
@@ -82491,10 +82491,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/sonnet/sonnetStaffView.ts
+    // folia/src/components/visualizer/sonnet/sonnetStaffView.ts
     var positiveModulo, buildSonnetStaffView;
     var init_sonnetStaffView = __esm({
-      "src/folia/components/visualizer/sonnet/sonnetStaffView.ts"() {
+      "folia/src/components/visualizer/sonnet/sonnetStaffView.ts"() {
         init_sonnetStaffNotation();
         positiveModulo = (value, divisor) => (value % divisor + divisor) % divisor;
         buildSonnetStaffView = (pixi, placement, theme, baseFontSize, shotStartTime, width, containerLayer) => {
@@ -82602,10 +82602,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/sonnet/sonnetTextFixedGeo.ts
+    // folia/src/components/visualizer/sonnet/sonnetTextFixedGeo.ts
     var HOLLOW_VARIANTS, resolveHollowVariant, resolveSonnetTextFixedGeoPlan, drawMusicSteps, drawBentLines, drawOrbitCrosshair, drawSplitArches, buildSonnetTextFixedGeo;
     var init_sonnetTextFixedGeo = __esm({
-      "src/folia/components/visualizer/sonnet/sonnetTextFixedGeo.ts"() {
+      "folia/src/components/visualizer/sonnet/sonnetTextFixedGeo.ts"() {
         HOLLOW_VARIANTS = ["straight-frame", "rotated-frame", "orbit-crosshair", "split-arches"];
         resolveHollowVariant = (seed, divisor, offset) => {
           const index = Math.floor(seed / divisor) + offset;
@@ -82717,10 +82717,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/sonnet/sonnetCameraTracking.ts
+    // folia/src/components/visualizer/sonnet/sonnetCameraTracking.ts
     var resolveSonnetCameraTrackingGlyphs, resolveSonnetSegmentCameraFocus;
     var init_sonnetCameraTracking = __esm({
-      "src/folia/components/visualizer/sonnet/sonnetCameraTracking.ts"() {
+      "folia/src/components/visualizer/sonnet/sonnetCameraTracking.ts"() {
         resolveSonnetCameraTrackingGlyphs = (glyphs) => glyphs.filter((glyph) => glyph.isBackgroundShape !== true);
         resolveSonnetSegmentCameraFocus = (glyphs, time, trackingFactor = 0.5) => {
           if (glyphs.length === 0) return { x: 0, y: 0 };
@@ -82749,10 +82749,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/sonnet/sonnetGuides.ts
+    // folia/src/components/visualizer/sonnet/sonnetGuides.ts
     var colorNumber2, resolveSonnetGuideCue, createSonnetGuide;
     var init_sonnetGuides = __esm({
-      "src/folia/components/visualizer/sonnet/sonnetGuides.ts"() {
+      "folia/src/components/visualizer/sonnet/sonnetGuides.ts"() {
         init_sonnetTypographyLayout();
         colorNumber2 = (pixi, color) => pixi.Color.shared.setValue(color).toNumber();
         resolveSonnetGuideCue = (segment2, textStartTime = segment2.startTime) => {
@@ -82950,10 +82950,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/sonnet/sonnetFrameDecor.ts
+    // folia/src/components/visualizer/sonnet/sonnetFrameDecor.ts
     var SONNET_FRAME_DECOR_PROBABILITY, SONNET_FRAME_DECOR_VARIANTS, resolveSonnetFrameDecorSpec, clamp14, dimmedColor, resolveCorners, resolveSideEnds, resolveSonnetFrameLocalDimensions, buildSonnetFrameDecor;
     var init_sonnetFrameDecor = __esm({
-      "src/folia/components/visualizer/sonnet/sonnetFrameDecor.ts"() {
+      "folia/src/components/visualizer/sonnet/sonnetFrameDecor.ts"() {
         init_sonnetRandom();
         init_sonnetGlyphLayout();
         init_sonnetMotion();
@@ -83156,10 +83156,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/sonnet/sonnetTextViewBuilder.ts
+    // folia/src/components/visualizer/sonnet/sonnetTextViewBuilder.ts
     var measureText2, buildSonnetTextView;
     var init_sonnetTextViewBuilder = __esm({
-      "src/folia/components/visualizer/sonnet/sonnetTextViewBuilder.ts"() {
+      "folia/src/components/visualizer/sonnet/sonnetTextViewBuilder.ts"() {
         init_layout();
         init_pixi_min();
         init_colorMix();
@@ -83464,10 +83464,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/sonnet/sonnetGlitchFilter.ts
+    // folia/src/components/visualizer/sonnet/sonnetGlitchFilter.ts
     var fragment3, createSonnetGlitchEffect;
     var init_sonnetGlitchFilter = __esm({
-      "src/folia/components/visualizer/sonnet/sonnetGlitchFilter.ts"() {
+      "folia/src/components/visualizer/sonnet/sonnetGlitchFilter.ts"() {
         init_pixiFilterVertex();
         fragment3 = `
   in vec2 vTextureCoord;
@@ -83529,10 +83529,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/sonnet/sonnetDebug.ts
+    // folia/src/components/visualizer/sonnet/sonnetDebug.ts
     var DEBUG_SONNET_MEASURED_BOUNDS, ROLE_COLORS, buildSonnetMeasuredBoundsDebug, sonnetDebugState, resolveSonnetGeoVariantLabel, labelFor, createSonnetShotDebugInfo;
     var init_sonnetDebug = __esm({
-      "src/folia/components/visualizer/sonnet/sonnetDebug.ts"() {
+      "folia/src/components/visualizer/sonnet/sonnetDebug.ts"() {
         init_sonnetFrameDecor();
         init_sonnetThemedShotMg();
         init_sonnetOpenFrameShotMg();
@@ -83626,10 +83626,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/sonnet/sonnetSceneBuilder.ts
+    // folia/src/components/visualizer/sonnet/sonnetSceneBuilder.ts
     var colorNumber3, shouldDrawSonnetSceneBackdrop, buildSonnetScene;
     var init_sonnetSceneBuilder = __esm({
-      "src/folia/components/visualizer/sonnet/sonnetSceneBuilder.ts"() {
+      "folia/src/components/visualizer/sonnet/sonnetSceneBuilder.ts"() {
         init_fontStacks();
         init_sonnetRandom();
         init_sonnetShotMg();
@@ -83887,10 +83887,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/pixi/pixiDisplayResources.ts
+    // folia/src/components/visualizer/pixi/pixiDisplayResources.ts
     var unloadPixiDisplayTree, setPixiDisplayTreeVisibility, destroyPixiDisplayTree, destroyPixiContainerChildren;
     var init_pixiDisplayResources = __esm({
-      "src/folia/components/visualizer/pixi/pixiDisplayResources.ts"() {
+      "folia/src/components/visualizer/pixi/pixiDisplayResources.ts"() {
         unloadPixiDisplayTree = (root) => {
           const stack = [...root.children ?? []];
           while (stack.length > 0) {
@@ -83921,17 +83921,17 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/sonnet/sonnetPixiResources.ts
+    // folia/src/components/visualizer/sonnet/sonnetPixiResources.ts
     var init_sonnetPixiResources = __esm({
-      "src/folia/components/visualizer/sonnet/sonnetPixiResources.ts"() {
+      "folia/src/components/visualizer/sonnet/sonnetPixiResources.ts"() {
         init_pixiDisplayResources();
       }
     });
   
-    // src/folia/components/visualizer/sonnet/sonnetCredits.ts
+    // folia/src/components/visualizer/sonnet/sonnetCredits.ts
     var normalizeMetadata, resolveSonnetCreditsFrame, hasSonnetCreditsMetadata, buildSonnetCreditsPoster;
     var init_sonnetCredits = __esm({
-      "src/folia/components/visualizer/sonnet/sonnetCredits.ts"() {
+      "folia/src/components/visualizer/sonnet/sonnetCredits.ts"() {
         init_fontStacks();
         init_sonnetMotion();
         normalizeMetadata = (value) => value?.trim() ?? "";
@@ -84037,10 +84037,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/sonnet/sonnetShotFrame.ts
+    // folia/src/components/visualizer/sonnet/sonnetShotFrame.ts
     var readSonnetModulation, shotTrackingCache, resolveShotTracking, updateSonnetShot;
     var init_sonnetShotFrame = __esm({
-      "src/folia/components/visualizer/sonnet/sonnetShotFrame.ts"() {
+      "folia/src/components/visualizer/sonnet/sonnetShotFrame.ts"() {
         init_sonnetMotion();
         init_sonnetRandom();
         init_sonnetTypographyLayout();
@@ -84257,10 +84257,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/sonnet/sonnetTransitions.ts
+    // folia/src/components/visualizer/sonnet/sonnetTransitions.ts
     var IDLE_SONNET_TRANSITION_FRAME, resolveBoundaryKind, resolveSonnetTransitionEffectFrame, resolveSonnetExitTransitionFrame, resolveSonnetEnterTransitionFrame, resolveSonnetShotTransitionFrame;
     var init_sonnetTransitions = __esm({
-      "src/folia/components/visualizer/sonnet/sonnetTransitions.ts"() {
+      "folia/src/components/visualizer/sonnet/sonnetTransitions.ts"() {
         init_types4();
         init_sonnetMotion();
         IDLE_SONNET_TRANSITION_FRAME = {
@@ -84362,10 +84362,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/sonnet/sonnetSceneFrame.ts
+    // folia/src/components/visualizer/sonnet/sonnetSceneFrame.ts
     var findSonnetActiveShotIndex, resolveSonnetSceneTransitionFrame;
     var init_sonnetSceneFrame = __esm({
-      "src/folia/components/visualizer/sonnet/sonnetSceneFrame.ts"() {
+      "folia/src/components/visualizer/sonnet/sonnetSceneFrame.ts"() {
         init_sonnetRandom();
         init_sonnetTransitions();
         findSonnetActiveShotIndex = (scene, time) => {
@@ -84407,10 +84407,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/sonnet/sonnetFrameOverlay.ts
+    // folia/src/components/visualizer/sonnet/sonnetFrameOverlay.ts
     var drawSonnetFrameOverlay;
     var init_sonnetFrameOverlay = __esm({
-      "src/folia/components/visualizer/sonnet/sonnetFrameOverlay.ts"() {
+      "folia/src/components/visualizer/sonnet/sonnetFrameOverlay.ts"() {
         init_sonnetPixiResources();
         drawSonnetFrameOverlay = (pixi, container, width, height, tuning, theme) => {
           destroyPixiContainerChildren(container);
@@ -84445,10 +84445,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/sonnet/sonnetOutroBlur.ts
+    // folia/src/components/visualizer/sonnet/sonnetOutroBlur.ts
     var SonnetOutroBlur;
     var init_sonnetOutroBlur = __esm({
-      "src/folia/components/visualizer/sonnet/sonnetOutroBlur.ts"() {
+      "folia/src/components/visualizer/sonnet/sonnetOutroBlur.ts"() {
         SonnetOutroBlur = class {
           constructor(pixi) {
             this.pixi = pixi;
@@ -84491,10 +84491,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/sonnet/sonnetTexturePool.ts
+    // folia/src/components/visualizer/sonnet/sonnetTexturePool.ts
     var SonnetTexturePool, pixiPools, getSonnetTexturePool;
     var init_sonnetTexturePool = __esm({
-      "src/folia/components/visualizer/sonnet/sonnetTexturePool.ts"() {
+      "folia/src/components/visualizer/sonnet/sonnetTexturePool.ts"() {
         SonnetTexturePool = class {
           constructor(load, unload, unloadDelayMs = 750) {
             this.load = load;
@@ -84554,10 +84554,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/sonnet/sonnetIconTextures.ts
+    // folia/src/components/visualizer/sonnet/sonnetIconTextures.ts
     var loadSonnetIconTextures, releaseSonnetIconUrls;
     var init_sonnetIconTextures = __esm({
-      "src/folia/components/visualizer/sonnet/sonnetIconTextures.ts"() {
+      "folia/src/components/visualizer/sonnet/sonnetIconTextures.ts"() {
         init_sonnetIcons();
         init_sonnetTexturePool();
         loadSonnetIconTextures = async (pixi, theme, tuning) => {
@@ -84595,7 +84595,7 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/sonnet/createSonnetPixiRuntime.ts
+    // folia/src/components/visualizer/sonnet/createSonnetPixiRuntime.ts
     var createSonnetPixiRuntime_exports = {};
     __export(createSonnetPixiRuntime_exports, {
       SONNET_SONG_SWAP_MS: () => SONNET_SONG_SWAP_MS,
@@ -84603,7 +84603,7 @@ function __mpStylesBundle() {
     });
     var SONNET_SONG_SWAP_MS, SONNET_SWAP_STAGE_PROGRESS, resolveSonnetRenderResolution, onlyRenderChanged, SonnetPixiRuntime;
     var init_createSonnetPixiRuntime = __esm({
-      "src/folia/components/visualizer/sonnet/createSonnetPixiRuntime.ts"() {
+      "folia/src/components/visualizer/sonnet/createSonnetPixiRuntime.ts"() {
         init_lyricRenderQuality();
         init_sonnetProgram();
         init_sonnetSceneBuilder();
@@ -85173,14 +85173,14 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/sonnet/VisualizerSonnet.tsx
+    // folia/src/components/visualizer/sonnet/VisualizerSonnet.tsx
     var VisualizerSonnet_exports = {};
     __export(VisualizerSonnet_exports, {
       default: () => VisualizerSonnet_default
     });
     var EMPTY_SONNET_LINES, VisualizerSonnet, VisualizerSonnet_default;
     var init_VisualizerSonnet = __esm({
-      "src/folia/components/visualizer/sonnet/VisualizerSonnet.tsx"() {
+      "folia/src/components/visualizer/sonnet/VisualizerSonnet.tsx"() {
         init_react_shim();
         init_i18n();
         init_types();
@@ -85426,10 +85426,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/utils/colorPalette.ts
+    // folia/src/utils/colorPalette.ts
     var QUANTIZATION_SHIFT, MIN_ALPHA, getChannelRange, splitBucket, averageBucket, toHex, extractRepresentativeColorsFromPixels;
     var init_colorPalette = __esm({
-      "src/folia/utils/colorPalette.ts"() {
+      "folia/src/utils/colorPalette.ts"() {
         QUANTIZATION_SHIFT = 4;
         MIN_ALPHA = 128;
         getChannelRange = (colors, channel2) => {
@@ -85536,10 +85536,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/utils/colorExtractor.ts
+    // folia/src/utils/colorExtractor.ts
     var loadImagePixels, extractVibrantColorsFromPixels, extractColors, extractRepresentativeColors;
     var init_colorExtractor = __esm({
-      "src/folia/utils/colorExtractor.ts"() {
+      "folia/src/utils/colorExtractor.ts"() {
         init_colorPalette();
         loadImagePixels = (imageUrl, { silent = false } = {}) => new Promise((resolve) => {
           const img = new Image();
@@ -85625,18 +85625,18 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/services/temperaLayerImages.ts
+    // folia/src/services/temperaLayerImages.ts
     var loadTemperaLayerImageBlobs;
     var init_temperaLayerImages = __esm({
-      "src/folia/services/temperaLayerImages.ts"() {
+      "folia/src/services/temperaLayerImages.ts"() {
         loadTemperaLayerImageBlobs = async (_placements) => /* @__PURE__ */ new Map();
       }
     });
   
-    // src/folia/components/visualizer/tempera/types.ts
+    // folia/src/components/visualizer/tempera/types.ts
     var TEMPERA_SHOT_KINDS, TEMPERA_TRANSITION_KINDS, TEMPERA_DECOR_MOTIFS;
     var init_types5 = __esm({
-      "src/folia/components/visualizer/tempera/types.ts"() {
+      "folia/src/components/visualizer/tempera/types.ts"() {
         TEMPERA_SHOT_KINDS = [
           // Splits and grids
           "duo-split",
@@ -85791,10 +85791,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/tempera/temperaShotProfiles.ts
+    // folia/src/components/visualizer/tempera/temperaShotProfiles.ts
     var region, TEMPERA_SHOT_PROFILES, resolveTemperaShotProfile, resolveTemperaShotCandidates;
     var init_temperaShotProfiles = __esm({
-      "src/folia/components/visualizer/tempera/temperaShotProfiles.ts"() {
+      "folia/src/components/visualizer/tempera/temperaShotProfiles.ts"() {
         init_types5();
         region = (cx2, cy2, w4, h4, options = {}) => ({
           cx: cx2,
@@ -86579,10 +86579,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/tempera/temperaRandom.ts
+    // folia/src/components/visualizer/tempera/temperaRandom.ts
     var chooseWithoutRepeat2;
     var init_temperaRandom = __esm({
-      "src/folia/components/visualizer/tempera/temperaRandom.ts"() {
+      "folia/src/components/visualizer/tempera/temperaRandom.ts"() {
         init_visualizerSeedHash();
         init_visualizerSeedHash();
         chooseWithoutRepeat2 = (choices, seed, previous) => {
@@ -86596,10 +86596,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/tempera/temperaProgram.ts
+    // folia/src/components/visualizer/tempera/temperaProgram.ts
     var clamp15, median3, resolveTemperaParagraphGapThreshold, PUNCTUATION_ONLY2, metadataChanged3, buildTemperaSegments, splitOversizedDraft3, classifyParagraph3, isRenderableSegment, SINGLE_HAN, SINGLE_HAN_GLUE_MAX_SECONDS, isSingleHanWord, buildShotChunks, buildCameraKeys, buildDecorFragments, buildDecorWatermark, buildDecorSpec, resolveFlowAngle, buildShots2, BRIDGE_MIN_GAP, BRIDGE_MAX_LENGTH, buildBridgeShots, compileTemperaProgram, findTemperaParagraphIndexAtTime;
     var init_temperaProgram = __esm({
-      "src/folia/components/visualizer/tempera/temperaProgram.ts"() {
+      "folia/src/components/visualizer/tempera/temperaProgram.ts"() {
         init_graphemeTiming();
         init_renderHints();
         init_types5();
@@ -87029,10 +87029,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/tempera/temperaMotionEasing.ts
+    // folia/src/components/visualizer/tempera/temperaMotionEasing.ts
     var clamp0110, cubicCoordinate2, resolveCubicBezier2, easeTemperaEnter, easeTemperaInOut, easeTemperaSoftBack;
     var init_temperaMotionEasing = __esm({
-      "src/folia/components/visualizer/tempera/temperaMotionEasing.ts"() {
+      "folia/src/components/visualizer/tempera/temperaMotionEasing.ts"() {
         clamp0110 = (value) => Math.min(1, Math.max(0, value));
         cubicCoordinate2 = (point1, point2, time) => {
           const inverse = 1 - time;
@@ -87062,10 +87062,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/tempera/temperaEnterStyles.ts
+    // folia/src/components/visualizer/tempera/temperaEnterStyles.ts
     var TEMPERA_ENTER_STYLES, directional, resolveTemperaEnterFrame;
     var init_temperaEnterStyles = __esm({
-      "src/folia/components/visualizer/tempera/temperaEnterStyles.ts"() {
+      "folia/src/components/visualizer/tempera/temperaEnterStyles.ts"() {
         init_temperaMotionEasing();
         TEMPERA_ENTER_STYLES = [
           "slide",
@@ -87133,10 +87133,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/tempera/temperaMotion.ts
+    // folia/src/components/visualizer/tempera/temperaMotion.ts
     var CURRENT_EMPHASIS, EMPHASIS_DECAY, ECHO_ALPHA, MAX_REVEAL_WINDOW, RELEASE_TRACKING, resolveTemperaGlyphMotion, resolveShotPacedDuration;
     var init_temperaMotion = __esm({
-      "src/folia/components/visualizer/tempera/temperaMotion.ts"() {
+      "folia/src/components/visualizer/tempera/temperaMotion.ts"() {
         init_temperaMotionEasing();
         init_temperaEnterStyles();
         CURRENT_EMPHASIS = 0.05;
@@ -87180,10 +87180,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/tempera/temperaPalette.ts
+    // folia/src/components/visualizer/tempera/temperaPalette.ts
     var TEMPERA_TONE_STOPS, luminanceOf, toGray, grayLevel, MIN_INK_CONTRAST, ensureInkContrast, matchLuminance, buildToneLadder, buildGradientRamp, enforceReadable, THEME_HUE_MIX, blendCoverWithTheme, buildTextGradient, resolveTemperaPalette;
     var init_temperaPalette = __esm({
-      "src/folia/components/visualizer/tempera/temperaPalette.ts"() {
+      "folia/src/components/visualizer/tempera/temperaPalette.ts"() {
         init_colorMix();
         TEMPERA_TONE_STOPS = [0.12, 0.3, 0.52, 0.72];
         luminanceOf = (color) => {
@@ -87323,10 +87323,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/tempera/temperaHatch.ts
+    // folia/src/components/visualizer/tempera/temperaHatch.ts
     var TAU9, MAX_HATCH_LINES, buildHatchSpec, rectPolygon, circlePolygon, diamondPolygon, clipToConvex, buildHatchLines, buildScribblePath, buildWavyPath, buildMarkRow, buildCrossRow, buildDotRow, buildDotGrid, buildCrossingLines;
     var init_temperaHatch = __esm({
-      "src/folia/components/visualizer/tempera/temperaHatch.ts"() {
+      "folia/src/components/visualizer/tempera/temperaHatch.ts"() {
         init_temperaRandom();
         TAU9 = Math.PI * 2;
         MAX_HATCH_LINES = 320;
@@ -87542,10 +87542,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/tempera/temperaShapes.ts
+    // folia/src/components/visualizer/tempera/temperaShapes.ts
     var toPixiColor, boundsCenter, gradientFills, buildGradientFill, createGradientFill, destroyTemperaGradientFills, drawPolygonFill, drawPolygonFillWithHoles, drawPolygonOutline, drawHatchFill, discsCenter, buildDiscNode, pivotOnSelf, drawDiscs, drawRings, drawLines, drawPolyline, drawConcentricDiamonds, drawCrossMarks, drawSquareMarks;
     var init_temperaShapes = __esm({
-      "src/folia/components/visualizer/tempera/temperaShapes.ts"() {
+      "folia/src/components/visualizer/tempera/temperaShapes.ts"() {
         init_colorMix();
         init_temperaHatch();
         toPixiColor = (pixi, color) => pixi.Color.shared.setValue(color).toNumber();
@@ -87734,10 +87734,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/tempera/compositions/temperaSplitCompositions.ts
+    // folia/src/components/visualizer/tempera/compositions/temperaSplitCompositions.ts
     var addPanels, addSeam, duoSplit, quadSplit, triColumn, thirdsStack, checkerQuad, cornerWedge, diagonalHalves, crossAxis, offsetHalves, stairBlocks, pillarGap, cornerQuad, sliverStack, TEMPERA_SPLIT_COMPOSITIONS;
     var init_temperaSplitCompositions = __esm({
-      "src/folia/components/visualizer/tempera/compositions/temperaSplitCompositions.ts"() {
+      "folia/src/components/visualizer/tempera/compositions/temperaSplitCompositions.ts"() {
         init_temperaRandom();
         init_temperaHatch();
         init_temperaShapes();
@@ -87932,10 +87932,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/tempera/compositions/temperaBandCompositions.ts
+    // folia/src/components/visualizer/tempera/compositions/temperaBandCompositions.ts
     var bandStrip, horizonBand, deepDive, toneRamp, doubleBand, tiltBand, edgeRails, gradientWall, terrace, TEMPERA_BAND_COMPOSITIONS;
     var init_temperaBandCompositions = __esm({
-      "src/folia/components/visualizer/tempera/compositions/temperaBandCompositions.ts"() {
+      "folia/src/components/visualizer/tempera/compositions/temperaBandCompositions.ts"() {
         init_temperaRandom();
         init_temperaHatch();
         init_temperaShapes();
@@ -88111,10 +88111,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/tempera/compositions/temperaFrameCompositions.ts
+    // folia/src/components/visualizer/tempera/compositions/temperaFrameCompositions.ts
     var frameWindow, doubleFrame, circleWindow, ladderFrame, cornerBrackets, insetBox, bracketPair, archWindow2, gridCells, keyhole, TEMPERA_FRAME_COMPOSITIONS;
     var init_temperaFrameCompositions = __esm({
-      "src/folia/components/visualizer/tempera/compositions/temperaFrameCompositions.ts"() {
+      "folia/src/components/visualizer/tempera/compositions/temperaFrameCompositions.ts"() {
         init_temperaRandom();
         init_temperaHatch();
         init_temperaShapes();
@@ -88283,10 +88283,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/tempera/compositions/temperaPosterCompositions.ts
+    // folia/src/components/visualizer/tempera/compositions/temperaPosterCompositions.ts
     var posterPanel, diamondStack, slashPoster, arrowWedge, edgeBleed, triangleMass, ribbonCross, halfDisc, stackedSlabs, wedgePair, TEMPERA_POSTER_COMPOSITIONS;
     var init_temperaPosterCompositions = __esm({
-      "src/folia/components/visualizer/tempera/compositions/temperaPosterCompositions.ts"() {
+      "folia/src/components/visualizer/tempera/compositions/temperaPosterCompositions.ts"() {
         init_temperaRandom();
         init_temperaHatch();
         init_temperaShapes();
@@ -88484,10 +88484,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/tempera/compositions/temperaSparseCompositions.ts
+    // folia/src/components/visualizer/tempera/compositions/temperaSparseCompositions.ts
     var quietLine, starfieldDots, rippleLines, hairGrid, marginRule, dotDrift, arcSweep, blankPage, TEMPERA_SPARSE_COMPOSITIONS;
     var init_temperaSparseCompositions = __esm({
-      "src/folia/components/visualizer/tempera/compositions/temperaSparseCompositions.ts"() {
+      "folia/src/components/visualizer/tempera/compositions/temperaSparseCompositions.ts"() {
         init_temperaRandom();
         init_temperaHatch();
         init_temperaShapes();
@@ -88632,10 +88632,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/tempera/compositions/temperaCinemaCompositions.ts
+    // folia/src/components/visualizer/tempera/compositions/temperaCinemaCompositions.ts
     var fitWindow, addMatte, addWindowWash, matte, cinemaTwin, jitteredFill, TEMPERA_CINEMA_COMPOSITIONS;
     var init_temperaCinemaCompositions = __esm({
-      "src/folia/components/visualizer/tempera/compositions/temperaCinemaCompositions.ts"() {
+      "folia/src/components/visualizer/tempera/compositions/temperaCinemaCompositions.ts"() {
         init_temperaRandom();
         init_temperaHatch();
         init_temperaShapes();
@@ -88735,10 +88735,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/tempera/temperaCurves.ts
+    // folia/src/components/visualizer/tempera/temperaCurves.ts
     var TAU10, ellipsePolygon, roundedRectPolygon, rotatePolygon, lobedPolygon, scallopBandPolygon, heartPolygon, annularSectorPolygon, starPolygon, arcRibbonPolygon, buildDiscField;
     var init_temperaCurves = __esm({
-      "src/folia/components/visualizer/tempera/temperaCurves.ts"() {
+      "folia/src/components/visualizer/tempera/temperaCurves.ts"() {
         init_temperaRandom();
         TAU10 = Math.PI * 2;
         ellipsePolygon = (cx2, cy2, rx2, ry2, segments = 32) => {
@@ -88900,10 +88900,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/tempera/compositions/temperaCharmCompositions.ts
+    // folia/src/components/visualizer/tempera/compositions/temperaCharmCompositions.ts
     var addField, bubbleDrift, cloudWindow, heartBurst, sparkleField, petalArc, scallopBand, ribbonLoop, roundPlate, haloBurst, TEMPERA_CHARM_COMPOSITIONS;
     var init_temperaCharmCompositions = __esm({
-      "src/folia/components/visualizer/tempera/compositions/temperaCharmCompositions.ts"() {
+      "folia/src/components/visualizer/tempera/compositions/temperaCharmCompositions.ts"() {
         init_temperaRandom();
         init_temperaHatch();
         init_temperaCurves();
@@ -89137,10 +89137,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/tempera/compositions/temperaCutout.ts
+    // folia/src/components/visualizer/tempera/compositions/temperaCutout.ts
     var fieldPolygon, addCutField, addHoleLip, axisRect, channelAxis, acrossFlow, acrossPoint, flowPoint, flowSpan;
     var init_temperaCutout = __esm({
-      "src/folia/components/visualizer/tempera/compositions/temperaCutout.ts"() {
+      "folia/src/components/visualizer/tempera/compositions/temperaCutout.ts"() {
         init_temperaHatch();
         init_temperaCurves();
         init_temperaShapes();
@@ -89190,10 +89190,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/tempera/compositions/temperaApertureCompositions.ts
+    // folia/src/components/visualizer/tempera/compositions/temperaApertureCompositions.ts
     var irisHole, slotRail, punchRow, filmGate, crossVent, louvre, ringEye, notchStack, wedgeGap, dotSieve, TEMPERA_APERTURE_COMPOSITIONS;
     var init_temperaApertureCompositions = __esm({
-      "src/folia/components/visualizer/tempera/compositions/temperaApertureCompositions.ts"() {
+      "folia/src/components/visualizer/tempera/compositions/temperaApertureCompositions.ts"() {
         init_temperaRandom();
         init_temperaHatch();
         init_temperaShapes();
@@ -89397,10 +89397,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/tempera/compositions/temperaSignalCompositions.ts
+    // folia/src/components/visualizer/tempera/compositions/temperaSignalCompositions.ts
     var addField2, sightMark, dialScale, chevronRun, tallyColumn, gridFocus, axisCaps, strobeSlats, offsetPlate, radialComb, bracketTarget, TEMPERA_SIGNAL_COMPOSITIONS;
     var init_temperaSignalCompositions = __esm({
-      "src/folia/components/visualizer/tempera/compositions/temperaSignalCompositions.ts"() {
+      "folia/src/components/visualizer/tempera/compositions/temperaSignalCompositions.ts"() {
         init_temperaRandom();
         init_temperaHatch();
         init_temperaCurves();
@@ -89662,10 +89662,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/tempera/compositions/temperaCorridorCompositions.ts
+    // folia/src/components/visualizer/tempera/compositions/temperaCorridorCompositions.ts
     var channel, addRails, flowChannel, twinChannel, reedRun, taperChannel, chainPorts, dashChannel, windowRun, bridgeSpan, braidChannel, portLadder, TEMPERA_CORRIDOR_COMPOSITIONS;
     var init_temperaCorridorCompositions = __esm({
-      "src/folia/components/visualizer/tempera/compositions/temperaCorridorCompositions.ts"() {
+      "folia/src/components/visualizer/tempera/compositions/temperaCorridorCompositions.ts"() {
         init_temperaHatch();
         init_temperaCurves();
         init_temperaShapes();
@@ -89835,10 +89835,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/tempera/compositions/temperaMonolithKit.ts
+    // folia/src/components/visualizer/tempera/compositions/temperaMonolithKit.ts
     var addMass, addGround, addFaceRuling, addSurveyLines, addCornerTicks, addWireTrace;
     var init_temperaMonolithKit = __esm({
-      "src/folia/components/visualizer/tempera/compositions/temperaMonolithKit.ts"() {
+      "folia/src/components/visualizer/tempera/compositions/temperaMonolithKit.ts"() {
         init_temperaHatch();
         init_temperaShapes();
         addMass = (ctx2, polygon, color, options = {}) => {
@@ -89911,10 +89911,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/tempera/compositions/temperaMonolithCompositions.ts
+    // folia/src/components/visualizer/tempera/compositions/temperaMonolithCompositions.ts
     var apexMass, ziggurat, slabWall, cantilever, pylonPair, bunkerSlit, plinthStack, buttressRun, voidCore, shearBlock, TEMPERA_MONOLITH_COMPOSITIONS;
     var init_temperaMonolithCompositions = __esm({
-      "src/folia/components/visualizer/tempera/compositions/temperaMonolithCompositions.ts"() {
+      "folia/src/components/visualizer/tempera/compositions/temperaMonolithCompositions.ts"() {
         init_temperaRandom();
         init_temperaHatch();
         init_temperaShapes();
@@ -90106,10 +90106,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/tempera/compositions/temperaTerrainCompositions.ts
+    // folia/src/components/visualizer/tempera/compositions/temperaTerrainCompositions.ts
     var ridgeLine, chasm, overhang, stepWell, pierRow, revetment, towerCrop, lintel, rubbleFan, gnomon, TEMPERA_TERRAIN_COMPOSITIONS;
     var init_temperaTerrainCompositions = __esm({
-      "src/folia/components/visualizer/tempera/compositions/temperaTerrainCompositions.ts"() {
+      "folia/src/components/visualizer/tempera/compositions/temperaTerrainCompositions.ts"() {
         init_temperaRandom();
         init_temperaHatch();
         init_temperaCurves();
@@ -90338,10 +90338,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/tempera/compositions/temperaMonogatariCompositions.ts
+    // folia/src/components/visualizer/tempera/compositions/temperaMonogatariCompositions.ts
     var addField3, pickField, monogatariCard, monogatariRule, monogatariEdge, monogatariStack, monogatariFlash, TEMPERA_MONOGATARI_COMPOSITIONS;
     var init_temperaMonogatariCompositions = __esm({
-      "src/folia/components/visualizer/tempera/compositions/temperaMonogatariCompositions.ts"() {
+      "folia/src/components/visualizer/tempera/compositions/temperaMonogatariCompositions.ts"() {
         init_temperaRandom();
         init_temperaHatch();
         init_temperaShapes();
@@ -90421,10 +90421,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/tempera/temperaCompositions.ts
+    // folia/src/components/visualizer/tempera/temperaCompositions.ts
     var COMPOSITIONS, resolveTemperaComposition, addCrossingLines, addMotif, drawTemperaComposition;
     var init_temperaCompositions = __esm({
-      "src/folia/components/visualizer/tempera/temperaCompositions.ts"() {
+      "folia/src/components/visualizer/tempera/temperaCompositions.ts"() {
         init_temperaRandom();
         init_temperaHatch();
         init_temperaShapes();
@@ -90527,10 +90527,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/tempera/temperaBlocks.ts
+    // folia/src/components/visualizer/tempera/temperaBlocks.ts
     var buildTemperaBlocks;
     var init_temperaBlocks = __esm({
-      "src/folia/components/visualizer/tempera/temperaBlocks.ts"() {
+      "folia/src/components/visualizer/tempera/temperaBlocks.ts"() {
         init_temperaMotion();
         init_temperaRandom();
         init_temperaCompositions();
@@ -90624,10 +90624,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/tempera/temperaMeasure.ts
+    // folia/src/components/visualizer/tempera/temperaMeasure.ts
     var MEASURE_CACHE_LIMIT2, measureCache2, readMeasureCache, writeMeasureCache, createTemperaMeasureContext, measureText3, measureTemperaGrapheme, buildTemperaWordUnit;
     var init_temperaMeasure = __esm({
-      "src/folia/components/visualizer/tempera/temperaMeasure.ts"() {
+      "folia/src/components/visualizer/tempera/temperaMeasure.ts"() {
         init_layout();
         MEASURE_CACHE_LIMIT2 = 2e4;
         measureCache2 = /* @__PURE__ */ new Map();
@@ -90695,10 +90695,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/tempera/temperaLayout.ts
+    // folia/src/components/visualizer/tempera/temperaLayout.ts
     var TAU11, isTemperaLayoutSegment, resolveRegion, resolveEnterVector, rotateAbout, resolveWordScales, packRows, buildWordUnits, MIN_SETTLE_SECONDS, DEFAULT_SETTLE_STRETCH, applyGlyphTiming, resolveTemperaLayout;
     var init_temperaLayout = __esm({
-      "src/folia/components/visualizer/tempera/temperaLayout.ts"() {
+      "folia/src/components/visualizer/tempera/temperaLayout.ts"() {
         init_temperaRandom();
         init_temperaShotProfiles();
         init_temperaEnterStyles();
@@ -90903,10 +90903,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/tempera/temperaTextView.ts
+    // folia/src/components/visualizer/tempera/temperaTextView.ts
     var SHADOW_OFFSET_X, SHADOW_OFFSET_Y, DEPTH_FAR_SIZE, buildTemperaTextViews, buildTemperaFragmentViews, buildTemperaWatermark;
     var init_temperaTextView = __esm({
-      "src/folia/components/visualizer/tempera/temperaTextView.ts"() {
+      "folia/src/components/visualizer/tempera/temperaTextView.ts"() {
         SHADOW_OFFSET_X = 0.06;
         SHADOW_OFFSET_Y = 0.08;
         DEPTH_FAR_SIZE = 0.4;
@@ -91023,10 +91023,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/tempera/temperaDifferenceFilter.ts
+    // folia/src/components/visualizer/tempera/temperaDifferenceFilter.ts
     var fragmentHead, inversionFragment, tintOnlyFragment, REC709, toNormalizedRgb, luminanceOf2, createTemperaDifferenceFilter;
     var init_temperaDifferenceFilter = __esm({
-      "src/folia/components/visualizer/tempera/temperaDifferenceFilter.ts"() {
+      "folia/src/components/visualizer/tempera/temperaDifferenceFilter.ts"() {
         init_colorMix();
         init_pixiFilterVertex();
         fragmentHead = `
@@ -91158,10 +91158,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/tempera/temperaSceneFilters.ts
+    // folia/src/components/visualizer/tempera/temperaSceneFilters.ts
     var resolveTemperaPassResolution, compressedPassResolution, resolveTemperaTransitionBlurResolution, BLUR_ACTIVE_STRENGTH, setTemperaTransitionBlur;
     var init_temperaSceneFilters = __esm({
-      "src/folia/components/visualizer/tempera/temperaSceneFilters.ts"() {
+      "folia/src/components/visualizer/tempera/temperaSceneFilters.ts"() {
         resolveTemperaPassResolution = (tuning, renderResolution) => tuning.postProcessTextureCompression ? compressedPassResolution(renderResolution) : "inherit";
         compressedPassResolution = (renderResolution) => Math.min(1, renderResolution);
         resolveTemperaTransitionBlurResolution = (tuning, renderResolution) => (tuning.postProcessTextureCompression ? compressedPassResolution(renderResolution) : renderResolution) * 0.5;
@@ -91178,10 +91178,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/tempera/temperaImageLayer.ts
+    // folia/src/components/visualizer/tempera/temperaImageLayer.ts
     var ALIGN_BANDS, VERTICAL_ALIGN_BANDS, resolveTemperaImagePlacement, resolveTemperaShotImage, buildTemperaImageLayer;
     var init_temperaImageLayer = __esm({
-      "src/folia/components/visualizer/tempera/temperaImageLayer.ts"() {
+      "folia/src/components/visualizer/tempera/temperaImageLayer.ts"() {
         init_temperaMotion();
         init_temperaRandom();
         ALIGN_BANDS = {
@@ -91292,10 +91292,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/tempera/temperaDepth.ts
+    // folia/src/components/visualizer/tempera/temperaDepth.ts
     var BACK_PARALLAX, FRONT_PARALLAX, TEMPERA_BACK_BLUR, TEMPERA_FRONT_BLUR, BAKE_RESOLUTION_SHARE, BAKE_HALF_RESOLUTION_MIN_BLUR, renderBlurred, createTemperaBlurBaker, replaceWithBlurred, buildTemperaDepth, applyTemperaParallax;
     var init_temperaDepth = __esm({
-      "src/folia/components/visualizer/tempera/temperaDepth.ts"() {
+      "folia/src/components/visualizer/tempera/temperaDepth.ts"() {
         BACK_PARALLAX = 0.55;
         FRONT_PARALLAX = 1.6;
         TEMPERA_BACK_BLUR = 1.6;
@@ -91378,10 +91378,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/tempera/temperaSceneBuilder.ts
+    // folia/src/components/visualizer/tempera/temperaSceneBuilder.ts
     var createTemperaTextFilter, hasTemperaCreditsMetadata, creditsCreep, CREDITS_DISC_COUNT, buildTemperaCreditsPoster, applyTemperaScenePostProcess, buildTemperaScene;
     var init_temperaSceneBuilder = __esm({
-      "src/folia/components/visualizer/tempera/temperaSceneBuilder.ts"() {
+      "folia/src/components/visualizer/tempera/temperaSceneBuilder.ts"() {
         init_fontStacks();
         init_wordColoring();
         init_temperaRandom();
@@ -91760,10 +91760,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/tempera/temperaImageTextures.ts
+    // folia/src/components/visualizer/tempera/temperaImageTextures.ts
     var decodeImageBlob, closeImageBitmap, TemperaImageTextures;
     var init_temperaImageTextures = __esm({
-      "src/folia/components/visualizer/tempera/temperaImageTextures.ts"() {
+      "folia/src/components/visualizer/tempera/temperaImageTextures.ts"() {
         decodeImageBlob = async (blob) => {
           try {
             return await createImageBitmap(blob);
@@ -91828,10 +91828,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/tempera/temperaOverlay.ts
+    // folia/src/components/visualizer/tempera/temperaOverlay.ts
     var TemperaOverlay;
     var init_temperaOverlay = __esm({
-      "src/folia/components/visualizer/tempera/temperaOverlay.ts"() {
+      "folia/src/components/visualizer/tempera/temperaOverlay.ts"() {
         init_pixiDisplayResources();
         TemperaOverlay = class {
           constructor(pixi) {
@@ -91910,10 +91910,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/tempera/temperaInkFlash.ts
+    // folia/src/components/visualizer/tempera/temperaInkFlash.ts
     var TEX_W, TEX_H, CELLS_X2, CELLS_Y, TEXTURE_COUNT, INK_ROWS_PER_SLOT, INK_SLOT_TIMEOUT_MS, INK_FALLBACK_SLOT_MS, HIT_FLOOR, HIT_GAP, FLASH_HOLD, FLASH_FALL, FLASH_ATTACK, FLASH_ALPHA, STAIN_ALPHA, INK_THRESHOLD, STAIN_LIFT, clamp0111, mix5, seededRandom2, tileableNoise, tileableFbm, startInkCanvas, fillInkRows, finishInkCanvas, requestInkSlot, inkCanvases, inkCanvasJob, inkCanvasesStarted, prepareInkCanvases, flashIndexCache, resolveFlashIndices, findLastFlash, flashEnvelope2, vertex2, fragment4, MIN_VISIBLE_ALPHA, TemperaInkFlash;
     var init_temperaInkFlash = __esm({
-      "src/folia/components/visualizer/tempera/temperaInkFlash.ts"() {
+      "folia/src/components/visualizer/tempera/temperaInkFlash.ts"() {
         init_drumHits();
         TEX_W = 512;
         TEX_H = 320;
@@ -92266,10 +92266,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/tempera/temperaCreditsLayer.ts
+    // folia/src/components/visualizer/tempera/temperaCreditsLayer.ts
     var resolveTemperaCreditsFrame, TemperaCreditsLayer;
     var init_temperaCreditsLayer = __esm({
-      "src/folia/components/visualizer/tempera/temperaCreditsLayer.ts"() {
+      "folia/src/components/visualizer/tempera/temperaCreditsLayer.ts"() {
         init_pixiDisplayResources();
         init_temperaSceneBuilder();
         init_temperaPalette();
@@ -92358,10 +92358,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/tempera/temperaCamera.ts
+    // folia/src/components/visualizer/tempera/temperaCamera.ts
     var clamp0112, easeInOut, lerp3, resolveTemperaCameraFrame, TEMPERA_CAMERA_BREATH_MAX_OFFSET, TEMPERA_CAMERA_BREATH_MAX_SCALE, TEMPERA_CAMERA_BREATH_MAX_ROTATION, resolveTemperaCameraBreath, resolveTemperaBreathWeight;
     var init_temperaCamera = __esm({
-      "src/folia/components/visualizer/tempera/temperaCamera.ts"() {
+      "folia/src/components/visualizer/tempera/temperaCamera.ts"() {
         clamp0112 = (value) => Math.min(1, Math.max(0, value));
         easeInOut = (value) => {
           const t4 = clamp0112(value);
@@ -92400,10 +92400,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/tempera/temperaShotFrame.ts
+    // folia/src/components/visualizer/tempera/temperaShotFrame.ts
     var FAR_GLYPH_ALPHA, MIN_GLYPH_SHADE, GLYPH_LEAD_NEAR, GLYPH_LAG_FAR, GLYPH_PARALLAX_CAP, PAN_DIRECTIONS, RISE_ENTER, RISE_ENTER_SECONDS, RISE_DRIFT, resolveAnimationScale, resolveShotHandoff, resolveTemperaShotExit, updateTemperaShot;
     var init_temperaShotFrame = __esm({
-      "src/folia/components/visualizer/tempera/temperaShotFrame.ts"() {
+      "folia/src/components/visualizer/tempera/temperaShotFrame.ts"() {
         init_temperaCamera();
         init_temperaDepth();
         init_temperaMotion();
@@ -92493,10 +92493,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/tempera/temperaTransitions.ts
+    // folia/src/components/visualizer/tempera/temperaTransitions.ts
     var IDLE_TEMPERA_TRANSITION_FRAME, resolveTemperaTransitionEffectFrame, resolveTemperaExitTransitionFrame, resolveTemperaEnterTransitionFrame;
     var init_temperaTransitions = __esm({
-      "src/folia/components/visualizer/tempera/temperaTransitions.ts"() {
+      "folia/src/components/visualizer/tempera/temperaTransitions.ts"() {
         init_temperaMotion();
         IDLE_TEMPERA_TRANSITION_FRAME = {
           x: 0,
@@ -92561,10 +92561,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/tempera/temperaSceneFrame.ts
+    // folia/src/components/visualizer/tempera/temperaSceneFrame.ts
     var resolveTemperaSceneTransitionFrame, findTemperaActiveShotIndex, requiresTemperaSceneRebuild;
     var init_temperaSceneFrame = __esm({
-      "src/folia/components/visualizer/tempera/temperaSceneFrame.ts"() {
+      "folia/src/components/visualizer/tempera/temperaSceneFrame.ts"() {
         init_temperaTransitions();
         resolveTemperaSceneTransitionFrame = (program, scene, index, time, isIncoming, outgoingTransition, transitionsEnabled) => {
           const previousTransition = index > 0 ? program.paragraphs[index - 1]?.transitionOut : null;
@@ -92604,14 +92604,14 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/tempera/createTemperaPixiRuntime.ts
+    // folia/src/components/visualizer/tempera/createTemperaPixiRuntime.ts
     var createTemperaPixiRuntime_exports = {};
     __export(createTemperaPixiRuntime_exports, {
       TemperaPixiRuntime: () => TemperaPixiRuntime
     });
     var DEPTH_EASE_SECONDS, DEPTH_BLUR_REBAKE_MS, resolveTemperaRenderResolution, TemperaPixiRuntime;
     var init_createTemperaPixiRuntime = __esm({
-      "src/folia/components/visualizer/tempera/createTemperaPixiRuntime.ts"() {
+      "folia/src/components/visualizer/tempera/createTemperaPixiRuntime.ts"() {
         init_lyricRenderQuality();
         init_pixiDisplayResources();
         init_pixiTextureBudget();
@@ -93212,14 +93212,14 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/tempera/VisualizerTempera.tsx
+    // folia/src/components/visualizer/tempera/VisualizerTempera.tsx
     var VisualizerTempera_exports = {};
     __export(VisualizerTempera_exports, {
       default: () => VisualizerTempera_default
     });
     var EMPTY_TEMPERA_LINES, VisualizerTempera, VisualizerTempera_default;
     var init_VisualizerTempera = __esm({
-      "src/folia/components/visualizer/tempera/VisualizerTempera.tsx"() {
+      "folia/src/components/visualizer/tempera/VisualizerTempera.tsx"() {
         init_react_shim();
         init_i18n();
         init_types();
@@ -93486,10 +93486,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/hanabi/types.ts
+    // folia/src/components/visualizer/hanabi/types.ts
     var DEFAULT_HANABI_TUNING;
     var init_types6 = __esm({
-      "src/folia/components/visualizer/hanabi/types.ts"() {
+      "folia/src/components/visualizer/hanabi/types.ts"() {
         DEFAULT_HANABI_TUNING = {
           render: { scale: "global", antialias: "global" },
           colorMode: "mixed",
@@ -93513,10 +93513,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/hanabi/hanabiTuning.ts
+    // folia/src/components/visualizer/hanabi/hanabiTuning.ts
     var MAX_BASE_RESOLUTION, resolveHanabiBaseResolution, COLOR_MODES2, RENDER_QUALITIES, normalizeHanabiTuning, HANABI_LIVE_KEYS, HANABI_OVERLAY_KEYS, requiresHanabiSceneRebuild, changedHanabiKeys, HANABI_QUALITY_PROFILES, resolveHanabiGlowResolution, resolveHanabiGlowLevelDrop, resolveHanabiGlowQuality;
     var init_hanabiTuning = __esm({
-      "src/folia/components/visualizer/hanabi/hanabiTuning.ts"() {
+      "folia/src/components/visualizer/hanabi/hanabiTuning.ts"() {
         init_lyricRenderQuality();
         init_pixiTextureBudget();
         init_tuningDefinition();
@@ -93574,10 +93574,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/hanabi/hanabiScreenBloom.ts
+    // folia/src/components/visualizer/hanabi/hanabiScreenBloom.ts
     var CHORUS_MERGE_GAP, RAMP_IN_BEFORE, RAMP_IN_AFTER, RAMP_OUT_BEFORE, RAMP_OUT_AFTER, resolveHanabiChorusSpans, smooth8, resolveHanabiChorusWeight, HANABI_SCREEN_BLOOM, resolveHanabiScreenBloomStrength;
     var init_hanabiScreenBloom = __esm({
-      "src/folia/components/visualizer/hanabi/hanabiScreenBloom.ts"() {
+      "folia/src/components/visualizer/hanabi/hanabiScreenBloom.ts"() {
         init_renderHints();
         CHORUS_MERGE_GAP = 1.5;
         RAMP_IN_BEFORE = 0.5;
@@ -93619,10 +93619,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/hanabi/timeline.ts
+    // folia/src/components/visualizer/hanabi/timeline.ts
     var RISE_BEFORE, RISE_AFTER, LAUNCH_DURATION, ENTER_LEAD, DRIFT_PER_SECOND, DRIFT_MAX, SWING_SHARPNESS, PUNCH_ATTACK, SPIN_CRUISE, SPIN_CRUISE_TOTAL, SPIN_SWING_MIN, SPIN_SWING_RANGE, SPIN_FLIP, clamp16, smooth9, easeSeptic, easeSepticIntegral, binomial, SWING_TERMS, swingPrimitive, SWING_HALF, easeSwing, planSpin, buildTimeline;
     var init_timeline = __esm({
-      "src/folia/components/visualizer/hanabi/timeline.ts"() {
+      "folia/src/components/visualizer/hanabi/timeline.ts"() {
         RISE_BEFORE = 0.6;
         RISE_AFTER = 0.6;
         LAUNCH_DURATION = 0.45;
@@ -93809,10 +93809,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/hanabi/hanabiTransitions.ts
+    // folia/src/components/visualizer/hanabi/hanabiTransitions.ts
     var HANABI_TRANSITION_KINDS, ease, launch, frame, resolveFrame, HANABI_TRANSITIONS, resolveHanabiEnterDuration, chooseHanabiTransition;
     var init_hanabiTransitions = __esm({
-      "src/folia/components/visualizer/hanabi/hanabiTransitions.ts"() {
+      "folia/src/components/visualizer/hanabi/hanabiTransitions.ts"() {
         init_timeline();
         HANABI_TRANSITION_KINDS = ["ascend", "flash", "bloom"];
         ease = easeSeptic;
@@ -93862,19 +93862,19 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/hanabi/hanabiRandom.ts
+    // folia/src/components/visualizer/hanabi/hanabiRandom.ts
     var createRng2;
     var init_hanabiRandom = __esm({
-      "src/folia/components/visualizer/hanabi/hanabiRandom.ts"() {
+      "folia/src/components/visualizer/hanabi/hanabiRandom.ts"() {
         init_visualizerSeedHash();
         createRng2 = createVisualizerRng;
       }
     });
   
-    // src/folia/components/visualizer/hanabi/catalog.ts
+    // folia/src/components/visualizer/hanabi/catalog.ts
     var BURST_PRESETS, BURST_KINDS, burstPreset, burst, small, orn, REGIONS, REGION_OF_LAYOUT, family, UCHIAGE, KIKU, BOTAN, YANAGI, SENRIN, HOSHIKUZU, OBI, SENKO, SENKOHANABI, SHAKUDAMA, HANABI_PROFILES, BY_KIND2, HANABI_KINDS, profileOf2;
     var init_catalog2 = __esm({
-      "src/folia/components/visualizer/hanabi/catalog.ts"() {
+      "folia/src/components/visualizer/hanabi/catalog.ts"() {
         BURST_PRESETS = {
           kiku: { count: 96, radius: 0.3, duration: 1.9, trail: 0.65, twinkle: 0.2 },
           botan: { count: 84, radius: 0.26, duration: 1.4, trail: 0.1, twinkle: 0.1 },
@@ -94963,10 +94963,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/hanabi/program.ts
+    // folia/src/components/visualizer/hanabi/program.ts
     var DEFAULT_HANABI_PARAMS, RECENT2, BRIDGE_FAMILIES2, BRIDGE_TAIL, MAX_PIECES, MOODS_BY_KIND2, locateWords, hasLetters, segmentHanabiLine, sliceLine, shotLine, visibleLength, splitLine, planShots2, castShot2, advanceChain2, shotText, resolveShotProfile;
     var init_program2 = __esm({
-      "src/folia/components/visualizer/hanabi/program.ts"() {
+      "folia/src/components/visualizer/hanabi/program.ts"() {
         init_graphemeTiming();
         init_wordSegmentation();
         init_hanabiRandom();
@@ -95185,10 +95185,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/hanabi/hanabiProgram.ts
+    // folia/src/components/visualizer/hanabi/hanabiProgram.ts
     var INSTRUMENTAL_DURATION2, INSTRUMENTAL_PARAGRAPH2, BRIDGE_SHOT2, BRIDGE_SPLIT2, BRIDGE_TAIL2, closeTail, splitLongBridges2, planLyricParagraphs2, planInstrumentalParagraphs2, compileHanabiProgram, findHanabiParagraphIndexAtTime;
     var init_hanabiProgram = __esm({
-      "src/folia/components/visualizer/hanabi/hanabiProgram.ts"() {
+      "folia/src/components/visualizer/hanabi/hanabiProgram.ts"() {
         init_paragraphStructure();
         init_hanabiScreenBloom();
         init_hanabiTransitions();
@@ -95327,10 +95327,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/hanabi/mg/mgMath.ts
+    // folia/src/components/visualizer/hanabi/mg/mgMath.ts
     var TAU12, clamp0113, clamp17, lerp4, fract2, wrap2, easeOutCubic6, easeInCubic2, easeOutExpo2, easeOutBack, easeInBack, spring, beatSteps, hash012, hashString3, mixColor, WHITE3, GOLD, EMBER;
     var init_mgMath = __esm({
-      "src/folia/components/visualizer/hanabi/mg/mgMath.ts"() {
+      "folia/src/components/visualizer/hanabi/mg/mgMath.ts"() {
         TAU12 = Math.PI * 2;
         clamp0113 = (value) => value <= 0 ? 0 : value >= 1 ? 1 : value;
         clamp17 = (value, low, high) => value < low ? low : value > high ? high : value;
@@ -95380,10 +95380,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/hanabi/collage/collagePlan.ts
+    // folia/src/components/visualizer/hanabi/collage/collagePlan.ts
     var FAMILY_RECIPES, CANDY, CANDY_INK, DEEP_CARD, HANABI_FALLBACK_ICON, ICON_INKS, BUBBLE_LABELS, WINDOW_TITLES, SHAPES, STRIP_STYLES, STRIP_THICKNESS, pick, pastel, LATIN, pickCollageKeyword, chooseCollageRecipe, countOf, planShotCollage;
     var init_collagePlan = __esm({
-      "src/folia/components/visualizer/hanabi/collage/collagePlan.ts"() {
+      "folia/src/components/visualizer/hanabi/collage/collagePlan.ts"() {
         init_graphemeTiming();
         init_wordSegmentation();
         init_hanabiRandom();
@@ -95821,10 +95821,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/hanabi/collage/collagePainters.ts
+    // folia/src/components/visualizer/hanabi/collage/collagePainters.ts
     var POP_FONT_FAMILIES, css, STICKER_PX, pathHeart, pathStar, pathSparkle, pathFlower, pathCloud, pathRibbon, pathCat, pathBubble, SHAPE_PATHS, popFont, createCollageTextureCache;
     var init_collagePainters = __esm({
-      "src/folia/components/visualizer/hanabi/collage/collagePainters.ts"() {
+      "folia/src/components/visualizer/hanabi/collage/collagePainters.ts"() {
         init_lucideIconResolver();
         init_lucidePath2d();
         init_collagePlan();
@@ -96348,10 +96348,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/hanabi/collage/collageViews.ts
+    // folia/src/components/visualizer/hanabi/collage/collageViews.ts
     var popIn, leave, stickerScale, createShotCollage;
     var init_collageViews = __esm({
-      "src/folia/components/visualizer/hanabi/collage/collageViews.ts"() {
+      "folia/src/components/visualizer/hanabi/collage/collageViews.ts"() {
         init_mgMath();
         init_collagePainters();
         init_collagePlan();
@@ -96678,10 +96678,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/hanabi/color.ts
+    // folia/src/components/visualizer/hanabi/color.ts
     var rgbOfHex, hexOfRgb, rgbOfCss, hexOfCss, toHsl, toRgb, clamp0114, mixHue, vivid2, linear, relativeLuminance, contrastRatio, DARK_INK, LIGHT_INK, MIN_BLOCK_CONTRAST, separate, ensureContrast, MIN_SUNG_CONTRAST, MIN_FLASH_CONTRAST, hanabiBackdropOf, resolveHanabiGlyphColors, ROLES, PALETTE_ROLES, themeColors, MIX_MIN_SATURATION, mixColors2, keywordColorOf, resolveHanabiPalette;
     var init_color2 = __esm({
-      "src/folia/components/visualizer/hanabi/color.ts"() {
+      "folia/src/components/visualizer/hanabi/color.ts"() {
         init_colorMix();
         rgbOfHex = (hex) => [(hex >> 16 & 255) / 255, (hex >> 8 & 255) / 255, (hex & 255) / 255];
         hexOfRgb = (rgb) => {
@@ -96859,10 +96859,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/hanabi/mg/burstPlan.ts
+    // folia/src/components/visualizer/hanabi/mg/burstPlan.ts
     var GOLDEN, GOLDEN_ANGLE, sparkColor, planBurst, starPosition, starBase, starBrightness, starColor, starSize, burstActive, scratchA, scratchB, emitSegment, burstDemand, drawBursts, LAUNCH_EMBER_LIFE, LAUNCH_EMBER_STEP, LAUNCH_TRAIL_SEGMENTS, launchEnd, launchHead, drawLaunch, launchDemand;
     var init_burstPlan = __esm({
-      "src/folia/components/visualizer/hanabi/mg/burstPlan.ts"() {
+      "folia/src/components/visualizer/hanabi/mg/burstPlan.ts"() {
         init_hanabiRandom();
         init_mgMath();
         GOLDEN = 0.6180339887498949;
@@ -97673,10 +97673,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/hanabi/mg/fireworks.ts
+    // folia/src/components/visualizer/hanabi/mg/fireworks.ts
     var PLAN_CACHE_LIMIT, createFireworks;
     var init_fireworks = __esm({
-      "src/folia/components/visualizer/hanabi/mg/fireworks.ts"() {
+      "folia/src/components/visualizer/hanabi/mg/fireworks.ts"() {
         init_burstPlan();
         PLAN_CACHE_LIMIT = 160;
         createFireworks = (pixi, textures, options) => {
@@ -97775,10 +97775,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/hanabi/mg/glow.ts
+    // folia/src/components/visualizer/hanabi/mg/glow.ts
     var BASE2, createHanabiGlow;
     var init_glow = __esm({
-      "src/folia/components/visualizer/hanabi/mg/glow.ts"() {
+      "folia/src/components/visualizer/hanabi/mg/glow.ts"() {
         init_bloomFilter();
         BASE2 = {
           strength: 1.1,
@@ -97801,10 +97801,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/hanabi/text/animations.ts
+    // folia/src/components/visualizer/hanabi/text/animations.ts
     var ENTER_DURATION, ENTER_ARRIVAL, STAMP_IMPACT, clamp0115, easeOutCubic7, easeInCubic3, easeInQuad, easeOutQuad, easeOutExpo3, easeOutBack2, easeInBack2, easeInOutCubic5, dampedCos, dampedSin, hash013, restPose, restSing, applyMotion, scaled, enterPose, exitPose, singPose, combinePoses, enterOrder, STAGGER_FACTOR, scheduleEnter, scheduleExit, stampShake;
     var init_animations = __esm({
-      "src/folia/components/visualizer/hanabi/text/animations.ts"() {
+      "folia/src/components/visualizer/hanabi/text/animations.ts"() {
         ENTER_DURATION = {
           pop: 0.45,
           drop: 0.62,
@@ -98318,10 +98318,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/hanabi/text/blocks.ts
+    // folia/src/components/visualizer/hanabi/text/blocks.ts
     var blockLayoutParams, blockTextRole, darken, runFrame, SWEEP, easeOutCubic8, easeOutQuart, easeOutExpo4, easeOutBack3, createBlocks;
     var init_blocks2 = __esm({
-      "src/folia/components/visualizer/hanabi/text/blocks.ts"() {
+      "folia/src/components/visualizer/hanabi/text/blocks.ts"() {
         init_hanabiRandom();
         init_animations();
         blockLayoutParams = (style, hardShadow) => {
@@ -98867,10 +98867,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/hanabi/text/glyphs.ts
+    // folia/src/components/visualizer/hanabi/text/glyphs.ts
     var UPRIGHT2, isUprightGlyph2, hasCjk, glyphFont2, estimateAdvance, createContext2, createGlyphMeasure, ATLAS_BASE_LIMIT_PX, ATLAS_HARD_LIMIT_PX, gpuTextureLimitPx, setHanabiGlyphTextureLimit, resolveGlyphAtlasLimit, cellSide, buildGlyphAtlas, SCRAMBLE_KANA, SCRAMBLE_LATIN, pickScrambleChars;
     var init_glyphs = __esm({
-      "src/folia/components/visualizer/hanabi/text/glyphs.ts"() {
+      "folia/src/components/visualizer/hanabi/text/glyphs.ts"() {
         init_hanabiTuning();
         UPRIGHT2 = /[ᄀ-ᇿ⺀-⿿　-〿぀-ヿ㄀-ㇿ㈀-鿿가-힯豈-﫿︰-﹏＀-￯]|[\u{20000}-\u{3134f}]/u;
         isUprightGlyph2 = (char) => UPRIGHT2.test(char);
@@ -99046,10 +99046,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/hanabi/text/layout.ts
+    // folia/src/components/visualizer/hanabi/text/layout.ts
     var FUNCTION_WORDS2, MINOR_LATIN2, wordScales2, ROTATE_IN_VERTICAL, rotate, buildUnits, partitionRuns, layoutText;
     var init_layout5 = __esm({
-      "src/folia/components/visualizer/hanabi/text/layout.ts"() {
+      "folia/src/components/visualizer/hanabi/text/layout.ts"() {
         init_hanabiRandom();
         FUNCTION_WORDS2 = new Set(Array.from("\u7684\u4E86\u5728\u628A\u662F\u6211\u4F60\u4ED6\u5979\u5B83\u4EEC\u548C\u4E0E\u4E5F\u5C31\u90FD\u7740\u8FC7\u5417\u5462\u5427\u554A\u5440\u54E6\u88AB\u8BA9\u7ED9\u4ECE\u5411\u5230\u8FD9\u90A3\u4E4B\u800C\u53C8\u5F88\u306E\u306F\u304C\u3092\u306B\u3067\u3068\u3082\u3078\u3084\u306D\u3088\u304B\u306A"));
         MINOR_LATIN2 = /* @__PURE__ */ new Set(["a", "an", "the", "of", "to", "in", "on", "at", "me", "my", "with", "and", "or", "is", "i", "you", "it", "by", "for"]);
@@ -99562,10 +99562,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/hanabi/text/lyricText.ts
+    // folia/src/components/visualizer/hanabi/text/lyricText.ts
     var lineWords, mixColor2, OUTLINE_WIDTH, SHADOW_OFFSET_X2, SHADOW_OFFSET_Y2, SHADOW_LAG, REST_POSE, REST_SING, buildHanabiText, createHanabiText;
     var init_lyricText = __esm({
-      "src/folia/components/visualizer/hanabi/text/lyricText.ts"() {
+      "folia/src/components/visualizer/hanabi/text/lyricText.ts"() {
         init_graphemeTiming();
         init_wordSegmentation();
         init_hanabiRandom();
@@ -100169,10 +100169,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/hanabi/credits.ts
+    // folia/src/components/visualizer/hanabi/credits.ts
     var smooth10, BLOOM_AT, TITLE_START2, TITLE_STEP2, TITLE_SPAN2, clean2, hasHanabiCredits, resolveHanabiCreditsFrame, titleLine2, TITLE_SPEC, createHanabiCredits;
     var init_credits2 = __esm({
-      "src/folia/components/visualizer/hanabi/credits.ts"() {
+      "folia/src/components/visualizer/hanabi/credits.ts"() {
         init_fontStacks();
         init_catalog2();
         init_collagePainters();
@@ -100408,10 +100408,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/hanabi/hanabiCreditsLayer.ts
+    // folia/src/components/visualizer/hanabi/hanabiCreditsLayer.ts
     var PREBUILD_SECONDS2, INACTIVE2, toSongMetadata2, HanabiCreditsLayer;
     var init_hanabiCreditsLayer = __esm({
-      "src/folia/components/visualizer/hanabi/hanabiCreditsLayer.ts"() {
+      "folia/src/components/visualizer/hanabi/hanabiCreditsLayer.ts"() {
         init_credits2();
         PREBUILD_SECONDS2 = 4;
         INACTIVE2 = { active: false, lyricAlpha: 1, lyricBlur: 0, posterAlpha: 0, posterOffsetY: 0, posterScale: 1 };
@@ -100487,10 +100487,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/hanabi/hanabiBeatFx.ts
+    // folia/src/components/visualizer/hanabi/hanabiBeatFx.ts
     var HANABI_BEAT_SHELL_LIFE, BEAT_KINDS, DOWNBEAT_KINDS, resolveHanabiBeatShell, firstBeatAtOrAfter, HANABI_BEAT_PULSE, resolveHanabiBeatPulse, rescaleBeatEnvelope;
     var init_hanabiBeatFx = __esm({
-      "src/folia/components/visualizer/hanabi/hanabiBeatFx.ts"() {
+      "folia/src/components/visualizer/hanabi/hanabiBeatFx.ts"() {
         init_clock();
         init_catalog2();
         init_hanabiRandom();
@@ -100544,10 +100544,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/hanabi/collage/unitCollage.ts
+    // folia/src/components/visualizer/hanabi/collage/unitCollage.ts
     var paintDotTile, createUnitCollage;
     var init_unitCollage = __esm({
-      "src/folia/components/visualizer/hanabi/collage/unitCollage.ts"() {
+      "folia/src/components/visualizer/hanabi/collage/unitCollage.ts"() {
         init_hanabiRandom();
         init_collagePlan();
         paintDotTile = (scale) => {
@@ -100607,10 +100607,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/hanabi/mg/ambient.ts
+    // folia/src/components/visualizer/hanabi/mg/ambient.ts
     var AMBIENT_PARALLAX, parallaxY, DISTANT_KINDS, DISTANT_DURATION, distantBurstAt, distantRange, tintedSpark, SMOKE_CROP, createAmbient;
     var init_ambient = __esm({
-      "src/folia/components/visualizer/hanabi/mg/ambient.ts"() {
+      "folia/src/components/visualizer/hanabi/mg/ambient.ts"() {
         init_hanabiRandom();
         init_burstPlan();
         init_mgMath();
@@ -100867,10 +100867,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/hanabi/mg/ornamentKit.ts
+    // folia/src/components/visualizer/hanabi/mg/ornamentKit.ts
     var createKit;
     var init_ornamentKit = __esm({
-      "src/folia/components/visualizer/hanabi/mg/ornamentKit.ts"() {
+      "folia/src/components/visualizer/hanabi/mg/ornamentKit.ts"() {
         init_hanabiRandom();
         init_mgMath();
         createKit = (spec, ctx2) => {
@@ -101071,10 +101071,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/hanabi/mg/ornamentLines.ts
+    // folia/src/components/visualizer/hanabi/mg/ornamentLines.ts
     var newPos, tracksFor, strokeTrack, zigzagOrnament, waveOrnament, underlineOrnament, dotsLineOrnament;
     var init_ornamentLines = __esm({
-      "src/folia/components/visualizer/hanabi/mg/ornamentLines.ts"() {
+      "folia/src/components/visualizer/hanabi/mg/ornamentLines.ts"() {
         init_mgMath();
         newPos = () => ({ x: 0, y: 0, alpha: 1, size: 0 });
         tracksFor = (kit, reach, across) => {
@@ -101399,10 +101399,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/hanabi/mg/ornamentParticles.ts
+    // folia/src/components/visualizer/hanabi/mg/ornamentParticles.ts
     var newPos2, triggers, sparkleOrnament, crossOrnament, fallerLayout, confettiOrnament, petalsOrnament, shardsOrnament, streaksOrnament, chevronsOrnament, aroundBox, glintsOrnament;
     var init_ornamentParticles = __esm({
-      "src/folia/components/visualizer/hanabi/mg/ornamentParticles.ts"() {
+      "folia/src/components/visualizer/hanabi/mg/ornamentParticles.ts"() {
         init_mgMath();
         newPos2 = () => ({ x: 0, y: 0, alpha: 1, size: 0 });
         triggers = (kit, count) => {
@@ -101953,10 +101953,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/hanabi/mg/ornamentShapes.ts
+    // folia/src/components/visualizer/hanabi/mg/ornamentShapes.ts
     var newPos3, siteRadius, ringOrnament, spokesOrnament, orbitOrnament, bracketsOrnament, dashCircleOrnament, squaresOrnament, raysOrnament, STAMP_CHARS, STAMP_FONT, stampOrnament, halftoneOrnament;
     var init_ornamentShapes = __esm({
-      "src/folia/components/visualizer/hanabi/mg/ornamentShapes.ts"() {
+      "folia/src/components/visualizer/hanabi/mg/ornamentShapes.ts"() {
         init_mgMath();
         newPos3 = () => ({ x: 0, y: 0, alpha: 1, size: 0 });
         siteRadius = (placement, site, fallback) => {
@@ -102540,10 +102540,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/hanabi/mg/ornaments.ts
+    // folia/src/components/visualizer/hanabi/mg/ornaments.ts
     var ORNAMENT_BUILDERS, createOrnament;
     var init_ornaments = __esm({
-      "src/folia/components/visualizer/hanabi/mg/ornaments.ts"() {
+      "folia/src/components/visualizer/hanabi/mg/ornaments.ts"() {
         init_ornamentKit();
         init_ornamentLines();
         init_ornamentParticles();
@@ -102591,10 +102591,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/hanabi/scene.ts
+    // folia/src/components/visualizer/hanabi/scene.ts
     var SHOT_PARTICLES, PREPARE_AHEAD, MAX_SUNG_BURSTS, MAX_DISSOLVE_BURSTS, DISSOLVE_SPARK, BRIDGE_KINDS, MOTION, toShot, sungRange, thin, createHanabiScene, planShotEvents;
     var init_scene2 = __esm({
-      "src/folia/components/visualizer/hanabi/scene.ts"() {
+      "folia/src/components/visualizer/hanabi/scene.ts"() {
         init_hanabiBeatFx();
         init_hanabiRandom();
         init_catalog2();
@@ -103162,10 +103162,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/hanabi/hanabiSceneEntry.ts
+    // folia/src/components/visualizer/hanabi/hanabiSceneEntry.ts
     var hanabiSpinDirection, BLUR_EPSILON2, buildHanabiSceneEntry, applyHanabiLayerFrame, destroyHanabiSceneEntry;
     var init_hanabiSceneEntry = __esm({
-      "src/folia/components/visualizer/hanabi/hanabiSceneEntry.ts"() {
+      "folia/src/components/visualizer/hanabi/hanabiSceneEntry.ts"() {
         init_visualizerSeedHash();
         init_program2();
         init_scene2();
@@ -103248,10 +103248,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/hanabi/hanabiSceneFrames.ts
+    // folia/src/components/visualizer/hanabi/hanabiSceneFrames.ts
     var IDLE, smooth11, exitFrameOf2, resolveHanabiSceneFrames;
     var init_hanabiSceneFrames = __esm({
-      "src/folia/components/visualizer/hanabi/hanabiSceneFrames.ts"() {
+      "folia/src/components/visualizer/hanabi/hanabiSceneFrames.ts"() {
         init_hanabiProgram();
         init_hanabiTransitions();
         IDLE = { alpha: 1, scale: 1, blur: 0, y: 0, rotation: 0 };
@@ -103300,10 +103300,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/hanabi/hanabiSky.ts
+    // folia/src/components/visualizer/hanabi/hanabiSky.ts
     var hslOfHex, cssOfHsl, leanHue, resolveHanabiSkyStops, paintSky, HanabiSkyLayer;
     var init_hanabiSky = __esm({
-      "src/folia/components/visualizer/hanabi/hanabiSky.ts"() {
+      "folia/src/components/visualizer/hanabi/hanabiSky.ts"() {
         init_color2();
         hslOfHex = (hex) => {
           const r4 = (hex >> 16 & 255) / 255;
@@ -103382,10 +103382,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/hanabi/mg/textures.ts
+    // folia/src/components/visualizer/hanabi/mg/textures.ts
     var canvasOf2, WHITE4, drawDot2, drawGlow, drawStar4, drawStreak2, drawRing, drawSquare, drawTriangle, drawPetal2, createHanabiTextures;
     var init_textures = __esm({
-      "src/folia/components/visualizer/hanabi/mg/textures.ts"() {
+      "folia/src/components/visualizer/hanabi/mg/textures.ts"() {
         canvasOf2 = (width, height) => {
           const canvas3 = document.createElement("canvas");
           canvas3.width = width;
@@ -103531,10 +103531,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/hanabi/overlay.ts
+    // folia/src/components/visualizer/hanabi/overlay.ts
     var buildHanabiOverlay;
     var init_overlay2 = __esm({
-      "src/folia/components/visualizer/hanabi/overlay.ts"() {
+      "folia/src/components/visualizer/hanabi/overlay.ts"() {
         init_fontStacks();
         init_color2();
         buildHanabiOverlay = (pixi, width, height, theme, colorMode, resolution = 1) => {
@@ -103586,14 +103586,14 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/hanabi/createHanabiPixiRuntime.ts
+    // folia/src/components/visualizer/hanabi/createHanabiPixiRuntime.ts
     var createHanabiPixiRuntime_exports = {};
     __export(createHanabiPixiRuntime_exports, {
       HanabiPixiRuntime: () => HanabiPixiRuntime
     });
     var REBUILD_DEBOUNCE_MS2, MIN_WIDTH2, MIN_HEIGHT2, DARK_SKY, NIGHT_BACKGROUND, resolveRenderResolution, HanabiPixiRuntime;
     var init_createHanabiPixiRuntime = __esm({
-      "src/folia/components/visualizer/hanabi/createHanabiPixiRuntime.ts"() {
+      "folia/src/components/visualizer/hanabi/createHanabiPixiRuntime.ts"() {
         init_beatEffects();
         init_beatFxLive();
         init_lucideIconResolver();
@@ -104089,14 +104089,14 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/hanabi/VisualizerHanabi.tsx
+    // folia/src/components/visualizer/hanabi/VisualizerHanabi.tsx
     var VisualizerHanabi_exports = {};
     __export(VisualizerHanabi_exports, {
       default: () => VisualizerHanabi_default
     });
     var EMPTY_HANABI_LINES, loadHanabiIcons, VisualizerHanabi, VisualizerHanabi_default;
     var init_VisualizerHanabi = __esm({
-      "src/folia/components/visualizer/hanabi/VisualizerHanabi.tsx"() {
+      "folia/src/components/visualizer/hanabi/VisualizerHanabi.tsx"() {
         init_react_shim();
         init_i18n();
         init_lucideIconResolver();
@@ -104293,10 +104293,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/types.ts
+    // folia/src/components/visualizer/nebbia/types.ts
     var NEBBIA_APPEAR_STYLES, NEBBIA_FADE_STYLES, NEBBIA_LAYOUTS, NEBBIA_SCENERY, NEBBIA_RAIN, NEBBIA_BEHIND, NEBBIA_GLASS, NEBBIA_GLASS_FOR, NEBBIA_MAX_JELLIES, NEBBIA_MAX_BURSTS, NEBBIA_LIMITS, DEFAULT_NEBBIA_TUNING;
     var init_types7 = __esm({
-      "src/folia/components/visualizer/nebbia/types.ts"() {
+      "folia/src/components/visualizer/nebbia/types.ts"() {
         NEBBIA_APPEAR_STYLES = ["write", "fade", "breath"];
         NEBBIA_FADE_STYLES = ["fog", "fingers"];
         NEBBIA_LAYOUTS = ["ribbon", "lines2", "lines3", "cross", "pillar", "header", "badge", "columns", "orbit"];
@@ -104371,10 +104371,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/tuning.ts
+    // folia/src/components/visualizer/nebbia/tuning.ts
     var subsetOf, LEGACY_APPEAR, LEGACY_FADE, readRender, normalizeNebbiaTuning, tuning_default4;
     var init_tuning2 = __esm({
-      "src/folia/components/visualizer/nebbia/tuning.ts"() {
+      "folia/src/components/visualizer/nebbia/tuning.ts"() {
         init_lyricRenderQuality();
         init_tuningDefinition();
         init_types7();
@@ -104453,10 +104453,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaBehind.ts
+    // folia/src/components/visualizer/nebbia/nebbiaBehind.ts
     var nebbiaSeesThrough, nebbiaBackgroundConfig, nebbiaShowsBackground, nebbiaBeatEffectOnScreen;
     var init_nebbiaBehind = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaBehind.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaBehind.ts"() {
         init_beatEffects();
         init_tuning2();
         nebbiaSeesThrough = (tuning, background, isPreview = false) => tuning.behind === "backdrop" || !isPreview && Boolean(background?.transparent);
@@ -104472,10 +104472,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaChars.ts
+    // folia/src/components/visualizer/nebbia/nebbiaChars.ts
     var ICON_PREFIX, isIconChar, EMOJI_ICON, NEBBIA_DEFAULT_DOODLES, collectEmojiIcons, toChar, groupWords, buildNebbiaLines;
     var init_nebbiaChars = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaChars.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaChars.ts"() {
         init_graphemeTiming();
         init_renderHints();
         init_wordSegmentation();
@@ -104571,10 +104571,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaCredits.ts
+    // folia/src/components/visualizer/nebbia/nebbiaCredits.ts
     var CREDITS_DELAY, graphemes, wordsOf, creditLine, appendNebbiaCredits;
     var init_nebbiaCredits = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaCredits.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaCredits.ts"() {
         CREDITS_DELAY = 2.5;
         graphemes = (text) => {
           const seg = typeof Intl !== "undefined" && "Segmenter" in Intl ? new Intl.Segmenter(void 0, { granularity: "grapheme" }) : null;
@@ -104619,10 +104619,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaConstants.ts
+    // folia/src/components/visualizer/nebbia/nebbiaConstants.ts
     var NEBBIA_FIXED, MASK_SCALE, FOG_DIV, clamp18, smooth12;
     var init_nebbiaConstants = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaConstants.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaConstants.ts"() {
         NEBBIA_FIXED = {
           /** 擦痕边缘毛糙。 */
           edge: 0.6,
@@ -104658,10 +104658,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaDropSpring.ts
+    // folia/src/components/visualizer/nebbia/nebbiaDropSpring.ts
     var RADII, FREQ, ZETA, GLASS, GAIN, PIN_R, FREE_R, STEP, NebbiaDropSpring;
     var init_nebbiaDropSpring = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaDropSpring.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaDropSpring.ts"() {
         init_nebbiaConstants();
         RADII = [1.5, 3, 5, 8];
         FREQ = [11, 8, 5.5, 3.6];
@@ -104711,10 +104711,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaDrops.ts
+    // folia/src/components/visualizer/nebbia/nebbiaDrops.ts
     var SMEAR_MIN, SMEAR_REST, windDrift, NebbiaGlassMotion;
     var init_nebbiaDrops = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaDrops.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaDrops.ts"() {
         init_nebbiaConstants();
         init_nebbiaDropSpring();
         init_visualizerSeedHash();
@@ -104871,18 +104871,18 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaRaindrop.png
+    // folia/src/components/visualizer/nebbia/nebbiaRaindrop.png
     var nebbiaRaindrop_default;
     var init_nebbiaRaindrop = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaRaindrop.png"() {
+      "folia/src/components/visualizer/nebbia/nebbiaRaindrop.png"() {
         nebbiaRaindrop_default = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQAAAAEACAYAAABccqhmAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH5QIZBzY36WJJGwAAABJ0RVh0RmlsZSBOYW1lAM60serM4i0xjMwnJwAAOd9pVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+Cjx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNi1jMTQyIDc5LjE2MDkyNCwgMjAxNy8wNy8xMy0wMTowNjozOSAgICAgICAgIj4KICAgPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4KICAgICAgPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIKICAgICAgICAgICAgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIgogICAgICAgICAgICB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIKICAgICAgICAgICAgeG1sbnM6c3RFdnQ9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZUV2ZW50IyIKICAgICAgICAgICAgeG1sbnM6ZGM9Imh0dHA6Ly9wdXJsLm9yZy9kYy9lbGVtZW50cy8xLjEvIgogICAgICAgICAgICB4bWxuczpwaG90b3Nob3A9Imh0dHA6Ly9ucy5hZG9iZS5jb20vcGhvdG9zaG9wLzEuMC8iCiAgICAgICAgICAgIHhtbG5zOnRpZmY9Imh0dHA6Ly9ucy5hZG9iZS5jb20vdGlmZi8xLjAvIgogICAgICAgICAgICB4bWxuczpleGlmPSJodHRwOi8vbnMuYWRvYmUuY29tL2V4aWYvMS4wLyI+CiAgICAgICAgIDx4bXA6Q3JlYXRvclRvb2w+QWRvYmUgUGhvdG9zaG9wIENDIChXaW5kb3dzKTwveG1wOkNyZWF0b3JUb29sPgogICAgICAgICA8eG1wOkNyZWF0ZURhdGU+MjAyMS0wMi0yNVQxNTo1NDo1MyswODowMDwveG1wOkNyZWF0ZURhdGU+CiAgICAgICAgIDx4bXA6TWV0YWRhdGFEYXRlPjIwMjEtMDItMjVUMTU6NTQ6NTMrMDg6MDA8L3htcDpNZXRhZGF0YURhdGU+CiAgICAgICAgIDx4bXA6TW9kaWZ5RGF0ZT4yMDIxLTAyLTI1VDE1OjU0OjUzKzA4OjAwPC94bXA6TW9kaWZ5RGF0ZT4KICAgICAgICAgPHhtcE1NOkluc3RhbmNlSUQ+eG1wLmlpZDo4MjdmMjExZi1iNjczLWVlNDktYTc5NC05YTVjMWJmY2EzZmU8L3htcE1NOkluc3RhbmNlSUQ+CiAgICAgICAgIDx4bXBNTTpEb2N1bWVudElEPmFkb2JlOmRvY2lkOnBob3Rvc2hvcDoxNTVhOWVmYy1kMmYwLTBkNDItYTcwYS02ZGY5M2UwNjljYWE8L3htcE1NOkRvY3VtZW50SUQ+CiAgICAgICAgIDx4bXBNTTpPcmlnaW5hbERvY3VtZW50SUQ+eG1wLmRpZDo2NjBiMDZmYi0xZjczLWFkNDQtYWQwMS1kNGU5ZDlhOTE4NDM8L3htcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD4KICAgICAgICAgPHhtcE1NOkhpc3Rvcnk+CiAgICAgICAgICAgIDxyZGY6U2VxPgogICAgICAgICAgICAgICA8cmRmOmxpIHJkZjpwYXJzZVR5cGU9IlJlc291cmNlIj4KICAgICAgICAgICAgICAgICAgPHN0RXZ0OmFjdGlvbj5jcmVhdGVkPC9zdEV2dDphY3Rpb24+CiAgICAgICAgICAgICAgICAgIDxzdEV2dDppbnN0YW5jZUlEPnhtcC5paWQ6NjYwYjA2ZmItMWY3My1hZDQ0LWFkMDEtZDRlOWQ5YTkxODQzPC9zdEV2dDppbnN0YW5jZUlEPgogICAgICAgICAgICAgICAgICA8c3RFdnQ6d2hlbj4yMDIxLTAyLTI1VDE1OjU0OjUzKzA4OjAwPC9zdEV2dDp3aGVuPgogICAgICAgICAgICAgICAgICA8c3RFdnQ6c29mdHdhcmVBZ2VudD5BZG9iZSBQaG90b3Nob3AgQ0MgKFdpbmRvd3MpPC9zdEV2dDpzb2Z0d2FyZUFnZW50PgogICAgICAgICAgICAgICA8L3JkZjpsaT4KICAgICAgICAgICAgICAgPHJkZjpsaSByZGY6cGFyc2VUeXBlPSJSZXNvdXJjZSI+CiAgICAgICAgICAgICAgICAgIDxzdEV2dDphY3Rpb24+c2F2ZWQ8L3N0RXZ0OmFjdGlvbj4KICAgICAgICAgICAgICAgICAgPHN0RXZ0Omluc3RhbmNlSUQ+eG1wLmlpZDo4MjdmMjExZi1iNjczLWVlNDktYTc5NC05YTVjMWJmY2EzZmU8L3N0RXZ0Omluc3RhbmNlSUQ+CiAgICAgICAgICAgICAgICAgIDxzdEV2dDp3aGVuPjIwMjEtMDItMjVUMTU6NTQ6NTMrMDg6MDA8L3N0RXZ0OndoZW4+CiAgICAgICAgICAgICAgICAgIDxzdEV2dDpzb2Z0d2FyZUFnZW50PkFkb2JlIFBob3Rvc2hvcCBDQyAoV2luZG93cyk8L3N0RXZ0OnNvZnR3YXJlQWdlbnQ+CiAgICAgICAgICAgICAgICAgIDxzdEV2dDpjaGFuZ2VkPi88L3N0RXZ0OmNoYW5nZWQ+CiAgICAgICAgICAgICAgIDwvcmRmOmxpPgogICAgICAgICAgICA8L3JkZjpTZXE+CiAgICAgICAgIDwveG1wTU06SGlzdG9yeT4KICAgICAgICAgPGRjOmZvcm1hdD5pbWFnZS9wbmc8L2RjOmZvcm1hdD4KICAgICAgICAgPHBob3Rvc2hvcDpDb2xvck1vZGU+MzwvcGhvdG9zaG9wOkNvbG9yTW9kZT4KICAgICAgICAgPHRpZmY6T3JpZW50YXRpb24+MTwvdGlmZjpPcmllbnRhdGlvbj4KICAgICAgICAgPHRpZmY6WFJlc29sdXRpb24+NzIwMDAwLzEwMDAwPC90aWZmOlhSZXNvbHV0aW9uPgogICAgICAgICA8dGlmZjpZUmVzb2x1dGlvbj43MjAwMDAvMTAwMDA8L3RpZmY6WVJlc29sdXRpb24+CiAgICAgICAgIDx0aWZmOlJlc29sdXRpb25Vbml0PjI8L3RpZmY6UmVzb2x1dGlvblVuaXQ+CiAgICAgICAgIDxleGlmOkNvbG9yU3BhY2U+NjU1MzU8L2V4aWY6Q29sb3JTcGFjZT4KICAgICAgICAgPGV4aWY6UGl4ZWxYRGltZW5zaW9uPjI1NjwvZXhpZjpQaXhlbFhEaW1lbnNpb24+CiAgICAgICAgIDxleGlmOlBpeGVsWURpbWVuc2lvbj4yNTY8L2V4aWY6UGl4ZWxZRGltZW5zaW9uPgogICAgICA8L3JkZjpEZXNjcmlwdGlvbj4KICAgPC9yZGY6UkRGPgo8L3g6eG1wbWV0YT4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIAogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAKPD94cGFja2V0IGVuZD0idyI/PsD6WFoAAAAYdEVYdFNvZnR3YXJlAEFkb2JlIFBob3Rvc2hvcDTLjmcAAAAPdEVYdFdyaXRlcgBTdXBlclBOR8XEr90AACAASURBVHja7V3pduPMCgTZz32f/LO4P6KFpllb7YyTKOfMxIvseFEVRUHT+L//wf1z/9w/f/RnuT+C++f++bs/z/sj+DU/+M1/j+6P/CaA++d3gnvWa7pJ4iaA++eHA/0d7+cmhpsA7p9fCPjR930Twk0AN+B/KInQTQg3Adw/7wUn/tD3SDch3ARwg/4zwF59XnrT36SLz3OTwU0Avwr4+A/+5uznpgvPS4Ov6yaCmwD+FOi/W1nQxeemgceO/s2bDG4C+Hjg4xuO/WQFMEIKV8ngJoKbAD4K+DOBjG98nVdVAQ6SAk0mg5sIbgL4McDHN98/gxCo8Dw0AHYsksFNBDcBfCzwr4L+Hfd9x/unpArAAmFklAbdRHATwE8H/qzb300Eo8DHJCHQAHDxJoKb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";
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaGlUtils.ts
+    // folia/src/components/visualizer/nebbia/nebbiaGlUtils.ts
     var compileShader, startProgram, checkLinked, makeTex;
     var init_nebbiaGlUtils = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaGlUtils.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaGlUtils.ts"() {
         compileShader = (gl3, type, src) => {
           const s4 = gl3.createShader(type);
           gl3.shaderSource(s4, src);
@@ -104916,10 +104916,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaBuildingCache.ts
+    // folia/src/components/visualizer/nebbia/nebbiaBuildingCache.ts
     var LEVELS2, SPEED2, SHARP_SCALE, MARGIN2, SLACK, ringColumns, BLD_FILL_UNIFORMS, NebbiaBuildingCache;
     var init_nebbiaBuildingCache = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaBuildingCache.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaBuildingCache.ts"() {
         init_nebbiaGlUtils();
         LEVELS2 = [
           { b: 12e-4, y0: 0.03, y1: 0.63, fog: false },
@@ -105045,10 +105045,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaFogGl.ts
+    // folia/src/components/visualizer/nebbia/nebbiaFogGl.ts
     var SHARP_DIV, NebbiaFogGl;
     var init_nebbiaFogGl = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaFogGl.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaFogGl.ts"() {
         init_nebbiaConstants();
         init_nebbiaGlUtils();
         SHARP_DIV = 4;
@@ -105100,10 +105100,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaNoiseTex.ts
+    // folia/src/components/visualizer/nebbia/nebbiaNoiseTex.ts
     var NebbiaNoiseTex;
     var init_nebbiaNoiseTex = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaNoiseTex.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaNoiseTex.ts"() {
         init_nebbiaGlUtils();
         NebbiaNoiseTex = class {
           constructor(gl3, unit2) {
@@ -105157,10 +105157,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaSegments.ts
+    // folia/src/components/visualizer/nebbia/nebbiaSegments.ts
     var SEGMENT_FLOATS, segDist, NebbiaSegments;
     var init_nebbiaSegments = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaSegments.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaSegments.ts"() {
         SEGMENT_FLOATS = 6;
         segDist = (x4, y4, segs, p4) => {
           const ax2 = segs[p4], ay2 = segs[p4 + 1], dx2 = segs[p4 + 2] - ax2, dy2 = segs[p4 + 3] - ay2, l22 = dx2 * dx2 + dy2 * dy2;
@@ -105230,10 +105230,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaMaskGl.ts
+    // folia/src/components/visualizer/nebbia/nebbiaMaskGl.ts
     var NEBBIA_MASK_VS, NEBBIA_MASK_FS, NebbiaMaskGl;
     var init_nebbiaMaskGl = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaMaskGl.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaMaskGl.ts"() {
         init_nebbiaConstants();
         init_nebbiaGlUtils();
         init_nebbiaSegments();
@@ -105347,10 +105347,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaBubbleGlsl.ts
+    // folia/src/components/visualizer/nebbia/nebbiaBubbleGlsl.ts
     var NEBBIA_BUBBLE_GLSL;
     var init_nebbiaBubbleGlsl = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaBubbleGlsl.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaBubbleGlsl.ts"() {
         NEBBIA_BUBBLE_GLSL = /* glsl */
         `
   uniform float uBubbles;
@@ -105454,10 +105454,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaJellyGlsl.ts
+    // folia/src/components/visualizer/nebbia/nebbiaJellyGlsl.ts
     var NEBBIA_JELLY_GLSL;
     var init_nebbiaJellyGlsl = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaJellyGlsl.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaJellyGlsl.ts"() {
         NEBBIA_JELLY_GLSL = /* glsl */
         `
   // \u6BCF\u53EA\uFF1Axy \u4F4D\u7F6E\uFF08scene \u5750\u6807\uFF09\u3001z \u4F1E\u76D6\u534A\u5F84\u3001w \u6536\u7F29\uFF080 \u8212\u5F20\uFF0C1 \u6536\u5F97\u6700\u7D27\uFF09\uFF1B\u989C\u8272 rgb\uFF08\u5DF2\u6309\u8FDC\u8FD1\u8C03\u6697\uFF09\uFF0Ca \u89E6\u624B\u6CE2\u7684\u76F8\u4F4D
@@ -105519,10 +105519,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaSceneCommonGlsl.ts
+    // folia/src/components/visualizer/nebbia/nebbiaSceneCommonGlsl.ts
     var NEBBIA_SCENE_COMMON_GLSL;
     var init_nebbiaSceneCommonGlsl = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaSceneCommonGlsl.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaSceneCommonGlsl.ts"() {
         NEBBIA_SCENE_COMMON_GLSL = /* glsl */
         `
   float hash(vec2 p) { p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
@@ -105560,10 +105560,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaSpotGlsl.ts
+    // folia/src/components/visualizer/nebbia/nebbiaSpotGlsl.ts
     var NEBBIA_SPOT_GLSL;
     var init_nebbiaSpotGlsl = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaSpotGlsl.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaSpotGlsl.ts"() {
         NEBBIA_SPOT_GLSL = /* glsl */
         `
   // \u805A\u5149\u706F\u5149\u67F1\uFF1A\u4ECE\u697C\u5E95\u7684\u5149\u6E90\u5C04\u5411\u73BB\u7483\u4E0A\u7684\u5149\u6591\uFF0C\u8D8A\u8FD1\u8D8A\u5BBD\u8D8A\u4EAE\uFF1Bb \u662F\u6A21\u7CCA\u534A\u5F84\uFF08\u96FE\u540E\u9762\u770B\u5149\u67F1\u66F4\u6563\uFF09
@@ -105591,10 +105591,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaAquaGlsl.ts
+    // folia/src/components/visualizer/nebbia/nebbiaAquaGlsl.ts
     var NEBBIA_AQUA_GLSL;
     var init_nebbiaAquaGlsl = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaAquaGlsl.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaAquaGlsl.ts"() {
         init_nebbiaBubbleGlsl();
         init_nebbiaJellyGlsl();
         init_nebbiaSceneCommonGlsl();
@@ -105719,10 +105719,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaSceneGlsl.ts
+    // folia/src/components/visualizer/nebbia/nebbiaSceneGlsl.ts
     var NEBBIA_SCENE_GLSL;
     var init_nebbiaSceneGlsl = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaSceneGlsl.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaSceneGlsl.ts"() {
         init_nebbiaSceneCommonGlsl();
         init_nebbiaSpotGlsl();
         NEBBIA_SCENE_GLSL = /* glsl */
@@ -105925,10 +105925,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaShaders.ts
+    // folia/src/components/visualizer/nebbia/nebbiaShaders.ts
     var NEBBIA_VS, sceneUniforms, SCENE_UNIFORMS, AQUA_UNIFORMS, fogFs, NEBBIA_FOG_FS, NEBBIA_BLD_FILL_FS, STATIC_NOISE, NEBBIA_NOISE_FS, MAIN_FS, NEBBIA_MAIN_FS, NEBBIA_MAIN_FALLBACK_FS, nebbiaSceneShaders, NEBBIA_SPRITE_VS, NEBBIA_SPRITE_FS;
     var init_nebbiaShaders = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaShaders.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaShaders.ts"() {
         init_nebbiaAquaGlsl();
         init_nebbiaSceneGlsl();
         NEBBIA_VS = /* glsl */
@@ -106177,10 +106177,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaSnowFlakes.ts
+    // folia/src/components/visualizer/nebbia/nebbiaSnowFlakes.ts
     var FLAKE_SPRITE, FLAKE_R, FLAKE_STAGES, FLAKE_FILL, TAU13, rand, smooth13, canvas, shape, density, buildFlakeKind, buildFlakeAtlas;
     var init_nebbiaSnowFlakes = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaSnowFlakes.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaSnowFlakes.ts"() {
         FLAKE_SPRITE = 64;
         FLAKE_R = FLAKE_SPRITE * 0.42;
         FLAKE_STAGES = 16;
@@ -106336,10 +106336,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaFireGlsl.ts
+    // folia/src/components/visualizer/nebbia/nebbiaFireGlsl.ts
     var NEBBIA_FIRE_GLSL;
     var init_nebbiaFireGlsl = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaFireGlsl.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaFireGlsl.ts"() {
         NEBBIA_FIRE_GLSL = /* glsl */
         `
   // glow\uFF1A\u96FE\u7684\u5149\u6655\u5C42\uFF1Bfu\uFF1A\u5C4F\u5E55 uv\uFF08y \u5411\u4E0A\uFF09\uFF1Bn\uFF1A\u51B0\u9762\u659C\u9762\uFF08\u5C4F\u5E55\u65B9\u5411\uFF0Cy \u5411\u4E0A\uFF09\uFF1Bseed\uFF1A\u8FD9\u5757\u51B0\u9762\u7684\u968F\u673A\u6570\uFF08\u5B9A\u5B83\u7684\u6298\u5C04\u89D2\uFF09
@@ -106360,10 +106360,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaSnowGl.ts
+    // folia/src/components/visualizer/nebbia/nebbiaSnowGl.ts
     var FLAKE_FLOATS, GLINT_GRID, EXT, NEBBIA_FLAKE_VS, NEBBIA_FLAKE_FS, NebbiaSnowGl;
     var init_nebbiaSnowGl = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaSnowGl.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaSnowGl.ts"() {
         init_nebbiaSnowFlakes();
         init_nebbiaGlUtils();
         init_nebbiaFireGlsl();
@@ -106525,10 +106525,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaFireflies.ts
+    // folia/src/components/visualizer/nebbia/nebbiaFireflies.ts
     var FIREFLY_FLOATS, fireflyParams, TAU14, GLOW_END, HOLD_AVG, rand2, smooth14, turn, NebbiaFireflies;
     var init_nebbiaFireflies = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaFireflies.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaFireflies.ts"() {
         init_nebbiaConstants();
         FIREFLY_FLOATS = 12;
         fireflyParams = { count: 100, size: 1, halo: 2, speed: 1, glow: 1 };
@@ -106680,10 +106680,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaFireflyGl.ts
+    // folia/src/components/visualizer/nebbia/nebbiaFireflyGl.ts
     var NEBBIA_FIREFLY_VS, NEBBIA_FIREFLY_FS, NebbiaFireflyGl;
     var init_nebbiaFireflyGl = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaFireflyGl.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaFireflyGl.ts"() {
         init_nebbiaFireflies();
         NEBBIA_FIREFLY_VS = /* glsl */
         `#version 300 es
@@ -106815,10 +106815,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaPrograms.ts
+    // folia/src/components/visualizer/nebbia/nebbiaPrograms.ts
     var canRenderFogToFloat, NebbiaProgramBuild;
     var init_nebbiaPrograms = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaPrograms.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaPrograms.ts"() {
         init_nebbiaGlUtils();
         init_nebbiaMaskGl();
         init_nebbiaShaders();
@@ -106877,10 +106877,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaGl.ts
+    // folia/src/components/visualizer/nebbia/nebbiaGl.ts
     var PALETTE_UNIFORMS, SCENE_UNIFORMS2, MAIN_UNIFORMS, SCN_BUILDINGS, NO_BUILDINGS, locate, NebbiaGl;
     var init_nebbiaGl = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaGl.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaGl.ts"() {
         init_nebbiaConstants();
         init_nebbiaRaindrop();
         init_nebbiaBuildingCache();
@@ -107224,10 +107224,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaSkeleton.ts
+    // folia/src/components/visualizer/nebbia/nebbiaSkeleton.ts
     var SK, canvas2, ctx, thin2, trace, rdp, chaikin, skeletonPolys;
     var init_nebbiaSkeleton = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaSkeleton.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaSkeleton.ts"() {
         SK = 96;
         canvas2 = null;
         ctx = null;
@@ -107345,10 +107345,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaStrokes.ts
+    // folia/src/components/visualizer/nebbia/nebbiaStrokes.ts
     var STROKES_URL, loading, loaded, loadNebbiaStrokes, getNebbiaStrokeMedians;
     var init_nebbiaStrokes = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaStrokes.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaStrokes.ts"() {
         STROKES_URL = `${"/"}nebbia-strokes.json`;
         loading = null;
         loaded = null;
@@ -107365,10 +107365,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaGlyphs.ts
+    // folia/src/components/visualizer/nebbia/nebbiaGlyphs.ts
     var measureGlyph, catmull, iconSvg, iconPolys, NebbiaGlyphCache, warpGlyph, pointAt;
     var init_nebbiaGlyphs = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaGlyphs.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaGlyphs.ts"() {
         init_lucideIconResolver();
         init_nebbiaConstants();
         init_nebbiaChars();
@@ -107516,10 +107516,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaBlocks.ts
+    // folia/src/components/visualizer/nebbia/nebbiaBlocks.ts
     var CJK2, PUNCT, TURN_IN_VERTICAL, PARTICLES, ROLE_SCALE, ROLE_SCALE_FAST, FLOW_GAP, STACK_GAP2, isWideChar, advanceOf, mergeWords, scoreWord, assignRoles, isCjkWord, makeBlocks, gapOf, complexScale, measureBlock, emitBlock, hasTurned;
     var init_nebbiaBlocks = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaBlocks.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaBlocks.ts"() {
         init_nebbiaConstants();
         init_nebbiaChars();
         init_nebbiaStrokes();
@@ -107635,10 +107635,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaCompositions.ts
+    // folia/src/components/visualizer/nebbia/nebbiaCompositions.ts
     var M4, flowRows, COMPOSITIONS2, COMPOSITION_BIAS, SIMPLE_COMPOSITIONS;
     var init_nebbiaCompositions = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaCompositions.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaCompositions.ts"() {
         init_nebbiaBlocks();
         M4 = (ctx2, i4, dir) => measureBlock(ctx2.blocks[i4], ctx2.chars, dir);
         flowRows = (ctx2, rows, shifts) => {
@@ -107861,10 +107861,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaLayout.ts
+    // folia/src/components/visualizer/nebbia/nebbiaLayout.ts
     var LINGER_WEIGHT, bboxOf, overlapArea, layoutNebbiaSong;
     var init_nebbiaLayout = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaLayout.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaLayout.ts"() {
         init_nebbiaConstants();
         init_nebbiaBlocks();
         init_nebbiaCompositions();
@@ -107989,10 +107989,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaScene.ts
+    // folia/src/components/visualizer/nebbia/nebbiaScene.ts
     var lineModeOf, fogStartOf, LINGER_MAX, LINGER_LINES, decorate, naturalWriteTime, scheduleWrite, applyAppear, alignCredits, lineRect, buildNebbiaScene, YIELD_LEAD, YIELD_READ, yieldMoment, writtenAt, yieldFactor, BREATH_GHOST, yieldMask;
     var init_nebbiaScene = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaScene.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaScene.ts"() {
         init_nebbiaConstants();
         init_nebbiaChars();
         init_nebbiaBlocks();
@@ -108162,19 +108162,19 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/services/analysis/vocalEnvelope.ts
+    // folia/src/services/analysis/vocalEnvelope.ts
     var VOCAL_FPS, getVocalEnvelope;
     var init_vocalEnvelope = __esm({
-      "src/folia/services/analysis/vocalEnvelope.ts"() {
+      "folia/src/services/analysis/vocalEnvelope.ts"() {
         VOCAL_FPS = 50;
         getVocalEnvelope = (_key) => null;
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaHits.ts
+    // folia/src/components/visualizer/nebbia/nebbiaHits.ts
     var BUCKET, lowerBound, energies, vocalEnvelopeEnergy, songLoudness, activeLine, VocalEnergy, NebbiaHits;
     var init_nebbiaHits = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaHits.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaHits.ts"() {
         init_nebbiaConstants();
         init_nebbiaScene();
         init_visualizerSeedHash();
@@ -108354,10 +108354,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaBreath.ts
+    // folia/src/components/visualizer/nebbia/nebbiaBreath.ts
     var BREATH_SCALE, buildBreath, samePuffs, NebbiaBreathMask;
     var init_nebbiaBreath = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaBreath.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaBreath.ts"() {
         init_nebbiaConstants();
         init_nebbiaScene();
         init_visualizerSeedHash();
@@ -108458,10 +108458,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaSnowGrid.ts
+    // folia/src/components/visualizer/nebbia/nebbiaSnowGrid.ts
     var NebbiaSnowGrid;
     var init_nebbiaSnowGrid = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaSnowGrid.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaSnowGrid.ts"() {
         init_nebbiaSegments();
         NebbiaSnowGrid = class {
           cells = [];
@@ -108521,10 +108521,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaSnowTrails.ts
+    // folia/src/components/visualizer/nebbia/nebbiaSnowTrails.ts
     var MOVE_MIN, WIPE_CLEAR, NebbiaSnowTrails;
     var init_nebbiaSnowTrails = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaSnowTrails.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaSnowTrails.ts"() {
         init_nebbiaConstants();
         MOVE_MIN = 3;
         WIPE_CLEAR = 0.5;
@@ -108567,10 +108567,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaSnowWater.ts
+    // folia/src/components/visualizer/nebbia/nebbiaSnowWater.ts
     var iceParams, SLIDE_AT, iceSizeScale, SPECKS_PER_ICE, rand3, FIELD_EVERY, NebbiaSnowWater;
     var init_nebbiaSnowWater = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaSnowWater.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaSnowWater.ts"() {
         init_nebbiaSnowGrid();
         init_nebbiaSnowTrails();
         iceParams = { freezeAfter: 1.5, freezeDur: 3, slide: 3, minR: 2.5, grow: 0.75, spinR: 7.5, spin: 0.35, maxIce: 200, off: false };
@@ -108914,10 +108914,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaInkIce.ts
+    // folia/src/components/visualizer/nebbia/nebbiaInkIce.ts
     var ICE_FLOATS, hash, pushCore, putInkBead;
     var init_nebbiaInkIce = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaInkIce.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaInkIce.ts"() {
         init_nebbiaSnowWater();
         ICE_FLOATS = 6;
         hash = (s4) => {
@@ -108949,10 +108949,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaInk.ts
+    // folia/src/components/visualizer/nebbia/nebbiaInk.ts
     var strokeTrail, partialPath, toScreen, PEN_TAIL, pushPen, pushWet, drawDrip, drawChar;
     var init_nebbiaInk = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaInk.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaInk.ts"() {
         init_nebbiaConstants();
         init_nebbiaDrops();
         init_nebbiaGlyphs();
@@ -109092,10 +109092,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaWipe.ts
+    // folia/src/components/visualizer/nebbia/nebbiaWipe.ts
     var buildWipe, streakProgress, isSwept;
     var init_nebbiaWipe = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaWipe.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaWipe.ts"() {
         init_nebbiaConstants();
         init_nebbiaScene();
         init_visualizerSeedHash();
@@ -109153,10 +109153,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaMask.ts
+    // folia/src/components/visualizer/nebbia/nebbiaMask.ts
     var SMEAR_HOLD, SMEAR_REFOG, WET_EVERY, NebbiaMask;
     var init_nebbiaMask = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaMask.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaMask.ts"() {
         init_nebbiaBreath();
         init_nebbiaConstants();
         init_nebbiaDrops();
@@ -109299,10 +109299,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaPalette.ts
+    // folia/src/components/visualizer/nebbia/nebbiaPalette.ts
     var rgbOf2, toHsl2, fromHsl, asLight, asSky, resolveNebbiaPalette;
     var init_nebbiaPalette = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaPalette.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaPalette.ts"() {
         init_colorMix();
         rgbOf2 = (color, fallback) => {
           const c4 = color ? parseColorChannels(color) : null;
@@ -109346,10 +109346,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaSpot.ts
+    // folia/src/components/visualizer/nebbia/nebbiaSpot.ts
     var startOf, doneOf, doneAt, lineDoneOf, currentWritingChar, NebbiaSpot;
     var init_nebbiaSpot = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaSpot.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaSpot.ts"() {
         init_nebbiaConstants();
         startOf = (c4) => c4.appearDur > 0 ? c4.t : c4.wt;
         doneOf = (c4) => startOf(c4) + (c4.appearDur > 0 ? c4.appearDur : c4.wd);
@@ -109427,10 +109427,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaDrumBumps.ts
+    // folia/src/components/visualizer/nebbia/nebbiaDrumBumps.ts
     var MIN_STRENGTH, MIN_GAP, MAX_STEP, NebbiaDrumBumps;
     var init_nebbiaDrumBumps = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaDrumBumps.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaDrumBumps.ts"() {
         init_drumHits();
         MIN_STRENGTH = 0.35;
         MIN_GAP = 0.3;
@@ -109488,10 +109488,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaDrizzleRide.ts
+    // folia/src/components/visualizer/nebbia/nebbiaDrizzleRide.ts
     var DRIZZLE_RIDE, DRIZZLE_RIDE_RAIN, DRIZZLE_RIDE_BUMP, NebbiaDrizzleRide;
     var init_nebbiaDrizzleRide = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaDrizzleRide.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaDrizzleRide.ts"() {
         init_nebbiaDrumBumps();
         init_drumHits();
         init_vocalEnvelope();
@@ -109529,10 +109529,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaFrameUniforms.ts
+    // folia/src/components/visualizer/nebbia/nebbiaFrameUniforms.ts
     var SCENERY_BITS, RAIN_BITS, nebbiaFrameUniforms;
     var init_nebbiaFrameUniforms = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaFrameUniforms.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaFrameUniforms.ts"() {
         init_nebbiaConstants();
         SCENERY_BITS = { buildings: 1, lights: 2, cars: 4, road: 8 };
         RAIN_BITS = { slant: 16 | 32, straight: 16, off: 0 };
@@ -109562,10 +109562,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaSceneClock.ts
+    // folia/src/components/visualizer/nebbia/nebbiaSceneClock.ts
     var SCENE_RESET, SCENE_WRAP, NebbiaSceneClock;
     var init_nebbiaSceneClock = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaSceneClock.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaSceneClock.ts"() {
         init_nebbiaConstants();
         SCENE_RESET = 1e3;
         SCENE_WRAP = 3600;
@@ -109586,10 +109586,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaCondensation.ts
+    // folia/src/components/visualizer/nebbia/nebbiaCondensation.ts
     var AREA_PER_DROP, MAX_DEW, FIRST_FILL, GROW, FADE, LIFE_MIN, LIFE_SPAN, UPDATE_EVERY, CELL, REGROW_MIN, REGROW_SPAN, NebbiaCondensation;
     var init_nebbiaCondensation = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaCondensation.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaCondensation.ts"() {
         init_visualizerSeedHash();
         init_nebbiaSegments();
         AREA_PER_DROP = 81;
@@ -109732,10 +109732,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaSnowDraw.ts
+    // folia/src/components/visualizer/nebbia/nebbiaSnowDraw.ts
     var APPROACH_Z, packFlake, packFlakes, packIce, packInkIce;
     var init_nebbiaSnowDraw = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaSnowDraw.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaSnowDraw.ts"() {
         init_nebbiaSnowFlakes();
         init_nebbiaSnowGl();
         init_nebbiaInkIce();
@@ -109826,10 +109826,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaSnowFall.ts
+    // folia/src/components/visualizer/nebbia/nebbiaSnowFall.ts
     var LAYERS, rand4, gustOf, slantOf, NebbiaSnowFall;
     var init_nebbiaSnowFall = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaSnowFall.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaSnowFall.ts"() {
         init_nebbiaSnowGl();
         LAYERS = [
           { n: 240, r: [0.9, 1.7], vy: [45, 75], alpha: 0.3, p: 0.2, sway: [1, 3] },
@@ -109912,10 +109912,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaSnow.ts
+    // folia/src/components/visualizer/nebbia/nebbiaSnow.ts
     var PEN_FLOATS, KIND_TYPES, TYPE_ODDS, QUICK_MELT, rand5, waterOf, TAU15, NebbiaSnow;
     var init_nebbiaSnow = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaSnow.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaSnow.ts"() {
         init_nebbiaSegments();
         init_nebbiaSnowDraw();
         init_nebbiaSnowFall();
@@ -110130,10 +110130,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaBeatCursor.ts
+    // folia/src/components/visualizer/nebbia/nebbiaBeatCursor.ts
     var MAX_STEP2, NebbiaBeatCursor;
     var init_nebbiaBeatCursor = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaBeatCursor.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaBeatCursor.ts"() {
         MAX_STEP2 = 0.5;
         NebbiaBeatCursor = class {
           events = null;
@@ -110173,10 +110173,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaJellies.ts
+    // folia/src/components/visualizer/nebbia/nebbiaJellies.ts
     var VIVID, TOP2, BOTTOM, OWN_WITH_BEATS, WEAK_BEAT, rand6, kickLevel, OWN_EASE, spawn, NebbiaJellies;
     var init_nebbiaJellies = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaJellies.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaJellies.ts"() {
         init_types7();
         VIVID = [[1, 0.35, 0.72], [0.35, 0.8, 1], [0.72, 0.5, 1], [1, 0.72, 0.35]];
         TOP2 = -0.35;
@@ -110252,10 +110252,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaWeedSway.ts
+    // folia/src/components/visualizer/nebbia/nebbiaWeedSway.ts
     var OMEGA, DAMP, KICK_V, STEP2, SPACING, HISTORY, NebbiaWeedSway;
     var init_nebbiaWeedSway = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaWeedSway.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaWeedSway.ts"() {
         OMEGA = 2 * Math.PI * 2;
         DAMP = 2 * 0.3 * OMEGA;
         KICK_V = OMEGA * 1.25;
@@ -110290,10 +110290,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaAquarium.ts
+    // folia/src/components/visualizer/nebbia/nebbiaAquarium.ts
     var BURST_LIFE, SPOT_GROW, SPOT_ATTACK, SPOT_DECAY, rand7, NebbiaAquarium;
     var init_nebbiaAquarium = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaAquarium.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaAquarium.ts"() {
         init_nebbiaBeatCursor();
         init_nebbiaJellies();
         init_types7();
@@ -110382,10 +110382,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/createNebbiaRuntime.ts
+    // folia/src/components/visualizer/nebbia/createNebbiaRuntime.ts
     var AQUA_BEAT, AQUA_JELLY, AQUA_WEED, AQUA_BUBBLE, AQUA_SPOT, LAYOUT_KEYS, sameValue, NebbiaRuntime;
     var init_createNebbiaRuntime = __esm({
-      "src/folia/components/visualizer/nebbia/createNebbiaRuntime.ts"() {
+      "folia/src/components/visualizer/nebbia/createNebbiaRuntime.ts"() {
         init_lyricRenderQuality();
         init_lucideIconResolver();
         init_fontStacks();
@@ -110717,14 +110717,14 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/nebbia/VisualizerNebbia.tsx
+    // folia/src/components/visualizer/nebbia/VisualizerNebbia.tsx
     var VisualizerNebbia_exports = {};
     __export(VisualizerNebbia_exports, {
       default: () => VisualizerNebbia_default
     });
     var EMPTY_LINES2, VisualizerNebbia, VisualizerNebbia_default;
     var init_VisualizerNebbia = __esm({
-      "src/folia/components/visualizer/nebbia/VisualizerNebbia.tsx"() {
+      "folia/src/components/visualizer/nebbia/VisualizerNebbia.tsx"() {
         init_react_shim();
         init_i18n();
         init_fontStacks();
@@ -110909,22 +110909,22 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/stores/visualizerSettingsPersistence.ts
+    // folia/src/stores/visualizerSettingsPersistence.ts
     var readStoredTuning;
     var init_visualizerSettingsPersistence = __esm({
-      "src/folia/stores/visualizerSettingsPersistence.ts"() {
+      "folia/src/stores/visualizerSettingsPersistence.ts"() {
         readStoredTuning = (_key, fallback) => fallback;
       }
     });
   
-    // src/folia/components/visualizer/nebbia/nebbiaShaderWarmup.ts
+    // folia/src/components/visualizer/nebbia/nebbiaShaderWarmup.ts
     var nebbiaShaderWarmup_exports = {};
     __export(nebbiaShaderWarmup_exports, {
       warmNebbiaShaders: () => warmNebbiaShaders
     });
     var POLL_MS2, GIVE_UP_MS2, started, warmNebbiaShaders;
     var init_nebbiaShaderWarmup = __esm({
-      "src/folia/components/visualizer/nebbia/nebbiaShaderWarmup.ts"() {
+      "folia/src/components/visualizer/nebbia/nebbiaShaderWarmup.ts"() {
         init_visualizerSettingsPersistence();
         init_nebbiaPrograms();
         init_tuning2();
@@ -115877,10 +115877,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/diorama/cameraPath.ts
+    // folia/src/components/visualizer/diorama/cameraPath.ts
     var DIORAMA_STEP_DISTANCE, DIORAMA_MAX_YAW, DIORAMA_MAX_PITCH, DIORAMA_HERO_DISTANCE, DIORAMA_CAMERA_LIFT, DIORAMA_SAFE_FRAME_FRACTION, DIORAMA_SWAY_AMP, DIORAMA_LIFT_AMP, DIORAMA_DIST_AMP, DIORAMA_SNAP_DISTANCE, DIORAMA_TEXT_OFFSET_R, DIORAMA_TEXT_OFFSET_U, DIORAMA_TEXT_ROLL, DIORAMA_TEXT_YAW, DIORAMA_TEXT_LOOK, DIORAMA_SHAPE_FADE_IN_START, DIORAMA_SHAPE_FADE_IN_END, DIORAMA_SHAPE_DISSOLVE_START, DIORAMA_SHAPE_DISSOLVE_END, DEG_TO_RAD, clamp0116, clamp19, vsub, vcross, vnorm, vadd, seededUnit, hashSeed, smoothDamp, frameHalfWidth, DIORAMA_SUB_MODE_PRESETS, resolveDioramaMotionParams, WORLD_UP, DEFAULT_FRAME, buildDioramaPath, getFrame, translateFrames, composeLocal, resolveReadHeadTruck, getDioramaTextPlacement, SHOT_KINDS, easeInOut2, CHORUS_PART, getShotDir, getLineNoteProfile, computeShotWeights, weightedPickShot, basePickShot, getDioramaShot, resolveShotOffset, HOLD_SETTLE_DELAY, HOLD_SETTLE_EASE, resolveHoldSettle, resolveCameraDrift, DIORAMA_PARTICLE_AUDIO_SCALE_MAX, getSpecClearanceRadius, separateSpecs, TEXT_CLEAR_LATERAL, TEXT_CLEAR_VERTICAL, enforceTextClearance, enforceRailClearance, buildFormation;
     var init_cameraPath = __esm({
-      "src/folia/components/visualizer/diorama/cameraPath.ts"() {
+      "folia/src/components/visualizer/diorama/cameraPath.ts"() {
         init_types();
         DIORAMA_STEP_DISTANCE = 8;
         DIORAMA_MAX_YAW = 0.5;
@@ -116497,10 +116497,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/diorama/dioramaSequencer.ts
+    // folia/src/components/visualizer/diorama/dioramaSequencer.ts
     var createSequencerState, activeSegment, appendSegment, updateActiveSegmentLines, totalGlobalLines, resolveGlobal, pruneSegments;
     var init_dioramaSequencer = __esm({
-      "src/folia/components/visualizer/diorama/dioramaSequencer.ts"() {
+      "folia/src/components/visualizer/diorama/dioramaSequencer.ts"() {
         init_cameraPath();
         createSequencerState = () => ({ segments: [], nextGlobalStart: 0 });
         activeSegment = (state) => state.segments[state.segments.length - 1] ?? null;
@@ -116558,10 +116558,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/diorama/dioramaTransition.ts
+    // folia/src/components/visualizer/diorama/dioramaTransition.ts
     var TRANSITION_DURATION, TRANSITION_DISTANCE, TRANSITION_BANK, TRANSITION_AIM_SWEEP, flightPerp, flightSide, len, scaleTo, pickTransitionOffset, transitionEase;
     var init_dioramaTransition = __esm({
-      "src/folia/components/visualizer/diorama/dioramaTransition.ts"() {
+      "folia/src/components/visualizer/diorama/dioramaTransition.ts"() {
         init_cameraPath();
         TRANSITION_DURATION = 3.2;
         TRANSITION_DISTANCE = 46;
@@ -116597,10 +116597,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/diorama/CameraRig.tsx
+    // folia/src/components/visualizer/diorama/CameraRig.tsx
     var UP3, clamp0117, ALIGN_SHOT_CEILING, ALIGN_LEAD_IN, ALIGN_SETTLE, ALIGN_RELEASE, ALIGN_RATE, ALIGN_TURN_RATE, FRAME_KEEP_FRACTION, smoothstep01, _alignRight, _alignUp, _alignFwd, _alignMatrix, _alignQuat, _tiltQuat, _lookQuat, _AXIS_Y, _AXIS_Z, _viewDir, _camForward, _targetQuat, _flightTo, FLIGHT_SMOOTH_TIME, FLIGHT_ARC_FRAC, ORIENT_FOLLOW_RATE, resolveWordProgress, CameraRig, CameraRig_default;
     var init_CameraRig = __esm({
-      "src/folia/components/visualizer/diorama/CameraRig.tsx"() {
+      "folia/src/components/visualizer/diorama/CameraRig.tsx"() {
         init_react_shim();
         init_r3f8();
         init_three_esm();
@@ -116857,10 +116857,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/diorama/dioramaMoteField.ts
+    // folia/src/components/visualizer/diorama/dioramaMoteField.ts
     var DIORAMA_MOTE_LINES_BEHIND, DIORAMA_MOTE_LINES_AHEAD, DIORAMA_MOTE_WINDOW_LINES, DIORAMA_MOTE_MAX_POINTS, resolveDioramaMoteCircumference, resolveDioramaMoteRadial, dioramaMoteSlot, MOTE_INNER_RADIUS, MOTE_RADIAL_SPAN, MOTE_VERTICAL_SQUASH, radicalInverse, extendDioramaFrame, writeDioramaMoteLine;
     var init_dioramaMoteField = __esm({
-      "src/folia/components/visualizer/diorama/dioramaMoteField.ts"() {
+      "folia/src/components/visualizer/diorama/dioramaMoteField.ts"() {
         init_types();
         init_cameraPath();
         DIORAMA_MOTE_LINES_BEHIND = 2;
@@ -116937,10 +116937,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/diorama/dioramaParticleCorridor.ts
+    // folia/src/components/visualizer/diorama/dioramaParticleCorridor.ts
     var DIORAMA_PARTICLE_CORRIDOR_RADIUS, buildDioramaParticleCorridorSpan, buildDioramaParticleCorridorWindow;
     var init_dioramaParticleCorridor = __esm({
-      "src/folia/components/visualizer/diorama/dioramaParticleCorridor.ts"() {
+      "folia/src/components/visualizer/diorama/dioramaParticleCorridor.ts"() {
         init_cameraPath();
         init_dioramaMoteField();
         init_dioramaSequencer();
@@ -116982,10 +116982,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/diorama/dioramaParticleSurfaces.ts
+    // folia/src/components/visualizer/diorama/dioramaParticleSurfaces.ts
     var surfaceCache, TWO_PI, BOX_HALF, CYLINDER_RADIUS, CYLINDER_HALF_HEIGHT, TORUS_MAJOR, TORUS_TUBE, TETRA_VERTICES, TETRA_FACES, TETRA_CENTER, push, unit, radialNormal, countBoxShell, resolveBoxShell, buildBoxSurface, buildCylinderSurface, buildTetrahedronSurface, buildTorusSurface, buildDioramaStructuredSurface;
     var init_dioramaParticleSurfaces = __esm({
-      "src/folia/components/visualizer/diorama/dioramaParticleSurfaces.ts"() {
+      "folia/src/components/visualizer/diorama/dioramaParticleSurfaces.ts"() {
         surfaceCache = /* @__PURE__ */ new Map();
         TWO_PI = Math.PI * 2;
         BOX_HALF = 0.55;
@@ -117132,10 +117132,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/diorama/dioramaParticleModel.ts
+    // folia/src/components/visualizer/diorama/dioramaParticleModel.ts
     var DIORAMA_MAX_CLOUD_POINTS_PER_CLUSTER, DIORAMA_MAX_CORRIDOR_POINTS_PER_SPAN, FAMILY_INDEX, normalizeDensity, resolveWaveNumberMax, allocate, writeStyle, buildDioramaCloudGeometryData, normalizeVec, resolveRingSegments, buildDioramaCorridorGeometryData, createDioramaBufferGeometry, stepDioramaEnvelope, clamp0118, createDioramaBandTracker, FAST_ATTACK, FAST_RELEASE, FLOOR_RISE, FLOOR_FALL, PEAK_RISE, PEAK_FALL, MIN_RANGE, MIN_PEAK, TRIGGER_HIGH, TRIGGER_LOW, stepDioramaBandTracker, RIPPLE_BANDS, RIPPLE_SLOTS_PER_BAND, DIORAMA_RIPPLE_COUNT, smoothstep3, resolveDioramaParticleAudioResponse, DIORAMA_CORRIDOR_PULSE_SHARE, resolveDioramaPulseTarget, createDioramaParticleElasticState, stepDioramaParticleElasticResponse;
     var init_dioramaParticleModel = __esm({
-      "src/folia/components/visualizer/diorama/dioramaParticleModel.ts"() {
+      "folia/src/components/visualizer/diorama/dioramaParticleModel.ts"() {
         init_three_esm();
         init_types();
         init_cameraPath();
@@ -117378,10 +117378,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/diorama/dioramaParticleShaders.ts
+    // folia/src/components/visualizer/diorama/dioramaParticleShaders.ts
     var DIORAMA_PARTICLE_VERTEX_SHADER, DIORAMA_PARTICLE_FRAGMENT_SHADER;
     var init_dioramaParticleShaders = __esm({
-      "src/folia/components/visualizer/diorama/dioramaParticleShaders.ts"() {
+      "folia/src/components/visualizer/diorama/dioramaParticleShaders.ts"() {
         init_cameraPath();
         init_dioramaParticleModel();
         DIORAMA_PARTICLE_VERTEX_SHADER = `
@@ -117687,10 +117687,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/diorama/dioramaParticleMaterials.ts
+    // folia/src/components/visualizer/diorama/dioramaParticleMaterials.ts
     var relativeLuminance2, getDioramaParticleContrastRatio, CALM_EMISSION, CONTRAST_LAYER_ALPHA, asDisplayed, getDioramaParticleDisplayedContrastRatio, adaptColorToBackground, resolveDioramaParticleContrastColors, buildUniforms, createDioramaParticleMaterial, createDioramaParticleGlowMaterial, lerpDioramaParticleMaterialColors;
     var init_dioramaParticleMaterials = __esm({
-      "src/folia/components/visualizer/diorama/dioramaParticleMaterials.ts"() {
+      "folia/src/components/visualizer/diorama/dioramaParticleMaterials.ts"() {
         init_three_esm();
         init_dioramaParticleModel();
         init_dioramaParticleShaders();
@@ -117799,10 +117799,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/diorama/dioramaKeywordColor.ts
+    // folia/src/components/visualizer/diorama/dioramaKeywordColor.ts
     var ACTIVE_LINE_OPACITY, KEYWORD_MIN_BG_CONTRAST, KEYWORD_MIN_PRIMARY_SEPARATION, separationFromPrimary, asDisplayedText, getDioramaKeywordDisplayedContrastRatio, nudgeUntil, resolveDioramaKeywordColor, prepareDioramaKeywordMatchers, resolveDioramaKeywordUnitColors;
     var init_dioramaKeywordColor = __esm({
-      "src/folia/components/visualizer/diorama/dioramaKeywordColor.ts"() {
+      "folia/src/components/visualizer/diorama/dioramaKeywordColor.ts"() {
         init_three_esm();
         init_wordColoring();
         init_dioramaParticleMaterials();
@@ -117874,10 +117874,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/diorama/dioramaTextRaster.ts
+    // folia/src/components/visualizer/diorama/dioramaTextRaster.ts
     var DIORAMA_RASTER_FONT_PX, DEFAULT_FONT_WEIGHT, LINE_BAND_EM, GLOW_PAD_EM, PLAIN_PAD_EM, MAX_CANVAS_PX, GLOW_BLUR_EM, buildDioramaFontSpec, measureCtx, getMeasureCtx, measureDioramaText, makeTexture, drawGlowGlyph, rasterDioramaUnit, rasterDioramaLine;
     var init_dioramaTextRaster = __esm({
-      "src/folia/components/visualizer/diorama/dioramaTextRaster.ts"() {
+      "folia/src/components/visualizer/diorama/dioramaTextRaster.ts"() {
         init_three_esm();
         DIORAMA_RASTER_FONT_PX = 128;
         DEFAULT_FONT_WEIGHT = 700;
@@ -117981,10 +117981,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/diorama/dioramaBeatRipples.ts
+    // folia/src/components/visualizer/diorama/dioramaBeatRipples.ts
     var DIORAMA_BEAT_RIPPLE_STRENGTH, DIORAMA_DOWNBEAT_RIPPLE_STRENGTH, createDioramaBeatCounter, stepDioramaBeatCounter, resolveDioramaBeatClusterPulse, DIORAMA_LOW_BEAT_SHARE, resolveDioramaBeatRipple, DIORAMA_LYRIC_HOP_BEAT, DIORAMA_LYRIC_HOP_DOWNBEAT, DIORAMA_LYRIC_HOP_MAX, resolveDioramaLyricHop;
     var init_dioramaBeatRipples = __esm({
-      "src/folia/components/visualizer/diorama/dioramaBeatRipples.ts"() {
+      "folia/src/components/visualizer/diorama/dioramaBeatRipples.ts"() {
         init_cameraPath();
         init_clock();
         DIORAMA_BEAT_RIPPLE_STRENGTH = 1.6;
@@ -118019,10 +118019,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/diorama/DioramaParticleField.tsx
+    // folia/src/components/visualizer/diorama/DioramaParticleField.tsx
     var createRipplePool, CORRIDOR_UNITS_PER_LINE, spawnRipple, FORMATION_SETTLE_SECONDS, CLOUD_SWELL, CORRIDOR_MAX_SWELL, CORRIDOR_QUIET_SWELL, MAX_WAVE, CLOUD_MAX_SWELL, CORRIDOR_MAX_SWELL_REACH, DioramaParticleField;
     var init_DioramaParticleField = __esm({
-      "src/folia/components/visualizer/diorama/DioramaParticleField.tsx"() {
+      "folia/src/components/visualizer/diorama/DioramaParticleField.tsx"() {
         init_react_shim();
         init_r3f8();
         init_three_esm();
@@ -118255,10 +118255,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/diorama/dioramaSceneConstants.ts
+    // folia/src/components/visualizer/diorama/dioramaSceneConstants.ts
     var LINES_AHEAD, LINES_BEHIND, OUTGOING_LINES_BEHIND, OUTGOING_LINES_AHEAD, CORRIDOR_LINES_AHEAD, CORRIDOR_LINES_BEHIND, NEIGHBOR_RASTER_BUDGET, resolveNeighborLineOpacity, resolveOutgoingLineOpacity, LINE_FONT_SIZE, TARGET_FRAME_WIDTH_FRACTION, MIN_FIT_SCALE, DEG_TO_RAD2, FOG_NEAR, FOG_FAR, TEXT_DISSOLVE_START, TEXT_DISSOLVE_END, TEXT_FADE_IN_START, TEXT_FADE_IN_END, COLOR_DAMP_RATE, ACTIVE_LINE_OPACITY2, UNSUNG_UNIT_OPACITY, UNIT_GLOW_MAX_OPACITY, SOUL_MAX_OPACITY, SOUL_ACTIVE_LIFT_EM, SOUL_DETACH_LIFT_EM, SOUL_ACTIVE_SWELL, SOUL_DETACH_SWELL, SOUL_HANDOFF_SECONDS, clamp0119, stepEnvelope, smoothstep012, GRADIENT_HOLD_SECONDS, GRADIENT_TRAIL_SECONDS;
     var init_dioramaSceneConstants = __esm({
-      "src/folia/components/visualizer/diorama/dioramaSceneConstants.ts"() {
+      "folia/src/components/visualizer/diorama/dioramaSceneConstants.ts"() {
         LINES_AHEAD = 3;
         LINES_BEHIND = 2;
         OUTGOING_LINES_BEHIND = 2;
@@ -118303,10 +118303,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/diorama/dioramaSceneUnits.ts
+    // folia/src/components/visualizer/diorama/dioramaSceneUnits.ts
     var resolveGradientEnergy, resolveDioramaUnitFill, shouldResetDioramaUnitState, resolveTextLife, resolveFrameFitScale, _basisMatrix, _basisQuat, _tiltQuat2, _basisRight, _basisUp, _basisFwd, _axisY, _axisZ, frameQuaternion;
     var init_dioramaSceneUnits = __esm({
-      "src/folia/components/visualizer/diorama/dioramaSceneUnits.ts"() {
+      "folia/src/components/visualizer/diorama/dioramaSceneUnits.ts"() {
         init_three_esm();
         init_dioramaSceneConstants();
         resolveGradientEnergy = (now, unit2) => {
@@ -118353,10 +118353,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/diorama/dioramaGeometry.ts
+    // folia/src/components/visualizer/diorama/dioramaGeometry.ts
     var isKindVisible, getClusterRadius, distanceBetween, DIORAMA_CLUSTER_COLLISION_LINE_SPAN, selectVisibleDioramaClusters;
     var init_dioramaGeometry = __esm({
-      "src/folia/components/visualizer/diorama/dioramaGeometry.ts"() {
+      "folia/src/components/visualizer/diorama/dioramaGeometry.ts"() {
         init_cameraPath();
         isKindVisible = (kind, visibility) => {
           if (kind === "box") return visibility.strands;
@@ -118392,18 +118392,18 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/diorama/dioramaSceneTypes.ts
+    // folia/src/components/visualizer/diorama/dioramaSceneTypes.ts
     var CJK_GRAPHEME_RE;
     var init_dioramaSceneTypes = __esm({
-      "src/folia/components/visualizer/diorama/dioramaSceneTypes.ts"() {
+      "folia/src/components/visualizer/diorama/dioramaSceneTypes.ts"() {
         CJK_GRAPHEME_RE = /[⺀-鿿぀-ヿ豈-﫿ｦ-ﾟ•·■-◿]/;
       }
     });
   
-    // src/folia/components/visualizer/diorama/dioramaSceneLayout.ts
+    // folia/src/components/visualizer/diorama/dioramaSceneLayout.ts
     var resolveDioramaMountedIndices, buildDioramaVisibleLines, buildDioramaCorridorSpans, buildDioramaParticleClusters, splitDioramaLyricUnits, layoutDioramaActiveUnits;
     var init_dioramaSceneLayout = __esm({
-      "src/folia/components/visualizer/diorama/dioramaSceneLayout.ts"() {
+      "folia/src/components/visualizer/diorama/dioramaSceneLayout.ts"() {
         init_graphemeTiming();
         init_textDirection();
         init_cameraPath();
@@ -118562,10 +118562,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/diorama/dioramaLineRasterCache.ts
+    // folia/src/components/visualizer/diorama/dioramaLineRasterCache.ts
     var DioramaLineRasterCache;
     var init_dioramaLineRasterCache = __esm({
-      "src/folia/components/visualizer/diorama/dioramaLineRasterCache.ts"() {
+      "folia/src/components/visualizer/diorama/dioramaLineRasterCache.ts"() {
         init_dioramaTextRaster();
         init_dioramaSceneConstants();
         DioramaLineRasterCache = class {
@@ -118648,10 +118648,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/diorama/dioramaSceneFrame.ts
+    // folia/src/components/visualizer/diorama/dioramaSceneFrame.ts
     var _sungTint, _gradDeep, _neutral, recycleDioramaMoteWindow, updateDioramaNeighborLines, updateDioramaActiveUnits;
     var init_dioramaSceneFrame = __esm({
-      "src/folia/components/visualizer/diorama/dioramaSceneFrame.ts"() {
+      "folia/src/components/visualizer/diorama/dioramaSceneFrame.ts"() {
         init_three_esm();
         init_cameraPath();
         init_dioramaSequencer();
@@ -118803,10 +118803,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/diorama/DioramaActiveUnitPlanes.tsx
+    // folia/src/components/visualizer/diorama/DioramaActiveUnitPlanes.tsx
     var DioramaActiveUnitPlanes;
     var init_DioramaActiveUnitPlanes = __esm({
-      "src/folia/components/visualizer/diorama/DioramaActiveUnitPlanes.tsx"() {
+      "folia/src/components/visualizer/diorama/DioramaActiveUnitPlanes.tsx"() {
         init_three_esm();
         init_dioramaSceneConstants();
         init_jsx_runtime_shim();
@@ -118892,10 +118892,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/diorama/DioramaScene.tsx
+    // folia/src/components/visualizer/diorama/DioramaScene.tsx
     var DioramaScene, DioramaScene_default;
     var init_DioramaScene = __esm({
-      "src/folia/components/visualizer/diorama/DioramaScene.tsx"() {
+      "folia/src/components/visualizer/diorama/DioramaScene.tsx"() {
         init_react_shim();
         init_r3f8();
         init_three_esm();
@@ -119325,14 +119325,14 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/diorama/VisualizerDiorama.tsx
+    // folia/src/components/visualizer/diorama/VisualizerDiorama.tsx
     var VisualizerDiorama_exports = {};
     __export(VisualizerDiorama_exports, {
       default: () => VisualizerDiorama_default
     });
     var PRUNE_MARGIN_BEHIND, LOOP_RESTART_MAX_INDEX, INSTRUMENTAL_FRAMES, INSTRUMENTAL_SECONDS_PER_FRAME, buildInstrumentalPhantomLines, INSTRUMENTAL_COMMIT_SECONDS, READY_GRACE_MS, FirstFrame, DIORAMA_DPR_RANGE, VisualizerDiorama, VisualizerDiorama_default;
     var init_VisualizerDiorama = __esm({
-      "src/folia/components/visualizer/diorama/VisualizerDiorama.tsx"() {
+      "folia/src/components/visualizer/diorama/VisualizerDiorama.tsx"() {
         init_react_shim();
         init_r3f8();
         init_framer_motion();
@@ -119675,10 +119675,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/utils/whenIdle.ts
+    // folia/src/utils/whenIdle.ts
     var whenIdle;
     var init_whenIdle = __esm({
-      "src/folia/utils/whenIdle.ts"() {
+      "folia/src/utils/whenIdle.ts"() {
         whenIdle = (run, timeout = 500) => {
           if (typeof window.requestIdleCallback !== "function") {
             const timer = window.setTimeout(run, 50);
@@ -119690,10 +119690,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/metaphor/metaphorShapes.ts
+    // folia/src/components/visualizer/metaphor/metaphorShapes.ts
     var METAPHOR_SHAPE_STRIDE, METAPHOR_SHAPE_CAPACITY, METAPHOR_DYNAMIC_RESERVE, PLAN_LIMIT, METAPHOR_SHAPE_BLOB, METAPHOR_SHAPE_RING, METAPHOR_SHAPE_BAR, METAPHOR_SHAPE_ARC, METAPHOR_SHAPE_WAVE, TAU16, MAX_FLOW, staticMetaphorShape, make, stageOf, outsidePoint, planMetaphorShapes, joinMetaphorShapes, putMetaphorShape, writeMetaphorShapes, METAPHOR_COLLISION_APPROACH, METAPHOR_COLLISION_LIFE, TRAIL_DOTS, TRAIL_GAP, planMetaphorCollisions, writeMetaphorCollisions, PAIR_LIFE, writeMetaphorPairs;
     var init_metaphorShapes = __esm({
-      "src/folia/components/visualizer/metaphor/metaphorShapes.ts"() {
+      "folia/src/components/visualizer/metaphor/metaphorShapes.ts"() {
         METAPHOR_SHAPE_STRIDE = 10;
         METAPHOR_SHAPE_CAPACITY = 1024;
         METAPHOR_DYNAMIC_RESERVE = 384;
@@ -119991,10 +119991,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/metaphor/metaphorBeatFx.ts
+    // folia/src/components/visualizer/metaphor/metaphorBeatFx.ts
     var SNAP_DOWNBEAT, SNAP_BEAT, SNAP_APART, RING_LIFE, STRENGTH_MAX, firstAtOrAfter, nearestBeat, snapMetaphorCollisions, writeMetaphorBeatRings;
     var init_metaphorBeatFx = __esm({
-      "src/folia/components/visualizer/metaphor/metaphorBeatFx.ts"() {
+      "folia/src/components/visualizer/metaphor/metaphorBeatFx.ts"() {
         init_clock();
         init_metaphorShapes();
         SNAP_DOWNBEAT = 0.9;
@@ -120060,10 +120060,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/metaphor/metaphorProgram.ts
+    // folia/src/components/visualizer/metaphor/metaphorProgram.ts
     var METAPHOR_PREROLL, METAPHOR_TAIL, INTERLUDE_MIN, MIN_SHOT, MIN_CUE, LOOP_SECONDS, INTERLUDE_SEGMENT, INTERLUDE_SPLIT, INTERLUDE_HORIZON, INTENSITY_PACE, SAME_ONSET, SCREEN_ANGLES, CJK3, pick2, FIRST_SHOT, MIDDLE_SHOT, INTERLUDE_SHOT, span, sign, shotPose, makeShot, planCuts, lineShots, interludeShots, pickComposition, pickTransition, sungLines, compileMetaphorProgram, findMetaphorCue, resolveMetaphorCueTime, findMetaphorShot;
     var init_metaphorProgram = __esm({
-      "src/folia/components/visualizer/metaphor/metaphorProgram.ts"() {
+      "folia/src/components/visualizer/metaphor/metaphorProgram.ts"() {
         init_visualizerSeedHash();
         METAPHOR_PREROLL = 0.6;
         METAPHOR_TAIL = 2;
@@ -120294,10 +120294,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/metaphor/metaphorCamera.ts
+    // folia/src/components/visualizer/metaphor/metaphorCamera.ts
     var METAPHOR_FOV, METAPHOR_EMPTY_STAGE, clamp0120, lerp5, easeOutCubic9, rectFocus, wordIndexAt, emptyFocus, wordFocus, glyphAt, glyphFocus, macroWord, macroFollowWord, fitDistance, stepAt, wobble, WIDE_MARGIN, PULLBACK_STEPS, PUSHIN_STEPS, MACRO_MARGIN, CLOSE_MARGIN, MACRO_FOLLOW_ROLL, PUSHIN_BEAT, plannedPose, KEEP_OUT, KEEP_IN, MIN_SHIFT, LOOK_AHEAD, MIN_SUNG, sungUnitAt, frame2, fitsWithin, placeTarget, fitShift, checkpoints, tracks, trackFor, shiftPose, outside, need, advance, resolveMetaphorPose, resolveMetaphorStillPose, FLOOD_IN, FLOOD_OUT, resolveMetaphorTransitionFx, resolveMetaphorReveal, resolveMetaphorMelt;
     var init_metaphorCamera = __esm({
-      "src/folia/components/visualizer/metaphor/metaphorCamera.ts"() {
+      "folia/src/components/visualizer/metaphor/metaphorCamera.ts"() {
         init_metaphorProgram();
         METAPHOR_FOV = 30;
         METAPHOR_EMPTY_STAGE = { x0: -4.5, y0: -2.6, x1: 4.5, y1: 2.6 };
@@ -120597,10 +120597,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/metaphor/metaphorFigures.ts
+    // folia/src/components/visualizer/metaphor/metaphorFigures.ts
     var METAPHOR_FIGURE_KINDS, FIGURE_LIMIT, BACKDROP_LIMIT, TAU17, STROKE, BLOB_CORE, ARC_AT, WAVE_AMP, Pen, span2, choose, shuffle, drawOrbit, drawStarmap, drawLattice, drawCell, drawMolecule, drawDetector, drawFeynman, drawPaths, FORMULAS, drawDraft, drawShower, drawDecay, spiral, drawBubble, drawSpectrum, drawPenguin, drawBox, drawCollider, drawPotential, drawRunning, drawCherenkov, DRAW, TONE_MIX, TONE_HEAVY, drawMetaphorFigure, STAGE_SLOTS, FIGURE_REACH, WIDE_MARGIN2, FRAME_SPILL, freeCells, planMetaphorFigures, pad2, timecode, planMetaphorBackdrop, layoutMetaphorNotes;
     var init_metaphorFigures = __esm({
-      "src/folia/components/visualizer/metaphor/metaphorFigures.ts"() {
+      "folia/src/components/visualizer/metaphor/metaphorFigures.ts"() {
         init_metaphorShapes();
         METAPHOR_FIGURE_KINDS = [
           "orbit",
@@ -121437,10 +121437,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/metaphor/metaphorGlyphs.ts
+    // folia/src/components/visualizer/metaphor/metaphorGlyphs.ts
     var METAPHOR_GLYPH_EM, PAD, METAPHOR_GLYPH_CELL, METAPHOR_GLYPH_WORLD, CELL2, BASELINE, TIGHT_RADIUS, WIDE_RADIUS, WIDE_GAIN, DENSE_WEIGHT, DENSE_WIDE, DENSE_CHAR, CACHE_LIMIT, METAPHOR_NOTE_PREFIX, NOTE_FONT, ATLAS_COLUMNS, blurLines, blur, MetaphorGlyphSource, buildMetaphorAtlas;
     var init_metaphorGlyphs = __esm({
-      "src/folia/components/visualizer/metaphor/metaphorGlyphs.ts"() {
+      "folia/src/components/visualizer/metaphor/metaphorGlyphs.ts"() {
         METAPHOR_GLYPH_EM = 72;
         PAD = 28;
         METAPHOR_GLYPH_CELL = METAPHOR_GLYPH_EM + PAD * 2;
@@ -121593,10 +121593,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/metaphor/metaphorLayout.ts
+    // folia/src/components/visualizer/metaphor/metaphorLayout.ts
     var SPACE_ONLY, LINE_HEIGHT, buildMetaphorTokens, buildMetaphorTextTokens, clamp20, tokenAdvance, wrapRows, rowWidth2, placeRows2, FLAT, placeBlock, placeStair, placeHero, placeScatter, JUSTIFY_MAX, placeJustify, COLUMN_MAX, COLUMN_PITCH2, COLUMN_GAP, buildMetaphorLayout;
     var init_metaphorLayout = __esm({
-      "src/folia/components/visualizer/metaphor/metaphorLayout.ts"() {
+      "folia/src/components/visualizer/metaphor/metaphorLayout.ts"() {
         init_graphemeTiming();
         init_wordSegmentation();
         SPACE_ONLY = /^\s+$/u;
@@ -121796,83 +121796,14 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/utils/textMeasureCache.ts
-    var rememberBounded2;
-    var init_textMeasureCache2 = __esm({
-      "src/folia/utils/textMeasureCache.ts"() {
-        rememberBounded2 = (cache2, key, value, limit) => {
-          if (!cache2.has(key) && cache2.size >= limit) {
-            const oldest = cache2.keys().next();
-            if (!oldest.done) cache2.delete(oldest.value);
-          }
-          cache2.set(key, value);
-          return value;
-        };
-      }
-    });
-  
-    // src/folia/utils/colorMix.ts
-    var isFiniteChannel2, readColor2, parsedColors2, PARSED_COLOR_LIMIT2, parseColor2, parseColorChannels2;
-    var init_colorMix2 = __esm({
-      "src/folia/utils/colorMix.ts"() {
-        init_textMeasureCache2();
-        isFiniteChannel2 = (value) => Number.isFinite(value);
-        readColor2 = (normalizedColor) => {
-          if (!normalizedColor) return "fallback";
-          if (normalizedColor.startsWith("#")) {
-            const hex = normalizedColor.slice(1);
-            const parse = (value) => Number.parseInt(value, 16);
-            if (/^[0-9a-fA-F]{3}$/.test(hex)) {
-              return {
-                r: parse(hex[0] + hex[0]),
-                g: parse(hex[1] + hex[1]),
-                b: parse(hex[2] + hex[2])
-              };
-            }
-            if (/^[0-9a-fA-F]{6}$/.test(hex)) {
-              return {
-                r: parse(hex.slice(0, 2)),
-                g: parse(hex.slice(2, 4)),
-                b: parse(hex.slice(4, 6))
-              };
-            }
-            return "fallback";
-          }
-          const rgbMatch = normalizedColor.match(/^rgba?\(([^)]+)\)$/);
-          if (rgbMatch) {
-            const [r4, g4, b4] = rgbMatch[1].split(",").slice(0, 3).map((part) => Number.parseFloat(part.trim()));
-            if ([r4, g4, b4].every(isFiniteChannel2)) {
-              return { r: r4, g: g4, b: b4 };
-            }
-            return "fallback";
-          }
-          return "passthrough";
-        };
-        parsedColors2 = /* @__PURE__ */ new Map();
-        PARSED_COLOR_LIMIT2 = 512;
-        parseColor2 = (color) => {
-          const normalized = typeof color === "string" ? color.trim() : "";
-          let parsed = parsedColors2.get(normalized);
-          if (parsed === void 0) {
-            parsed = rememberBounded2(parsedColors2, normalized, readColor2(normalized), PARSED_COLOR_LIMIT2);
-          }
-          return { normalized, parsed };
-        };
-        parseColorChannels2 = (color) => {
-          const { parsed } = parseColor2(color);
-          return typeof parsed === "string" ? null : { ...parsed };
-        };
-      }
-    });
-  
-    // src/folia/components/visualizer/metaphor/metaphorPalette.ts
+    // folia/src/components/visualizer/metaphor/metaphorPalette.ts
     var FALLBACK, read, luma, mix6, distance, awayFromPaper, resolveMetaphorKeywordColor, resolveMetaphorPalette;
     var init_metaphorPalette = __esm({
-      "src/folia/components/visualizer/metaphor/metaphorPalette.ts"() {
-        init_colorMix2();
+      "folia/src/components/visualizer/metaphor/metaphorPalette.ts"() {
+        init_colorMix();
         FALLBACK = { paper: [0.06, 0.06, 0.07], ink: [0.95, 0.94, 0.9], accent: [0.9, 0.3, 0.2], tone: [0.5, 0.5, 0.52] };
         read = (color, fallback) => {
-          const channels = parseColorChannels2(color);
+          const channels = parseColorChannels(color);
           return channels ? [channels.r / 255, channels.g / 255, channels.b / 255] : fallback;
         };
         luma = (color) => 0.2126 * color[0] + 0.7152 * color[1] + 0.0722 * color[2];
@@ -121888,7 +121819,7 @@ function __mpStylesBundle() {
           return out;
         };
         resolveMetaphorKeywordColor = (color, palette) => {
-          const channels = parseColorChannels2(color);
+          const channels = parseColorChannels(color);
           if (!channels) return palette.accent;
           return awayFromPaper([channels.r / 255, channels.g / 255, channels.b / 255], palette.paper, palette.ink, 0.25);
         };
@@ -121905,10 +121836,10 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/metaphor/metaphorShaders.ts
+    // folia/src/components/visualizer/metaphor/metaphorShaders.ts
     var METAPHOR_GLYPH_VERTEX, METAPHOR_GLYPH_FRAGMENT, METAPHOR_SHAPE_VERTEX, METAPHOR_SHAPE_FRAGMENT, METAPHOR_DEVELOP_VERTEX, METAPHOR_DEVELOP_FRAGMENT;
     var init_metaphorShaders = __esm({
-      "src/folia/components/visualizer/metaphor/metaphorShaders.ts"() {
+      "folia/src/components/visualizer/metaphor/metaphorShaders.ts"() {
         METAPHOR_GLYPH_VERTEX = /* glsl */
         `
   attribute vec2 aOffset;
@@ -122251,14 +122182,14 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/metaphor/createMetaphorRuntime.ts
+    // folia/src/components/visualizer/metaphor/createMetaphorRuntime.ts
     var createMetaphorRuntime_exports = {};
     __export(createMetaphorRuntime_exports, {
       MetaphorRuntime: () => MetaphorRuntime
     });
     var themeLayoutKey, NOTE_END, DEFAULT_WEIGHT, WOBBLE, PREPARE_LEAD, PREPARE_IDLE_TIMEOUT, DOT_SIZE, DEG6, additive3, MetaphorRuntime;
     var init_createMetaphorRuntime = __esm({
-      "src/folia/components/visualizer/metaphor/createMetaphorRuntime.ts"() {
+      "folia/src/components/visualizer/metaphor/createMetaphorRuntime.ts"() {
         init_three_esm();
         init_fontStacks();
         init_lyricRenderQuality();
@@ -122881,14 +122812,14 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/metaphor/VisualizerMetaphor.tsx
+    // folia/src/components/visualizer/metaphor/VisualizerMetaphor.tsx
     var VisualizerMetaphor_exports = {};
     __export(VisualizerMetaphor_exports, {
       default: () => VisualizerMetaphor_default
     });
     var EMPTY_LINES3, VisualizerMetaphor, VisualizerMetaphor_default;
     var init_VisualizerMetaphor = __esm({
-      "src/folia/components/visualizer/metaphor/VisualizerMetaphor.tsx"() {
+      "folia/src/components/visualizer/metaphor/VisualizerMetaphor.tsx"() {
         init_react_shim();
         init_i18n();
         init_fontStacks();
@@ -123083,11 +123014,11 @@ function __mpStylesBundle() {
       generateBuiltinDualTheme: () => generateBuiltinDualTheme
     });
   
-    // src/folia/components/visualizer/classic/entry.tsx
+    // folia/src/components/visualizer/classic/entry.tsx
     init_react_shim();
     init_lucide_react();
   
-    // src/folia/components/shared/QuickControlChip.tsx
+    // folia/src/components/shared/QuickControlChip.tsx
     var QuickControlChip = (_props) => null;
     var QuickControlToggle = (_props) => null;
     var cycleValue = (values, current) => {
@@ -123095,10 +123026,10 @@ function __mpStylesBundle() {
       return values[(index + 1) % values.length] ?? values[0];
     };
   
-    // src/folia/components/visualizer/definition.ts
+    // folia/src/components/visualizer/definition.ts
     var defineVisualizer = (entry) => entry;
   
-    // src/folia/components/visualizer/classic/entry.tsx
+    // folia/src/components/visualizer/classic/entry.tsx
     init_settings_card();
     init_jsx_runtime_shim();
     var Visualizer2 = react_shim_default.lazy(() => Promise.resolve().then(() => (init_Visualizer(), Visualizer_exports)));
@@ -123133,7 +123064,7 @@ function __mpStylesBundle() {
       )
     });
   
-    // src/folia/components/visualizer/still/entry.tsx
+    // folia/src/components/visualizer/still/entry.tsx
     init_react_shim();
     init_jsx_runtime_shim();
     var VisualizerStill2 = react_shim_default.lazy(() => Promise.resolve().then(() => (init_VisualizerStill(), VisualizerStill_exports)));
@@ -123160,7 +123091,7 @@ function __mpStylesBundle() {
       render: (props) => /* @__PURE__ */ jsx(VisualizerStill2, { ...props })
     });
   
-    // src/folia/components/visualizer/tilt/entry.tsx
+    // folia/src/components/visualizer/tilt/entry.tsx
     init_react_shim();
     init_settings_card();
     init_jsx_runtime_shim();
@@ -123205,7 +123136,7 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/partita/entry.tsx
+    // folia/src/components/visualizer/partita/entry.tsx
     init_react_shim();
     init_lucide_react();
     init_settings_card();
@@ -123243,7 +123174,7 @@ function __mpStylesBundle() {
       )
     });
   
-    // src/folia/components/visualizer/claddagh/entry.tsx
+    // folia/src/components/visualizer/claddagh/entry.tsx
     init_react_shim();
     init_lucide_react();
     init_settings_card();
@@ -123279,7 +123210,7 @@ function __mpStylesBundle() {
       )
     });
   
-    // src/folia/components/visualizer/cadenza/entry.tsx
+    // folia/src/components/visualizer/cadenza/entry.tsx
     init_react_shim();
     init_types();
     init_settings_card();
@@ -123323,7 +123254,7 @@ function __mpStylesBundle() {
       renderSettingsPanel: (props) => /* @__PURE__ */ jsx(settings_card_default, { ...props })
     });
   
-    // src/folia/components/visualizer/fume/entry.tsx
+    // folia/src/components/visualizer/fume/entry.tsx
     init_react_shim();
     init_lucide_react();
     init_settings_card();
@@ -123380,7 +123311,7 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/entry.tsx
+    // folia/src/components/visualizer/machi/entry.tsx
     init_react_shim();
     init_lucide_react();
     init_beatEffects();
@@ -123395,7 +123326,7 @@ function __mpStylesBundle() {
     var MACHI_WEATHER_LABEL_KEYS = {};
     var machi_settings_default = Stub2;
   
-    // src/folia/components/visualizer/machi/tuning.ts
+    // folia/src/components/visualizer/machi/tuning.ts
     init_tuningDefinition();
     init_machiTuning();
     init_types2();
@@ -123430,7 +123361,7 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/machi/entry.tsx
+    // folia/src/components/visualizer/machi/entry.tsx
     init_types2();
     init_jsx_runtime_shim();
     var VisualizerMachi2 = react_shim_default.lazy(() => Promise.resolve().then(() => (init_VisualizerMachi(), VisualizerMachi_exports)));
@@ -123548,7 +123479,7 @@ function __mpStylesBundle() {
       ownFontSizeNoticeKey: "options.machiFontSizeAutoNotice"
     });
   
-    // src/folia/components/visualizer/monet/entry.tsx
+    // folia/src/components/visualizer/monet/entry.tsx
     init_react_shim();
     init_lucide_react();
     init_types();
@@ -123632,7 +123563,7 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/lumiere/entry.tsx
+    // folia/src/components/visualizer/lumiere/entry.tsx
     init_react_shim();
     init_lucide_react();
     init_settings_card();
@@ -123683,7 +123614,7 @@ function __mpStylesBundle() {
       ownFontSizeNoticeKey: "options.lumiereFontSizeAutoNotice"
     });
   
-    // src/folia/components/visualizer/sonnet/entry.tsx
+    // folia/src/components/visualizer/sonnet/entry.tsx
     init_react_shim();
     init_lucide_react();
     init_beatEffects();
@@ -123766,7 +123697,7 @@ function __mpStylesBundle() {
       ownFontSizeNoticeKey: "options.sonnetFontSizeAutoNotice"
     });
   
-    // src/folia/components/visualizer/tempera/entry.tsx
+    // folia/src/components/visualizer/tempera/entry.tsx
     init_react_shim();
     init_lucide_react();
     init_settings_card();
@@ -123846,13 +123777,13 @@ function __mpStylesBundle() {
       ownFontSizeNoticeKey: "options.temperaFontSizeAutoNotice"
     });
   
-    // src/folia/components/visualizer/hanabi/entry.tsx
+    // folia/src/components/visualizer/hanabi/entry.tsx
     init_react_shim();
     init_lucide_react();
     init_beatEffects();
     init_settings_card();
   
-    // src/folia/components/visualizer/hanabi/tuning.ts
+    // folia/src/components/visualizer/hanabi/tuning.ts
     init_tuningDefinition();
     init_hanabiTuning();
     init_types6();
@@ -123890,7 +123821,7 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/hanabi/entry.tsx
+    // folia/src/components/visualizer/hanabi/entry.tsx
     init_jsx_runtime_shim();
     var VisualizerHanabi2 = react_shim_default.lazy(() => Promise.resolve().then(() => (init_VisualizerHanabi(), VisualizerHanabi_exports)));
     var entry_default13 = defineVisualizer({
@@ -123956,7 +123887,7 @@ function __mpStylesBundle() {
       usesWordSegmentation: true
     });
   
-    // src/folia/components/visualizer/nebbia/entry.tsx
+    // folia/src/components/visualizer/nebbia/entry.tsx
     init_react_shim();
     init_nebbiaBehind();
     init_settings_card();
@@ -124068,7 +123999,7 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/diorama/entry.tsx
+    // folia/src/components/visualizer/diorama/entry.tsx
     init_react_shim();
     init_lucide_react();
     init_beatEffects();
@@ -124124,16 +124055,16 @@ function __mpStylesBundle() {
       ] })
     });
   
-    // src/folia/components/visualizer/metaphor/entry.tsx
+    // folia/src/components/visualizer/metaphor/entry.tsx
     init_react_shim();
     init_lucide_react();
     init_beatEffects();
   
-    // src/folia/components/visualizer/metaphor/tuning.ts
+    // folia/src/components/visualizer/metaphor/tuning.ts
     init_lyricRenderQuality();
     init_tuningDefinition();
   
-    // src/folia/components/visualizer/metaphor/types.ts
+    // folia/src/components/visualizer/metaphor/types.ts
     init_lyricRenderQuality();
     var METAPHOR_LIMITS = {
       cutPace: { min: 0.4, max: 2 },
@@ -124158,7 +124089,7 @@ function __mpStylesBundle() {
       transitions: true
     };
   
-    // src/folia/components/visualizer/metaphor/tuning.ts
+    // folia/src/components/visualizer/metaphor/tuning.ts
     var normalizeMetaphorTuning = (stored) => {
       const values = stored && typeof stored === "object" ? stored : {};
       const base = DEFAULT_METAPHOR_TUNING;
@@ -124195,7 +124126,7 @@ function __mpStylesBundle() {
       }
     });
   
-    // src/folia/components/visualizer/metaphor/entry.tsx
+    // folia/src/components/visualizer/metaphor/entry.tsx
     init_jsx_runtime_shim();
     var VisualizerMetaphor2 = react_shim_default.lazy(() => Promise.resolve().then(() => (init_VisualizerMetaphor(), VisualizerMetaphor_exports)));
     var MetaphorSettingsPanel = react_shim_default.lazy(() => Promise.resolve().then(() => (init_settings_card(), settings_card_exports)));
@@ -124254,10 +124185,10 @@ function __mpStylesBundle() {
       ownFontSizeNoticeKey: "options.metaphorFontSizeAutoNotice"
     });
   
-    // src/folia/utils/builtinTheme/generateBuiltinDualTheme.ts
+    // folia/src/utils/builtinTheme/generateBuiltinDualTheme.ts
     init_themeColorMath();
   
-    // src/folia/utils/builtinTheme/coverPaletteAnalysis.ts
+    // folia/src/utils/builtinTheme/coverPaletteAnalysis.ts
     init_themeColorMath();
     var MIN_SUPPORT_SATURATION = 0.15;
     var MIN_SUPPORT_HUE_DISTANCE = 25;
@@ -124275,15 +124206,15 @@ function __mpStylesBundle() {
       }
       return entries[entries.length - 1].value;
     };
-    var pickBaseColor = (parsedColors3, random) => {
-      if (parsedColors3.length === 0) {
+    var pickBaseColor = (parsedColors2, random) => {
+      if (parsedColors2.length === 0) {
         return { h: random() * 360, s: 0.35 + random() * 0.3, l: 0.5 };
       }
-      const scored = parsedColors3.reduce((best, candidate) => getCoverColorScore(candidate) > getCoverColorScore(best) ? candidate : best, parsedColors3[0]);
-      return getCoverColorScore(scored) > 0.02 ? scored : parsedColors3[0];
+      const scored = parsedColors2.reduce((best, candidate) => getCoverColorScore(candidate) > getCoverColorScore(best) ? candidate : best, parsedColors2[0]);
+      return getCoverColorScore(scored) > 0.02 ? scored : parsedColors2[0];
     };
-    var pickSupportHue = (parsedColors3, base) => {
-      const support = parsedColors3.find((candidate) => {
+    var pickSupportHue = (parsedColors2, base) => {
+      const support = parsedColors2.find((candidate) => {
         if (candidate.s < MIN_SUPPORT_SATURATION) return false;
         const distance2 = getHueDistance(candidate.h, base.h);
         return distance2 >= MIN_SUPPORT_HUE_DISTANCE && distance2 <= MAX_SUPPORT_HUE_DISTANCE;
@@ -124321,9 +124252,9 @@ function __mpStylesBundle() {
       }
     };
     var analyzeCoverPalette = (coverColors, random) => {
-      const parsedColors3 = coverColors.map((color) => hexToHsl(color)).filter((color) => color !== null);
-      const base = pickBaseColor(parsedColors3, random);
-      const supportHue = pickSupportHue(parsedColors3, base);
+      const parsedColors2 = coverColors.map((color) => hexToHsl(color)).filter((color) => color !== null);
+      const base = pickBaseColor(parsedColors2, random);
+      const supportHue = pickSupportHue(parsedColors2, base);
       const scheme = pickScheme(base.s, supportHue, random);
       const accentJitter = scheme === "monochrome" ? 0 : (random() - 0.5) * 16;
       return {
@@ -124340,7 +124271,7 @@ function __mpStylesBundle() {
       };
     };
   
-    // src/folia/utils/builtinTheme/themeDescriptionTable.ts
+    // folia/src/utils/builtinTheme/themeDescriptionTable.ts
     var NEUTRAL_SATURATION_CEILING = 0.12;
     var LIGHT_DESCRIPTIONS = {
       warm: [
@@ -124447,7 +124378,7 @@ function __mpStylesBundle() {
       };
     };
   
-    // src/folia/utils/builtinTheme/themeNameTable.ts
+    // folia/src/utils/builtinTheme/themeNameTable.ts
     var BUILTIN_NAME_SUFFIX = " Built-in";
     var NEUTRAL_SATURATION_CEILING2 = 0.12;
     var NEUTRAL_PREFIXES = ["\u6708\u767D", "\u94F6\u7070", "\u7D20\u58A8", "\u96FE\u767D", "\u7070\u70EC"];
@@ -124475,7 +124406,7 @@ function __mpStylesBundle() {
       };
     };
   
-    // src/folia/utils/builtinTheme/themeColorRanges.ts
+    // folia/src/utils/builtinTheme/themeColorRanges.ts
     var PRIMARY_MIN_CONTRAST = 9;
     var ACCENT_MIN_CONTRAST = 3.2;
     var SECONDARY_MIN_CONTRAST = 4.5;
@@ -124513,7 +124444,7 @@ function __mpStylesBundle() {
       dark: { saturation: [0.15, 0.45], lightness: [0.62, 0.76] }
     };
   
-    // src/folia/utils/builtinTheme/generateBuiltinDualTheme.ts
+    // folia/src/utils/builtinTheme/generateBuiltinDualTheme.ts
     var between = (random, [min, max]) => min + random() * (max - min);
     var lerpHue = (from, to3, amount) => {
       const delta = (to3 - from + 540) % 360 - 180;
@@ -124602,7 +124533,7 @@ function __mpStylesBundle() {
     // src/folia-build/styles-entry.tsx
     init_colorExtractor();
   
-    // src/folia/services/baseThemes.ts
+    // folia/src/services/baseThemes.ts
     var DEFAULT_THEME = {
       name: "Midnight Default",
       backgroundColor: "#09090b",
@@ -124630,11 +124561,11 @@ function __mpStylesBundle() {
       animationIntensity: "normal"
     };
   
-    // src/folia/utils/lyrics/staffCreditsPolicy.ts
+    // folia/src/utils/lyrics/staffCreditsPolicy.ts
     init_parserCore();
     init_renderHints();
   
-    // src/folia/utils/lyrics/staffCredits.ts
+    // folia/src/utils/lyrics/staffCredits.ts
     var STAFF_ROLE_KEYWORDS = [
       "\u4F5C\u8BCD",
       "\u4F5C\u66F2",
@@ -124847,7 +124778,7 @@ function __mpStylesBundle() {
       return { staffIndexes, memberIndexes, firstLyricIndex, headerLineCount, absorbedIndexes: [] };
     };
   
-    // src/folia/utils/lyrics/staffCreditsAbsorb.ts
+    // folia/src/utils/lyrics/staffCreditsAbsorb.ts
     var isShortLine = (line2, maxDuration) => !isFillerLine(line2) && line2.endTime - line2.startTime < maxDuration;
     var sortAscending = (values) => [...values].sort((a4, b4) => a4 - b4);
     var collectShortRun = (lines, start, step, memberSet, maxDuration) => {
@@ -124900,7 +124831,7 @@ function __mpStylesBundle() {
       };
     };
   
-    // src/folia/utils/lyrics/staffCreditsDecision.ts
+    // folia/src/utils/lyrics/staffCreditsDecision.ts
     var TAIL_MARGIN_SECONDS = 1;
     var needsRetime = (staffLines, windowEnd, minDwell) => {
       for (let index = 0; index < staffLines.length; index += 1) {
@@ -124944,7 +124875,7 @@ function __mpStylesBundle() {
       return { ...base, verdict: "hide", windowSeconds };
     };
   
-    // src/folia/utils/lyrics/staffCreditsRewrite.ts
+    // folia/src/utils/lyrics/staffCreditsRewrite.ts
     var retimeSyllables = (syllables, shift) => syllables?.map((syllable) => ({
       ...syllable,
       startTime: shift(syllable.startTime),
@@ -125011,7 +124942,7 @@ function __mpStylesBundle() {
       return next;
     };
   
-    // src/folia/utils/lyrics/staffCreditsPolicy.ts
+    // folia/src/utils/lyrics/staffCreditsPolicy.ts
     var DEFAULT_LYRIC_STAFF_POLICY = "smart";
     var DEFAULT_LYRIC_STAFF_MIN_DWELL_SECONDS = 1.5;
     var DEFAULT_LYRIC_STAFF_ABSORB_MODE = "off";

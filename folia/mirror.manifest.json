@@ -1,0 +1,215 @@
+{
+  "version": 1,
+  "baseline": "2026-11-28",
+  "note": "与上游同相对路径、但内容经过插件适配的文件。新增差异必须先登记（--update 仅用于有意的适配）；其余文件必须与上游逐字节相同。",
+  "adapted": [
+    {
+      "path": "src/components/shared/QuickControlChip.tsx",
+      "upstreamSha256": "953e2dcc22671ba9f6e30b3f94236c9320cc3deab6be7b3e026fbb5e652e5702"
+    },
+    {
+      "path": "src/components/visualizer/backgrounds/nomand/NomandBackgroundEffectSettings.tsx",
+      "upstreamSha256": "b0eef415770b29e46b678c1068f2f409540c57bf98c944fe1469dfd09f73feb6"
+    },
+    {
+      "path": "src/components/visualizer/backgrounds/registry.tsx",
+      "upstreamSha256": "87f629038d7c65022ef041c9479aaa4bcec58f2502bd268f73c76ee85f48edf4"
+    },
+    {
+      "path": "src/components/visualizer/definition.ts",
+      "upstreamSha256": "730c62f859464b41d94f3018ff97e3def910715c4d708b5bf2fb36e61674aa1c"
+    },
+    {
+      "path": "src/components/visualizer/glowWordVariants.ts",
+      "upstreamSha256": "80aec9c5ed3e6b79e508b85f2959101ce81f86c7a91a34149abe949d0798a3ac"
+    },
+    {
+      "path": "src/components/visualizer/hanabi/createHanabiPixiRuntime.ts",
+      "upstreamSha256": "002f86ec4d711cbb9a143f5d66470b4847a47df40bcd4bdeeeec5daf841ef466"
+    },
+    {
+      "path": "src/components/visualizer/hanabi/hanabiSceneEntry.ts",
+      "upstreamSha256": "abfd16a25ed0cb2a7c621da54fe5a716ba6c9e5b97f7eeca6d2d294ca9dfb3e5"
+    },
+    {
+      "path": "src/components/visualizer/lumiere/createLumierePixiRuntime.ts",
+      "upstreamSha256": "c62fa61acafe73d1c14b0c5df2b09065b3623c99ad1a86354b7a7f76f665d224"
+    },
+    {
+      "path": "src/components/visualizer/lumiere/credits.ts",
+      "upstreamSha256": "c069426eb23705319861bd5a1d64b8dd53f53f4f4533d96b3bcd49b5d3c6ab2e"
+    },
+    {
+      "path": "src/components/visualizer/lumiere/lumiereSceneEntry.ts",
+      "upstreamSha256": "f20cc63902646cde6ebffcb2e91b40b357e121d047d9cd58587c390e4554ca50"
+    },
+    {
+      "path": "src/components/visualizer/lumiere/scene.ts",
+      "upstreamSha256": "1f702da031f1d9ef946bf905e882cd2f1c035c68ff8ee27d0f74a70d55aa8f7b"
+    },
+    {
+      "path": "src/components/visualizer/monet/VisualizerMonet.tsx",
+      "upstreamSha256": "5c2e38b188a1efa70c04f32b0c300f6787682f360f092d1cfa0a5b46a36763f4"
+    },
+    {
+      "path": "src/components/visualizer/pixi/bloomFilter.ts",
+      "upstreamSha256": "a33b0b20ef2f58207168a6a2d64cd1daa29ed0e5b99976036cda8c962f0a8a41"
+    },
+    {
+      "path": "src/components/visualizer/preview/LivePicture.tsx",
+      "upstreamSha256": "1f0992c2a331e6bc1741022a0b6cce2bbc49eff6b8edadf47764162beac83984"
+    },
+    {
+      "path": "src/components/visualizer/renderQuality/lyricRenderQualityPin.ts",
+      "upstreamSha256": "6f262c0904867db613b7507c11efba02f72ef4231336fae97259d30bd67614aa"
+    },
+    {
+      "path": "src/components/visualizer/renderQuality/useLyricRenderQuality.ts",
+      "upstreamSha256": "d6216b28b304afc79efebcb176d6a3dc05415756d96ccf1e0a4c396e08e7c87f"
+    },
+    {
+      "path": "src/components/visualizer/sonnet/createSonnetPixiRuntime.ts",
+      "upstreamSha256": "956b379ec8e33a4a4668a3be5012724ba5ab3cf4421d145744360d378493896b"
+    },
+    {
+      "path": "src/components/visualizer/sonnet/sonnetGlitchFilter.ts",
+      "upstreamSha256": "f5262868ef58733238a6fbf765b1afead7ec06148c3b15dab5c373346b9c55c5"
+    },
+    {
+      "path": "src/components/visualizer/sonnet/sonnetOutroBlur.ts",
+      "upstreamSha256": "d4073343412c643474a096618a44f082ef6794244c04ed02094129d05f339b7d"
+    },
+    {
+      "path": "src/components/visualizer/sonnet/sonnetPrintFilters.ts",
+      "upstreamSha256": "484ef9b815a937d57a69bf1d8269fedc814dfdf5171be5a6aca5482fb49c0dcb"
+    },
+    {
+      "path": "src/components/visualizer/sonnet/sonnetSceneBuilder.ts",
+      "upstreamSha256": "41aa7c9bd0e198221725b00bdf5fb8a7786c4f8b8aac3c56ea56e6d5095cc6ba"
+    },
+    {
+      "path": "src/components/visualizer/sonnet/VisualizerSonnet.tsx",
+      "upstreamSha256": "f47492cb430f82e5bbe1ec12084e0389addec9d7d6fd0cc06a0b8a366cf87bb3"
+    },
+    {
+      "path": "src/components/visualizer/tuningRegistry.ts",
+      "upstreamSha256": "aca42cb82061961579de964d89fb8f94f8eed7c01f60591051c038fae3a765f8"
+    },
+    {
+      "path": "src/components/visualizer/useVisualizerStyleAssets.ts",
+      "upstreamSha256": "4483f945fbd5016dd564ccd779232f17efe84f6079f63bf487287ad3a1333196"
+    },
+    {
+      "path": "src/components/visualizer/VisualizerBackdrop.tsx",
+      "upstreamSha256": "fafad1d496e9d51909eef1626986bbe1c6046b68e7e47eecffff01167fdfc7df"
+    },
+    {
+      "path": "src/components/visualizer/VisualizerShell.tsx",
+      "upstreamSha256": "64663b6a09c75d6e9d376b5f0fa052c4066b08c9264f24707e242a15aeb97584"
+    },
+    {
+      "path": "src/hooks/useLucideIcons.ts",
+      "upstreamSha256": "c04d8fe34b2f24047fedc3fdf93668557c5230298948a58ef3d0ebcf1a398437"
+    },
+    {
+      "path": "src/hooks/usePlayerBottomBarBottomPx.ts",
+      "upstreamSha256": "e2c915f1228506abecd901fea9135255d5f500ff9c58fad1c8769ca548a92583"
+    },
+    {
+      "path": "src/hooks/useReducedMotionFor.ts",
+      "upstreamSha256": "26f21f3c36e4083f6710334610af714288a828595837ec6bf21e06a687d5047d"
+    },
+    {
+      "path": "src/i18n/config.ts",
+      "upstreamSha256": "343f9894523d87d6586f98b337869a4db632158388105b1053985030dafaec32"
+    },
+    {
+      "path": "src/services/analysis/drumHits.ts",
+      "upstreamSha256": "0448210581e5fe9741a1f90ea17cb55013f3e3e02601cc6c3c104f283d69295d"
+    },
+    {
+      "path": "src/services/analysis/gpuActivity.ts",
+      "upstreamSha256": "a992417508d0100e8c63dc917c0dad6ca07620704d6456558499584329a603f2"
+    },
+    {
+      "path": "src/services/analysis/vocalEnvelope.ts",
+      "upstreamSha256": "91b2d07a37beea422e276b4921672b108ca5649ada2d77ad7f248c99b9541b0c"
+    },
+    {
+      "path": "src/services/beatFx/beatEffects.ts",
+      "upstreamSha256": "dd359367d26ba067a84c0017fbeb77460e3ae8f55ba9bfcb8e141539fc442c47"
+    },
+    {
+      "path": "src/services/beatFx/beatFxLive.ts",
+      "upstreamSha256": "9be680d9d666abeb86a2bce5e5c8ba0151bc883fcb606b722203c7fbeeeeeba2"
+    },
+    {
+      "path": "src/services/beatFx/clock.ts",
+      "upstreamSha256": "606c1dd7c0072dfd5bb2fcc9f01b12f10958a5199ad9a01a674b45332ed18e4f"
+    },
+    {
+      "path": "src/services/lucideIconResolver.ts",
+      "upstreamSha256": "675321425d26d367639eac5ec777b99819d953af550acbb95c10a25b8a6926b3"
+    },
+    {
+      "path": "src/services/monetPortraitImage.ts",
+      "upstreamSha256": "62477f1bdcf9a993dc8050e0933d44152facbcfc881776b22ee0f567d0a95d54"
+    },
+    {
+      "path": "src/services/temperaLayerImages.ts",
+      "upstreamSha256": "cf1a94d6978100adc322c6450b0115ce97a5ea78b9ee68491debc40667656ae9"
+    },
+    {
+      "path": "src/stores/motionSignals.ts",
+      "upstreamSha256": "d51daf1b345401fb799fb5be33238cbe70d563582387c9764f6f2e35aa47fd42"
+    },
+    {
+      "path": "src/stores/useAppViewStore.ts",
+      "upstreamSha256": "c3924c5b5328b51c0591978d4505054d5a33f0d1002ddb3a634e78734282cbde"
+    },
+    {
+      "path": "src/stores/useStatusMessageStore.ts",
+      "upstreamSha256": "accb0841af8e240d4dc256269e71477842369e9ed9f979281d47ebd5953f7273"
+    },
+    {
+      "path": "src/stores/useVisualizerAssetStore.ts",
+      "upstreamSha256": "57055519beb1337edef3c862599a899bec9fee078ee028a7be8ecf36693f02ef"
+    },
+    {
+      "path": "src/stores/useVisualizerSettingsStore.ts",
+      "upstreamSha256": "43f21e3f6927325f2e5dcbc624e3dd940d7803d1af2c5553cd2ac7c9ef349fdf"
+    },
+    {
+      "path": "src/stores/visualizerSettingsPersistence.ts",
+      "upstreamSha256": "82a8cde5b48d00f4efdaf27fcf73c717de6b65d58b6ee9e8ee6f7d560dc9b991"
+    },
+    {
+      "path": "src/types/visualizerModes.ts",
+      "upstreamSha256": "134156089bafe5349e396e78ce79a0d52a8d89390985e611552cd88c4e2bc818"
+    },
+    {
+      "path": "src/utils/builtinTheme/coverPaletteAnalysis.ts",
+      "upstreamSha256": "f1bf15a310ad340f052827236f92992006e29d00acc01abb512083821c4d837b"
+    },
+    {
+      "path": "src/utils/builtinTheme/generateBuiltinDualTheme.ts",
+      "upstreamSha256": "52cd6d3d01364f3a7d85c64aeb478e80c2d09012b183f7e8e7b5a9536fcec52a"
+    },
+    {
+      "path": "src/utils/builtinTheme/themeColorRanges.ts",
+      "upstreamSha256": "85cac55cbb2e58f76a670502539b83aeae5a9ff42b5d53cb5ffa007d31cffa1c"
+    },
+    {
+      "path": "src/utils/colorExtractor.ts",
+      "upstreamSha256": "90e8208002afdd7bcd41b71c3fa28140b9142e535811dd0ed531decada970353"
+    },
+    {
+      "path": "src/utils/coverUrl.ts",
+      "upstreamSha256": "d7be8884e6366d0ef428cdaf4a2f30c07a74b6f06f9a8e9246459605e0d65ac8"
+    },
+    {
+      "path": "src/utils/themeColorMath.ts",
+      "upstreamSha256": "68cfecb260bfcea91e1fea0e48a4b099838fe35a9509fe8747bb84a88ddc0f8a"
+    }
+  ]
+}

@@ -4,30 +4,35 @@
 
 ### 在线音乐 · 酷狗
 
-- 酷狗的实现从自研那套换成 **Folia 音源模组的原样移植**：`sources/kugou/**` 与 `packages/folium-source-kit/**` 逐字节镜像进 `src/folia-mods/`，宿主面（rpc / 网络 / 会话存储 / 加密封装 / 文案表）由 `src/folia-adapters/kugou/` 提供，用 `node scripts/build-kugou-folia.mjs` 打成 `src/host/vendor/kugou-folia/source.bundle.mjs`。上游的 provider、请求签名、VIP 凭据续期、取流五段降级、歌词与歌单逻辑一行没改。
+- 酷狗的实现从自研那套换成 **Folia 音源模组的原样移植**：`sources/kugou/**` 与 `packages/folium-source-kit/**` 逐字节镜像进 `folia/`，宿主面（rpc / 网络 / 会话存储 / 加密封装 / 文案表）由 `src/folia-adapters/kugou/` 提供，用 `node scripts/build-kugou-folia.mjs` 打成 `src/host/vendor/kugou-folia/source.bundle.mjs`。上游的 provider、请求签名、VIP 凭据续期、取流五段降级、歌词与歌单逻辑一行没改。
 - 上游依赖 KuGouMusicApi v1.6.0 改用仓库里已 vendor 的同一份（与上游 tarball 逐字节相同），不再从 GitHub 安装。
 - 门面（`providers/index.js`）40 个酷狗方法改为委派给移植源；客户端与已存的歌、歌单、历史 id 仍是 `kugouLite`。
 - 行为变化：设备身份与登录态由移植源自己管（加密存在插件数据目录）；`/online/quality`、`/online/check-playable` 不再因为「lite 没补设备」而恒报不可播；副歌区间如实给出；推荐歌单来自上游的推荐卡。播放上报（reports）上游未实现，仍不上报。
-- 旧的酷狗实现（自研标准版 / 概念版两个模块、本地 worker、会话与 cookie 管理、对应的 5 个测试）已删除；门面里只保留一行行委派，酷狗的一切平台细节都在 `src/folia-mods/sources/kugou/`。
+- 旧的酷狗实现（自研标准版 / 概念版两个模块、本地 worker、会话与 cookie 管理、对应的 5 个测试）已删除；门面里只保留一行行委派，酷狗的一切平台细节都在 `folia/sources/kugou/`。
 
 ### 在线音乐 · 波点 / 汽水 / QQ / 网易云
 
-- 四个平台与酷狗同一套做法：上游 `sources/<平台>/**` **逐字节镜像**进 `src/folia-mods/sources/`（波点 24、汽水 26、QQ 45、网易云 35 个文件，SHA256 与上游全等），插件侧只写宿主面（`src/folia-adapters/source-host/`：seal、legacy store、pageStore、rpc、errors、文案表、net、media，加上 QQ/网易云要的 `rpc.send`、`paths.legacy`、`diagnostics`、`onBeforeUnload/onBeforeQuit`、`reportError` 与 `@folia/source-deps` 替身），再用 `scripts/build-folia-source.mjs` 打成各自 bundle（`src/host/vendor/<平台>-folia/`，网易云连 11 个工作线程用的 `.cjs` 一起核对）。
+- 四个平台与酷狗同一套做法：上游 `sources/<平台>/**` **逐字节镜像**进 `folia/sources/`（波点 24、汽水 26、QQ 45、网易云 35 个文件，SHA256 与上游全等），插件侧只写宿主面（`src/folia-adapters/source-host/`：seal、legacy store、pageStore、rpc、errors、文案表、net、media，加上 QQ/网易云要的 `rpc.send`、`paths.legacy`、`diagnostics`、`onBeforeUnload/onBeforeQuit`、`reportError` 与 `@folia/source-deps` 替身），再用 `scripts/build-folia-source.mjs` 打成各自 bundle（`src/host/vendor/<平台>-folia/`，网易云连 11 个工作线程用的 `.cjs` 一起核对）。
 - 四个平台的「定义 → 本插件源对象」由一份共用映射 `src/host/providers/sources/folia-bridge/` 完成：缺的方法不出现，能力表随之关闭。QQ 与网易云的 `explore@1`、网易云的 `raw@1` 界面上没有入口，因此不声明；网易云的 `reports@1` 接到 `/online/report-playback`。
 - 上游包版本对齐：`@yakult-green-tea/qq-music-api` 3.3.6 → **3.3.9**；网易云 `@neteasecloudmusicapienhanced/api` 4.41.1、波点 `bodian-music-api` 0.1.2、汽水 `qishui-music-api` 0.2.2 本就与上游相同。
 - 补回了上游没有、而我们本来有的一层：**汽水的 ticket guard 续期**（约 6 小时过期）。移植源在「失败 → 续期一次 → 重放一次」上做 `withAuthRetry`，镜像不动。
 - 网易云的后端跑在工作线程里，线程是 bundle 旁边的 `worker.cjs`（由上游 `neteaseApiWorker.cjs` 复制改名）；QQ 的内嵌后端在第一次问状态时拉起、监听本机端口。插件停用或退出时会关掉它们。
 - **登录态需要重新扫码一次**：旧实现在 `sessions.json`（明文）里，移植源各自用插件数据目录下的加密存储（`<平台>-legacy-store.json` + `<平台>-seal.key`），两者不是一套格式。已存的收藏、歌单、播放历史、队列不受影响（歌曲 id 形态没变）。
 
+### 目录结构 · Folia 镜像改成与上游仓库根 1:1
+
+- **单根**：原来分散在 `src/folia/**`（上游 `src/**`）与 `src/folia-mods/**`（上游 `sources/**`、`packages/**`）的镜像，统一合并成 `folia/`，三条树的相对路径与上游完全一致：`folia/src/**`、`folia/sources/<id>/**`、`folia/packages/<包>/**`。以后移植一个上游文件就是「按上游路径拷到同路径」，升级上游按路径 diff 就行。
+- **适配层按上游路径**：替换上游模块的替身改成同相对路径（`src/folia-adapters/services/onlineMusic/providerRegistry.ts`、`crossSource.ts`、`src/folia-adapters/utils/lyrics/providers/amllDbProvider.ts`、`src/folia-adapters/utils/lyrics/workerClient.ts`），文件头写「替身上游：…」；没有单一上游文件的宿主面仍按用途分组（`source-host/`、`kugou/`）。
+- **镜像校验**：新增 `scripts/check-folia-mirror.mjs`（并入 `npm run check` 与 `npm test`）：镜像每个文件必须在上游同路径存在；内容默认逐字节相同。确有插件适配的 52 个文件登记在 `folia/mirror.manifest.json`，记录登记时的上游 SHA256，上游一变就报错复核。顺带修正了两处上游已移动的文件（`utils/colorMix.ts`、`utils/textMeasureCache.ts`）与三个上游不存在的旧文件。
 ### 在线歌词 · 平台自己的歌词按 Folia 的解析步骤还原
 
 - **现象**：播放酷狗（以及其他四个移植平台）的歌，有的有歌词、有的整段空白；有歌词的那些其实都来自 AMLL 跨源匹配。
 - **原因**：移植只搬了音源定义，漏了宿主侧的「音源歌词 → 应用歌词」一步。上游 `lyrics@1.getLyrics` 交回的是 `{ main: { format, text }, wordByWord: { format, text } }`（原始文本 + 格式），而两个宿主适配层（`folia-bridge` 的 `source.lyric`、`kugou-folia/playback.lyric`）都在读 `track.lines`——上游从不给这个字段，于是平台歌词被整段丢成空。
-- **处理**：把上游 `src/mods/folium/lyricsSource.ts` 逐字节镜像进 `src/folia/mods/folium/`（连同它依赖的 27 个歌词工具文件），解析交给移植的 `resolveFoliumSourceLyricsResult`；Node 里没有 Web Worker，`workerClient` 用进程内替身（同一份 `parseLyricsByFormat`，格式归一与传参照抄上游 worker）。新增 `src/host/services/lyrics/folia-lyrics-source.js` 把结果换成本插件的行形状，并把原文作为 `raw` 交回客户端（客户端用它自己的 Folia 管线再解析）。
+- **处理**：把上游 `src/mods/folium/lyricsSource.ts` 逐字节镜像进 `folia/src/mods/folium/`（连同它依赖的 27 个歌词工具文件），解析交给移植的 `resolveFoliumSourceLyricsResult`；Node 里没有 Web Worker，`workerClient` 用进程内替身（同一份 `parseLyricsByFormat`，格式归一与传参照抄上游 worker）。新增 `src/host/services/lyrics/folia-lyrics-source.js` 把结果换成本插件的行形状，并把原文作为 `raw` 交回客户端（客户端用它自己的 Folia 管线再解析）。
 - **验证**：真实酷狗歌曲（发如雪）从 0 行变为 69 行、逐字、raw 8309 字节 KRC；新增 `lyrics-source-conversion` 覆盖 LRC/KRC/增强 LRC/翻译借用/纯音乐/坏轨/旧形状不算数。
 ### 匹配歌词 · 算法改为 Folia 原样移植
 
-- **自动匹配、打分、来源顺序全部换成 Folia 的实现**：`src/folia/utils/lyrics/**`（29 个文件，SHA256 与上游全等）经 `src/folia-adapters/lyrics-match/` 的宿主替身打成 `src/host/vendor/lyrics-folia/match.bundle.mjs`；`lyrics-match-runner` 直接调用上游 `autoMatchBestLyric`，`lyrics-match.js` 的打分改为上游 `matchScore`。
+- **自动匹配、打分、来源顺序全部换成 Folia 的实现**：`folia/src/utils/lyrics/**`（29 个文件，SHA256 与上游全等）经 `src/folia-adapters/lyrics-match/` 的宿主替身打成 `src/host/vendor/lyrics-folia/match.bundle.mjs`；`lyrics-match-runner` 直接调用上游 `autoMatchBestLyric`，`lyrics-match.js` 的打分改为上游 `matchScore`。
 - **行为随上游**：时长分档补回 ≤1s → ×1（旧自写版缺这一档）；未指定偏好时默认偏好是 QQ（上游的 `DEFAULT_PREFERRED_LYRIC_SOURCE`）；AMLL 探测走「先找网易云候选、再用它的 id 问 AMLL」这条上游路径，不再由插件自己预解析 id；别名重试只给标题时，宿主把 artist 补成歌手的名字（上游会对 `artist.trim()` 取用）。
 - **界面不变**：匹配窗口仍是插件自己的对话框；它拿到的分数、排序来自上游，预览仍返回客户端需要的行/LRC/TTML 原文（AMLL 的原文仍随预览一起给）。
 ### 在线音乐 · 未登录体验
@@ -104,7 +109,7 @@
 
 ### 维护
 
-- 目录结构对齐：`src/folia/` 只保留已移植的 Folia 文件，路径与上游 `src/` 一致；shims/vendor 移到 `src/folia-adapters/`，构建入口和 bundle 移到 `src/folia-build/`。
+- 目录结构对齐：`folia/src/` 只保留已移植的 Folia 文件，路径与上游 `src/` 一致；shims/vendor 移到 `src/folia-adapters/`，构建入口和 bundle 移到 `src/folia-build/`。
 
 ### 播放器
 

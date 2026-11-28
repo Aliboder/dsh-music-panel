@@ -10,14 +10,14 @@
  *
  * @module dsh-music-panel/folia-build/netease-host-entry
  */
-import activateMain from '../folia-mods/sources/netease/main/index'
-import activateClient from '../folia-mods/sources/netease/client/index'
-import zhCN from '../folia-mods/sources/netease/locales/zh-CN.json'
-import en from '../folia-mods/sources/netease/locales/en.json'
-import inLocale from '../folia-mods/sources/netease/locales/in.json'
-import vi from '../folia-mods/sources/netease/locales/vi.json'
+import activateMain from '../../folia/sources/netease/main/index'
+import activateClient from '../../folia/sources/netease/client/index'
+import zhCN from '../../folia/sources/netease/locales/zh-CN.json'
+import en from '../../folia/sources/netease/locales/en.json'
+import inLocale from '../../folia/sources/netease/locales/in.json'
+import vi from '../../folia/sources/netease/locales/vi.json'
 import { createSourceHost } from '../folia-adapters/source-host/host'
-import { isPureMusicLyricText } from '../folia/utils/lyrics/pureMusic'
+import { isPureMusicLyricText } from '../../folia/src/utils/lyrics/pureMusic'
 
 export interface FoliaNeteaseOptions {
   dir: string

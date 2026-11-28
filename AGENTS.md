@@ -18,8 +18,9 @@
 - **每做完一步修改就打一个 git 存档点**（`git commit`），message 中文写清这一步做了什么，回退时能直接找到；没验证过的改动不要攒进存档点。
 - **最终给用户的回答格式：**简要修改流程 代码块“段A→段B→段C...、通俗易懂的简要说明（问题、思路、做法、收益）、(若有)受影响的文档修改清单和变更内容简介（代码块）、存档点代码块（axxbxx：优化了...）”
 - 当我让你参考folia的代码或者对齐代码时，能照搬folia的代码就照搬，不要只借鉴思路。
-- **Folia 移植目录必须与上游对齐**：已移植文件放在 `src/folia/`，目录名和相对路径与 `A_other/upstream/folia-major-main/src` 一致；插件适配（shims / vendor / 插件特有实现）放 `src/folia-adapters/`，构建入口与 bundle 放 `src/folia-build/`；上游不存在的文件不得混进 `src/folia/`。
-- **上游 `src/` 以外的树**（`sources/<id>/`、`packages/<包>/`）镜像到 `src/folia-mods/`，并保持相对路径一致（如 `src/folia-mods/sources/kugou/main/index.ts` ↔ 上游 `sources/kugou/main/index.ts`）；这些文件逐字节照搬，插件侧的宿主面、接线与改动一律放 `src/folia-adapters/`，构建入口与产物放 `src/folia-build/` 与 `src/host/vendor/`。
+- **Folia 移植目录必须与上游仓库根 1:1**：镜像统一放在 `folia/`，三条树的相对路径与上游一致——`folia/src/**` ↔ 上游 `src/**`、`folia/sources/<id>/**` ↔ 上游 `sources/<id>/**`、`folia/packages/<包>/**` ↔ 上游 `packages/<包>/**`。镜像是有意的最小可用子集（上游多出来的文件可以不搬），但**路径不许自创、上游不存在的文件不得混进 `folia/`**。
+- **镜像内容默认逐字节相同**：确有插件适配的，登记在 `folia/mirror.manifest.json`（含登记时的上游 SHA256，上游一变就报错复核）；`node scripts/check-folia-mirror.mjs` 校验路径、内容与清单，已并入 `npm run check` 与 `npm test`。需要改行为时，优先把改动放进 `src/folia-adapters/` 而不是改镜像。
+- **适配层按上游路径组织**：替换上游某个模块的替身放在 `src/folia-adapters/<上游相对路径>`（如 `src/folia-adapters/services/onlineMusic/providerRegistry.ts` ↔ 上游 `src/services/onlineMusic/providerRegistry.ts`），文件头写「替身上游：…」；宿主面（RPC / net / seal / pageStore 等没有单一上游文件的实现）、shims 与 vendor 仍按用途分组。构建入口与 bundle 放 `src/folia-build/` 与 `src/host/vendor/`。
 - 相关文档描述内容实际发生变更时，要更新文档。
 
 🚫 **不要做**
@@ -33,6 +34,9 @@ npm test                                  # 全量 Node 测试
 npm run check                             # 语法 + i18n key + client 同步 + 各 bundle 是否最新
 node scripts/build-client.mjs             # 改 src/client/** 后重建 client.js
 node scripts/build-client.mjs --check     # 只检查 client.js 是否最新
+node scripts/check-folia-mirror.mjs        # 校验 folia/ 镜像：路径 1:1、内容逐字节（适配清单除外）
+node scripts/check-folia-mirror.mjs --list-missing   # 另列出还没镜像的上游文件
+node scripts/check-folia-mirror.mjs --update         # 把有意的适配登记/更新进 mirror.manifest.json
 node scripts/install-local.mjs desktop    # 把当前构建装进 DSH profile（验证前必做，装完完全退出再启动）
 node scripts/build-audio.mjs              # 改 src/audio/** 或 Folia 音频上游后重建音频 bundle
 node scripts/build-audio.mjs --check      # 只检查音频 bundle 是否最新
@@ -53,7 +57,7 @@ node scripts/build-vendor-pixi.mjs        # 仅升级 pixi 时
 ```text
 index.js                     Host 入口：Cordis 插件（name="music"），只做装配与接线
 cordis.patch.yml             DSH bundle patch：注册 music 服务与默认 config
-client.js                    Client 构建产物（src/client + src/folia 片段拼接而成）
+client.js                    Client 构建产物（src/client + folia/ 片段拼接而成）
 src/host/                    Host：Node 侧，随包发布（见 package.json files）
   http/                      /music/* 路由（routes/、routes.js）+ URL 安全检查
   providers/                 在线源适配：sources（注册表 + 网易云/QQ/酷狗/波点/汽水/本地）、login、vendor
@@ -72,8 +76,12 @@ src/client/                  Client：浏览器侧片段，按 manifest.json 顺
   audio/ styles/ stores/     音频引擎 bundle、主题与配色、状态
   i18n/ types/ utils/ vendor/
 src/audio/                   音频引擎 TS 源码 → 构建为 src/client/audio/engine.bundle.js
-src/folia/                   Folia 上游源码镜像（路径与上游 src 对齐）
-src/folia-mods/              上游 src/ 以外的树（sources/<id>、packages/<包>）镜像，相对路径与上游一致
+folia/                       Folia 镜像，与上游仓库根 1:1（最小子集）
+  src/**                     上游 src/** 的镜像
+  sources/<id>/**            上游 sources/<id>/** 的镜像
+  packages/<包>/**           上游 packages/<包>/** 的镜像
+  mirror.manifest.json       与上游内容不同（插件适配）的文件清单，校验脚本据此放行并盯上游变动
+  README.md                  镜像规则、如何继续移植
 src/folia-adapters/          插件适配：shims / vendor / 插件特有实现
 src/folia-build/             构建入口与 bundle（styles / backgrounds / pendolo / css）
 src/shared/types.ts          Host/Client 共享类型

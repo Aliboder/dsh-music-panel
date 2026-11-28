@@ -6,14 +6,14 @@
  *
  * @module dsh-music-panel/folia-build/qishui-host-entry
  */
-import activateMain from '../folia-mods/sources/qishui/main/index'
-import activateClient from '../folia-mods/sources/qishui/client/index'
-import zhCN from '../folia-mods/sources/qishui/locales/zh-CN.json'
-import en from '../folia-mods/sources/qishui/locales/en.json'
-import inLocale from '../folia-mods/sources/qishui/locales/in.json'
-import vi from '../folia-mods/sources/qishui/locales/vi.json'
+import activateMain from '../../folia/sources/qishui/main/index'
+import activateClient from '../../folia/sources/qishui/client/index'
+import zhCN from '../../folia/sources/qishui/locales/zh-CN.json'
+import en from '../../folia/sources/qishui/locales/en.json'
+import inLocale from '../../folia/sources/qishui/locales/in.json'
+import vi from '../../folia/sources/qishui/locales/vi.json'
 import { createSourceHost } from '../folia-adapters/source-host/host'
-import { isPureMusicLyricText } from '../folia/utils/lyrics/pureMusic'
+import { isPureMusicLyricText } from '../../folia/src/utils/lyrics/pureMusic'
 
 export interface FoliaQishuiOptions {
   dir: string

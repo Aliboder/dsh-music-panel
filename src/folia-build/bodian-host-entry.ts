@@ -8,14 +8,14 @@
  *
  * @module dsh-music-panel/folia-build/bodian-host-entry
  */
-import activateMain from '../folia-mods/sources/bodian/main/index'
-import activateClient from '../folia-mods/sources/bodian/client/index'
-import zhCN from '../folia-mods/sources/bodian/locales/zh-CN.json'
-import en from '../folia-mods/sources/bodian/locales/en.json'
-import inLocale from '../folia-mods/sources/bodian/locales/in.json'
-import vi from '../folia-mods/sources/bodian/locales/vi.json'
+import activateMain from '../../folia/sources/bodian/main/index'
+import activateClient from '../../folia/sources/bodian/client/index'
+import zhCN from '../../folia/sources/bodian/locales/zh-CN.json'
+import en from '../../folia/sources/bodian/locales/en.json'
+import inLocale from '../../folia/sources/bodian/locales/in.json'
+import vi from '../../folia/sources/bodian/locales/vi.json'
 import { createSourceHost } from '../folia-adapters/source-host/host'
-import { isPureMusicLyricText } from '../folia/utils/lyrics/pureMusic'
+import { isPureMusicLyricText } from '../../folia/src/utils/lyrics/pureMusic'
 
 export interface FoliaBodianOptions {
   dir: string

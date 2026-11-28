@@ -208,7 +208,7 @@ assert.match(i18nSource, /globalThis\.MP_FOLIA_T = t/, 'the dictionary is expose
 
 // The shared bottom subtitle clears the player page's transport pill. The plugin shim used to
 // return 0, which parked the translation line on the page edge, under the pill.
-const subtitleLayout = readFileSync(join(ROOT, 'src/folia/hooks/usePlayerBottomBarBottomPx.ts'), 'utf8')
+const subtitleLayout = readFileSync(join(ROOT, 'folia/src/hooks/usePlayerBottomBarBottomPx.ts'), 'utf8')
 assert.match(subtitleLayout, /SUBTITLE_BOTTOM_WITH_BAR_PX = 96/, 'the subtitle clears the pill')
 assert.match(subtitleLayout, /SUBTITLE_BOTTOM_WITHOUT_BAR_PX = 32/, 'hidden chrome keeps Folia 32px')
 assert.doesNotMatch(subtitleLayout, /usePlayerSubtitleBottomPx = \(\): number => 0/, 'the zero offset is gone')

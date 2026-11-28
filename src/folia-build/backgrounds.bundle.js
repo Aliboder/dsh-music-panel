@@ -33,10 +33,9 @@ function __mpBackgroundsBundle() {
       hasVisualizerBackgroundMode: () => hasVisualizerBackgroundMode
     });
   
-    // src/folia/types/visualizerModes.ts
+    // folia/src/types/visualizerModes.ts
     var BUILTIN_VISUALIZER_MODES = [
       "cadenza",
-      "cappella",
       "claddagh",
       "classic",
       "diorama",
@@ -165,11 +164,13 @@ function __mpBackgroundsBundle() {
     var Camera = makeIcon("M4 7h3l2-3h6l2 3h3v12H4zM12 10a3 3 0 1 0 0 6 3 3 0 0 0 0-6z");
     var Orbit = makeIcon("M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM3 12h18M12 3c4 4 4 14 0 18M12 3c-4 4-4 14 0 18");
     var X = makeIcon("M6 6l12 12M18 6L6 18");
+    var Contrast = makeIcon("M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM12 2v20a10 10 0 0 0 0-20z");
+    var Scissors = makeIcon("M6 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM20 4L8.5 15.5M20 20L8.5 8.5");
   
-    // src/folia/components/visualizer/backgrounds/definition.ts
+    // folia/src/components/visualizer/backgrounds/definition.ts
     var defineVisualizerBackground = (entry) => entry;
   
-    // src/folia/components/shared/QuickControlChip.tsx
+    // folia/src/components/shared/QuickControlChip.tsx
     var QuickControlChip = (_props) => null;
     var QuickControlToggle = (_props) => null;
     var cycleValue = (values, current) => {
@@ -259,10 +260,10 @@ function __mpBackgroundsBundle() {
     var animate = framer.animate || (() => ({ stop: () => {
     } }));
   
-    // src/folia/components/visualizer/preview/frozenPicture.ts
+    // folia/src/components/visualizer/preview/frozenPicture.ts
     var ARRIVING_MARK = "data-picture-arriving";
   
-    // src/folia/components/visualizer/styleTransition/firstFrame.ts
+    // folia/src/components/visualizer/styleTransition/firstFrame.ts
     var FirstFrameContext = createContext(null);
     var useFirstFrameDrawn = () => {
       const report = useContext(FirstFrameContext);
@@ -274,7 +275,7 @@ function __mpBackgroundsBundle() {
     var LayerUnseenContext = createContext(false);
     var useLayerUnseen = () => useContext(LayerUnseenContext);
   
-    // src/folia/components/visualizer/textMeasureCache.ts
+    // folia/src/utils/textMeasureCache.ts
     var rememberBounded = (cache, key, value, limit) => {
       if (!cache.has(key) && cache.size >= limit) {
         const oldest = cache.keys().next();
@@ -284,7 +285,7 @@ function __mpBackgroundsBundle() {
       return value;
     };
   
-    // src/folia/components/visualizer/colorMix.ts
+    // folia/src/utils/colorMix.ts
     var clamp = (value, min, max) => Math.max(min, Math.min(max, value));
     var mix = (from, to, amount) => from + (to - from) * amount;
     var FALLBACK_RGB = { r: 255, g: 255, b: 255 };
@@ -351,11 +352,11 @@ function __mpBackgroundsBundle() {
       return `rgba(${Math.round(mix(fromParsed.r, toParsed.r, normalizedAmount))}, ${Math.round(mix(fromParsed.g, toParsed.g, normalizedAmount))}, ${Math.round(mix(fromParsed.b, toParsed.b, normalizedAmount))}, ${clamp(alpha, 0, 1)})`;
     };
   
-    // src/folia/services/automix/handoffProgress.ts
+    // folia/src/services/automix/handoffProgress.ts
     var clamp01 = (value) => Math.max(0, Math.min(1, value));
     var progressSince = (value, start) => start >= 1 ? 1 : clamp01((value - start) / (1 - start));
   
-    // src/folia/components/visualizer/backgrounds/useBlendedColors.ts
+    // folia/src/components/visualizer/backgrounds/useBlendedColors.ts
     var easeOut = (t) => 1 - (1 - t) ** 3;
     var sameColors = (left, right) => left.length === right.length && left.every((color, index) => color === right[index]);
     var useBlendedColors = (colors, durationMs, progress) => {
@@ -416,7 +417,7 @@ function __mpBackgroundsBundle() {
     }
     var jsxs = jsx;
   
-    // src/folia/components/visualizer/backgrounds/common/FluidBackground.tsx
+    // folia/src/components/visualizer/backgrounds/common/FluidBackground.tsx
     var IOS_SOFT_FOCUS_SAMPLE_SIZE = 24;
     var IOS_SOFT_FOCUS_OUTPUT_SIZE = 96;
     var detectIOSSafari = () => {
@@ -906,14 +907,14 @@ function __mpBackgroundsBundle() {
     });
     var FluidBackground_default = FluidBackground;
   
-    // src/folia/hooks/useLucideIcons.ts
+    // folia/src/hooks/useLucideIcons.ts
     var useLucideIcons = (_names) => 0;
   
-    // src/folia/services/lucideIconResolver.ts
+    // folia/src/services/lucideIconResolver.ts
     var resolveLucideIcon = (_name) => null;
     var getLucideIconStatus = (_name) => "ready";
   
-    // src/folia/components/visualizer/backgrounds/common/GeometricBackground.tsx
+    // folia/src/components/visualizer/backgrounds/common/GeometricBackground.tsx
     var getShapeScaleKey = (shape) => {
       switch (shape.type) {
         case "circle":
@@ -1134,7 +1135,7 @@ function __mpBackgroundsBundle() {
     });
     var GeometricBackground_default = GeometricBackground;
   
-    // src/folia/components/visualizer/backgrounds/common/entry.tsx
+    // folia/src/components/visualizer/backgrounds/common/entry.tsx
     var entry_default = defineVisualizerBackground({
       mode: "common",
       order: 10,
@@ -1227,7 +1228,7 @@ function __mpBackgroundsBundle() {
       }
     });
   
-    // src/folia/types.ts
+    // folia/src/types.ts
     var DEFAULT_MONET_BACKGROUND_TUNING = {
       backgroundSource: "cover-derived",
       backgroundLayout: "full-overlay",
@@ -5224,7 +5225,7 @@ function __mpBackgroundsBundle() {
       );
     }), colorPropsAreEqual);
   
-    // src/folia/utils/colorPalette.ts
+    // folia/src/utils/colorPalette.ts
     var QUANTIZATION_SHIFT = 4;
     var MIN_ALPHA = 128;
     var getChannelRange = (colors, channel) => {
@@ -5329,7 +5330,7 @@ function __mpBackgroundsBundle() {
       return buckets.map(averageBucket).sort((a, b) => b.weight - a.weight).map(toHex);
     };
   
-    // src/folia/utils/colorExtractor.ts
+    // folia/src/utils/colorExtractor.ts
     var loadImagePixels = (imageUrl, { silent = false } = {}) => new Promise((resolve) => {
       const img = new Image();
       img.crossOrigin = "Anonymous";
@@ -5363,7 +5364,7 @@ function __mpBackgroundsBundle() {
       return pixels ? extractRepresentativeColorsFromPixels(pixels, count) : [];
     };
   
-    // src/folia/utils/paperShaderUniforms.ts
+    // folia/src/utils/paperShaderUniforms.ts
     var updatePaperShaderUniforms = (mount, uniforms, animating) => {
       const writer = mount.setUniformValues;
       if (animating && typeof writer === "function") {
@@ -5373,7 +5374,7 @@ function __mpBackgroundsBundle() {
       mount.setUniforms(uniforms);
     };
   
-    // src/folia/utils/paperShaderContext.ts
+    // folia/src/utils/paperShaderContext.ts
     var PAPER_SHADER_CONTEXT_ATTRIBUTES = Object.freeze({
       antialias: false,
       depth: false
@@ -5393,15 +5394,15 @@ function __mpBackgroundsBundle() {
       };
     });
   
-    // src/folia/stores/motionSignals.ts
+    // folia/src/stores/motionSignals.ts
     var beatImpact = motionValue(0);
     var downbeatImpact = motionValue(0);
   
-    // src/folia/services/beatFx/beatFxLive.ts
+    // folia/src/services/beatFx/beatFxLive.ts
     var isBeatFxReady = () => false;
     var getBeatEffectStrength = (_effectId) => 0;
   
-    // src/folia/services/beatFx/beatEffects.ts
+    // folia/src/services/beatFx/beatEffects.ts
     var BEAT_EFFECT_IDS = {
       sonnetLensTear: "sonnet.lensTear",
       dioramaRipple: "diorama.ripple",
@@ -5409,13 +5410,17 @@ function __mpBackgroundsBundle() {
       pendoloGearBeats: "pendolo.gearBeats",
       latentPulse: "latent.pulse",
       hanabiBeatBursts: "hanabi.beatBursts",
-      hanabiPush: "hanabi.push",
+      hanabiBeatPulse: "hanabi.beatPulse",
       temperaInkFlash: "tempera.inkFlash",
       machiNeonPulse: "machi.neonPulse",
-      machiDrumRipple: "machi.drumRipple"
+      machiDrumRipple: "machi.drumRipple",
+      machiScreenFlash: "machi.screenFlash",
+      nebbiaDrizzleRide: "nebbia.drizzleRide",
+      nebbiaAquaBeat: "nebbia.aquaBeat",
+      metaphorAnnihilation: "metaphor.annihilation"
     };
   
-    // src/folia/components/visualizer/backgrounds/latent/LatentBackground.tsx
+    // folia/src/components/visualizer/backgrounds/latent/LatentBackground.tsx
     var MAX_SHADER_PIXELS = 1280 * 720;
     var PAUSED_SPEED_SCALE = 0.12;
     var PAUSE_EASE_MS = 300;
@@ -5700,7 +5705,7 @@ function __mpBackgroundsBundle() {
     };
     var LatentBackground_default = react_shim_default.memo(LatentBackground);
   
-    // src/folia/components/visualizer/backgrounds/latent/entry.tsx
+    // folia/src/components/visualizer/backgrounds/latent/entry.tsx
     var LATENT_DISPLAY_MODES = ["dithering", "mesh", "both"];
     var LATENT_DISPLAY_LABEL_KEYS = {
       dithering: "options.latentDisplayDithering",
@@ -5794,7 +5799,7 @@ function __mpBackgroundsBundle() {
       resetSettings: (actions) => actions?.latent?.onResetTuning?.()
     });
   
-    // src/folia/components/visualizer/monet/monetBackgroundPaint.ts
+    // folia/src/components/visualizer/monet/monetBackgroundPaint.ts
     var MONET_BACKGROUND_WIDTH = 1920;
     var MONET_BACKGROUND_HEIGHT = 1080;
     var FALLBACK_DARK = { r: 10, g: 10, b: 12 };
@@ -6120,7 +6125,7 @@ function __mpBackgroundsBundle() {
       };
     };
   
-    // src/folia/components/visualizer/backgrounds/monet/monetBackgroundDrift.ts
+    // folia/src/components/visualizer/backgrounds/monet/monetBackgroundDrift.ts
     var DRIFT_LOOP_SECONDS = 240;
     var DRIFT_LATTICE_POINTS = 76;
     var DRIFT_SAMPLE_COUNT = 156;
@@ -6179,7 +6184,7 @@ function __mpBackgroundsBundle() {
       };
     };
   
-    // src/folia/hooks/useReducedMotionFor.ts
+    // folia/src/hooks/useReducedMotionFor.ts
     var useReducedMotionFor = (_surface) => {
       if (typeof window === "undefined" || typeof window.matchMedia !== "function") return false;
       try {
@@ -6189,7 +6194,7 @@ function __mpBackgroundsBundle() {
       }
     };
   
-    // src/folia/components/visualizer/backgrounds/monet/MonetBackgroundLayer.tsx
+    // folia/src/components/visualizer/backgrounds/monet/MonetBackgroundLayer.tsx
     var PIPELINE_DEBOUNCE_MS = 180;
     var clamp5 = (value, min, max) => Math.min(max, Math.max(min, value));
     var useMonetBackgroundDrift = (ref, enabled, strength, reducedMotion) => {
@@ -6407,7 +6412,7 @@ function __mpBackgroundsBundle() {
     };
     var MonetBackgroundLayer_default = MonetBackgroundLayer;
   
-    // src/folia/utils/coverUrl.ts
+    // folia/src/utils/coverUrl.ts
     var KUWO_COVER_HOST_PATTERN = /^img\d*(?:\.(?:sycdn|kwcdn))?\.kuwo\.cn$/i;
     var KUWO_COVER_PATH_PATTERN = /^(\/star\/(?:albumcover|starheads)\/)(\d+)(\/)/;
     var QQ_COVER_HOSTNAMES = /* @__PURE__ */ new Set(["y.gtimg.cn", "y.qq.com"]);
@@ -6462,7 +6467,7 @@ function __mpBackgroundsBundle() {
     };
     var COVER_MAX_SIZE = 1200;
   
-    // src/folia/components/visualizer/backgrounds/monet/entry.tsx
+    // folia/src/components/visualizer/backgrounds/monet/entry.tsx
     var SOURCE_LABEL_KEYS = {
       "cover-derived": "options.monetBackgroundSourceCover",
       "uploaded-global": "options.monetBackgroundSourceUploaded"
@@ -6566,7 +6571,7 @@ function __mpBackgroundsBundle() {
       resetSettings: (actions) => actions?.monet?.onResetTuning?.()
     });
   
-    // src/folia/components/visualizer/backgrounds/nomand/nomandShaderAdjustments.ts
+    // folia/src/components/visualizer/backgrounds/nomand/nomandShaderAdjustments.ts
     var MAX_OVERSCAN = 1.8;
     var OVERSCAN_MARGIN = 0.01;
     var REFERENCE_ASPECT = 16 / 9;
@@ -6622,7 +6627,7 @@ function __mpBackgroundsBundle() {
       return applyOverscanMargin(high);
     };
   
-    // src/folia/components/visualizer/backgrounds/nomand/NomandBackgroundLayer.tsx
+    // folia/src/components/visualizer/backgrounds/nomand/NomandBackgroundLayer.tsx
     var useShaderDrawn = (shaderRef, shader) => {
       const drawn = useFirstFrameDrawn();
       useEffect(() => {
@@ -6784,7 +6789,7 @@ function __mpBackgroundsBundle() {
     };
     var NomandBackgroundLayer_default = react_shim_default.memo(NomandBackgroundLayer);
   
-    // src/folia/components/visualizer/backgrounds/nomand/NomandBackgroundEffectSettings.tsx
+    // folia/src/components/visualizer/backgrounds/nomand/NomandBackgroundEffectSettings.tsx
     var EFFECTS = [
       "dithering",
       "fluted-glass",
@@ -6800,7 +6805,7 @@ function __mpBackgroundsBundle() {
       "lens-distortion": "options.nomandBackgroundEffectLensDistortion"
     };
   
-    // src/folia/components/visualizer/backgrounds/nomand/entry.tsx
+    // folia/src/components/visualizer/backgrounds/nomand/entry.tsx
     var SOURCE_LABEL_KEYS2 = {
       "cover-derived": "options.monetBackgroundSourceCover",
       "uploaded-global": "options.monetBackgroundSourceUploaded"
@@ -9863,7 +9868,7 @@ function __mpBackgroundsBundle() {
       return false;
     }
   
-    // src/folia/components/visualizer/backgrounds/sora/SoraBackground.tsx
+    // folia/src/components/visualizer/backgrounds/sora/SoraBackground.tsx
     var PARTICLE_COUNT = 150;
     var VERTEX_SHADER2 = `
   attribute float a_index;
@@ -10046,7 +10051,7 @@ function __mpBackgroundsBundle() {
     };
     var SoraBackground_default = SoraBackground;
   
-    // src/folia/components/visualizer/backgrounds/sora/entry.tsx
+    // folia/src/components/visualizer/backgrounds/sora/entry.tsx
     var entry_default5 = defineVisualizerBackground({
       mode: "sora",
       order: 50,
@@ -10089,7 +10094,7 @@ function __mpBackgroundsBundle() {
       resetSettings: (actions) => actions?.sora?.onResetTuning?.()
     });
   
-    // src/folia/utils/urlBackground.ts
+    // folia/src/utils/urlBackground.ts
     var normalizeUrlBackgroundUrl = (value) => {
       if (typeof value !== "string") {
         return null;
@@ -10120,7 +10125,7 @@ function __mpBackgroundsBundle() {
       return { id, url, note };
     };
   
-    // src/folia/components/visualizer/backgrounds/url/UrlBackgroundLayer.tsx
+    // folia/src/components/visualizer/backgrounds/url/UrlBackgroundLayer.tsx
     var UrlBackgroundLayer = ({
       urlBackgroundList = [],
       urlBackgroundSelectedId = null
@@ -10184,7 +10189,7 @@ function __mpBackgroundsBundle() {
     };
     var UrlBackgroundLayer_default = UrlBackgroundLayer;
   
-    // src/folia/components/visualizer/backgrounds/url/entry.tsx
+    // folia/src/components/visualizer/backgrounds/url/entry.tsx
     var entry_default6 = defineVisualizerBackground({
       mode: "url",
       order: 40,
@@ -10221,7 +10226,7 @@ function __mpBackgroundsBundle() {
       )
     });
   
-    // src/folia/components/visualizer/backgrounds/registry.tsx
+    // folia/src/components/visualizer/backgrounds/registry.tsx
     var ENTRIES = [
       entry_default,
       entry_default3,
@@ -10239,7 +10244,7 @@ function __mpBackgroundsBundle() {
     var getVisualizerBackgroundRegistryEntry = (mode) => BY_MODE[mode] ?? BY_MODE[DEFAULT_VISUALIZER_BACKGROUND_MODE] ?? ENTRIES[0];
     var VISUALIZER_BACKGROUND_MODE_IDS = ENTRIES.map((entry) => entry.mode);
   
-    // src/folia/components/visualizer/backgrounds/VisualizerBackgroundRenderer.tsx
+    // folia/src/components/visualizer/backgrounds/VisualizerBackgroundRenderer.tsx
     var VisualizerBackgroundRenderer = (props) => {
       if (props.config?.transparent) {
         return null;

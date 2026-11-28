@@ -8,7 +8,7 @@
 the only platform module left in this directory.
 
 NetEase Cloud Music, QQ Music, KuGou, Bodian and Qishui are **not** here any more: each is
-the ported Folia source module (`src/folia-mods/sources/<platform>/`, mirrored verbatim),
+the ported Folia source module (`folia/sources/<platform>/`, mirrored verbatim),
 driven in the Host through `src/host/providers/sources/<platform>-folia/`. The old
 self-written NetEase/QQ protocol modules (request signing, QR login, stream and lyric
 lookup) and the old Bodian/Qishui adapters were retired with their tests once the ported

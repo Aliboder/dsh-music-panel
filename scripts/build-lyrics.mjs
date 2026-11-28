@@ -4,7 +4,7 @@
  *
  * The ported sources live at src/client/utils/lyrics/** (verbatim Folia) and import
  * ../../types, which resolves to src/shared/types.ts (the same module as
- * src/folia/types.ts).
+ * folia/src/types.ts).
  *
  * Usage: node scripts/build-lyrics.mjs
  *

@@ -8,10 +8,10 @@
  *
  * @module dsh-music-panel/folia-adapters/kugou/texts
  */
-import zhCN from '../../folia-mods/sources/kugou/locales/zh-CN.json'
-import en from '../../folia-mods/sources/kugou/locales/en.json'
-import inLocale from '../../folia-mods/sources/kugou/locales/in.json'
-import vi from '../../folia-mods/sources/kugou/locales/vi.json'
+import zhCN from '../../../folia/sources/kugou/locales/zh-CN.json'
+import en from '../../../folia/sources/kugou/locales/en.json'
+import inLocale from '../../../folia/sources/kugou/locales/in.json'
+import vi from '../../../folia/sources/kugou/locales/vi.json'
 
 /** Folium 的 FoliumTextKey：语言表里的一个键，加 {{name}} 的取值。 */
 export interface FoliumTextKey {

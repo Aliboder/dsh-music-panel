@@ -1,7 +1,7 @@
 /**
  * Lyric match service — the backend of the "匹配歌词" window.
  *
- * 打分与来源顺序来自 Folia 的镜像实现（src/folia/utils/lyrics/matchScore.ts 与
+ * 打分与来源顺序来自 Folia 的镜像实现（folia/src/utils/lyrics/matchScore.ts 与
  * lyricSources.ts，经 src/host/vendor/lyrics-folia 暴露）：每个候选都用同一套
  * `calculateMatchScoreDetails` 排序，tab 顺序来自同一张源注册表，AMLL 候选保留它的
  * 平台 id（ncm/qq），预览才能问对端点。

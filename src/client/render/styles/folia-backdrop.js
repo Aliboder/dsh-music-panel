@@ -1,7 +1,7 @@
 /**
  * Folia shell backgrounds — the player page backdrop.
  *
- * `src/folia/backgrounds/**` is Folia's background tree (六种背景: common,
+ * `folia/src/backgrounds/**` is Folia's background tree (六种背景: common,
  * monet, nomand, latent, sora, url); `backgrounds.bundle.js` compiles it. This file is
  * the boundary: it builds Folia's `VisualizerBackgroundConfig`/`Theme`/audio signals,
  * mounts the renderer once, and replaces the plugin's old ambient-cover background.

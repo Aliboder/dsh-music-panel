@@ -135,7 +135,7 @@ export function calculateMatchScoreDetails(target, candidate) {
   }, converted)
 }
 
-/** Score 0..100 for one candidate — now Folia's own matchScore (src/folia/utils/lyrics), via the host adapter. */
+/** Score 0..100 for one candidate — now Folia's own matchScore (folia/src/utils/lyrics), via the host adapter. */
 export function calculateMatchScore(track, candidate) {
   return calculateMatchScoreDetails(track, candidate).score
 }

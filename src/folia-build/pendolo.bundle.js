@@ -196,8 +196,10 @@ function __mpPendoloBundle() {
     var Camera = makeIcon("M4 7h3l2-3h6l2 3h3v12H4zM12 10a3 3 0 1 0 0 6 3 3 0 0 0 0-6z");
     var Orbit = makeIcon("M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM3 12h18M12 3c4 4 4 14 0 18M12 3c-4 4-4 14 0 18");
     var X = makeIcon("M6 6l12 12M18 6L6 18");
+    var Contrast = makeIcon("M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM12 2v20a10 10 0 0 0 0-20z");
+    var Scissors = makeIcon("M6 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM20 4L8.5 15.5M20 20L8.5 8.5");
   
-    // src/folia/types.ts
+    // folia/src/types.ts
     var DEFAULT_PENDOLO_TUNING = {
       render: { scale: "global", antialias: "global" },
       arcRadius: 0.42,
@@ -219,7 +221,7 @@ function __mpPendoloBundle() {
       hubViewBack: 1.2
     };
   
-    // src/folia/utils/lyricRenderQuality.ts
+    // folia/src/utils/lyricRenderQuality.ts
     var MAX_LYRIC_PIXEL_RATIO = 3;
     var resolveLyricRenderQuality = (global, override) => ({
       scale: override && override.scale !== "global" ? override.scale : global.scale,
@@ -232,11 +234,11 @@ function __mpPendoloBundle() {
     };
     var resolveLyricAntialias = (antialias, styleDefault) => antialias === "auto" ? styleDefault : antialias === "on";
   
-    // src/folia/components/visualizer/renderQuality/useLyricRenderQuality.ts
+    // folia/src/components/visualizer/renderQuality/useLyricRenderQuality.ts
     var GLOBAL_QUALITY = { scale: 1, antialias: "auto" };
     var useLyricRenderQuality = (override) => useMemo(() => resolveLyricRenderQuality(GLOBAL_QUALITY, override), [override]);
   
-    // src/folia/components/visualizer/textMeasureCache.ts
+    // folia/src/utils/textMeasureCache.ts
     var rememberBounded = (cache, key, value, limit) => {
       if (!cache.has(key) && cache.size >= limit) {
         const oldest = cache.keys().next();
@@ -253,7 +255,7 @@ function __mpPendoloBundle() {
       return offsets;
     };
   
-    // src/folia/components/visualizer/colorMix.ts
+    // folia/src/utils/colorMix.ts
     var clamp = (value, min, max) => Math.max(min, Math.min(max, value));
     var mix = (from, to, amount) => from + (to - from) * amount;
     var FALLBACK_RGB = { r: 255, g: 255, b: 255 };
@@ -320,13 +322,13 @@ function __mpPendoloBundle() {
       return `rgba(${Math.round(mix(fromParsed.r, toParsed.r, normalizedAmount))}, ${Math.round(mix(fromParsed.g, toParsed.g, normalizedAmount))}, ${Math.round(mix(fromParsed.b, toParsed.b, normalizedAmount))}, ${clamp(alpha, 0, 1)})`;
     };
   
-    // src/folia/hooks/useLucideIcons.ts
+    // folia/src/hooks/useLucideIcons.ts
     var useLucideIcons = (_names) => 0;
   
-    // src/folia/services/lucideIconResolver.ts
+    // folia/src/services/lucideIconResolver.ts
     var resolveLucideIcon = (_name) => null;
   
-    // src/folia/utils/fontStacks.ts
+    // folia/src/utils/fontStacks.ts
     var MIN_FONT_WEIGHT = 100;
     var MAX_FONT_WEIGHT = 900;
     var FONT_WEIGHT_STEP = 10;
@@ -435,7 +437,7 @@ function __mpPendoloBundle() {
     }
     var jsxs = jsx;
   
-    // src/folia/components/visualizer/VisualizerShell.tsx
+    // folia/src/components/visualizer/VisualizerShell.tsx
     var VisualizerShell = react_shim_default.forwardRef(({ theme, children }, ref) => /* @__PURE__ */ jsx(
       "div",
       {
@@ -464,7 +466,7 @@ function __mpPendoloBundle() {
     VisualizerShell.displayName = "VisualizerShell";
     var VisualizerShell_default = VisualizerShell;
   
-    // src/folia/components/visualizer/pendolo/pendoloClockworkScene.ts
+    // folia/src/components/visualizer/pendolo/pendoloClockworkScene.ts
     var buildPendoloClockworkPalette = (primaryTextColor, accentTextColor, showGearDecor) => {
       const isFull = showGearDecor === "full";
       const m = isFull ? 1 : 0.6;
@@ -546,7 +548,7 @@ function __mpPendoloBundle() {
       };
     };
   
-    // src/folia/components/visualizer/pendolo/pendoloClockworkDraw2d.ts
+    // folia/src/components/visualizer/pendolo/pendoloClockworkDraw2d.ts
     function drawGearTeeth(ctx, cx, cy, radius, teethCount, toothDepth, rotationRad, strokeColor, lineWidth, fillColor) {
       ctx.save();
       ctx.translate(cx, cy);
@@ -991,7 +993,7 @@ function __mpPendoloBundle() {
       ctx.fill();
     };
   
-    // src/folia/services/beatFx/beatFxLive.ts
+    // folia/src/services/beatFx/beatFxLive.ts
     var isBeatFxReady = () => false;
     var getBeatEffectStrength = (_effectId) => 0;
     var getBeatFxBeatPeriod = () => 0.5;
@@ -1002,7 +1004,7 @@ function __mpPendoloBundle() {
     var getBeatFxFiredCounts = () => ({});
     var getBeatFxIntensities = () => ({});
   
-    // src/folia/services/beatFx/clock.ts
+    // folia/src/services/beatFx/clock.ts
     var BEAT_FX_WEAK_BEAT_FLOOR = 0.35;
     var resolveBeatFxAccentGain = (event, trackScale) => {
       if (event?.rhythmic === false) return 0;
@@ -1010,7 +1012,7 @@ function __mpPendoloBundle() {
       return (BEAT_FX_WEAK_BEAT_FLOOR + (1 - BEAT_FX_WEAK_BEAT_FLOOR) * event.impact) * trackScale;
     };
   
-    // src/folia/components/visualizer/pendolo/pendoloBeatFx.ts
+    // folia/src/components/visualizer/pendolo/pendoloBeatFx.ts
     var FLARE_DECAY_SECONDS = 0.25;
     var PENDOLO_MAX_SPARKS = 192;
     var PENDOLO_SPARK_STRIDE = 6;
@@ -1266,7 +1268,7 @@ function __mpPendoloBundle() {
       Math.round(color[2] + (255 - color[2]) * heat)
     ];
   
-    // src/folia/services/beatFx/beatEffects.ts
+    // folia/src/services/beatFx/beatEffects.ts
     var BEAT_EFFECT_IDS = {
       sonnetLensTear: "sonnet.lensTear",
       dioramaRipple: "diorama.ripple",
@@ -1274,14 +1276,18 @@ function __mpPendoloBundle() {
       pendoloGearBeats: "pendolo.gearBeats",
       latentPulse: "latent.pulse",
       hanabiBeatBursts: "hanabi.beatBursts",
-      hanabiPush: "hanabi.push",
+      hanabiBeatPulse: "hanabi.beatPulse",
       temperaInkFlash: "tempera.inkFlash",
       machiNeonPulse: "machi.neonPulse",
-      machiDrumRipple: "machi.drumRipple"
+      machiDrumRipple: "machi.drumRipple",
+      machiScreenFlash: "machi.screenFlash",
+      nebbiaDrizzleRide: "nebbia.drizzleRide",
+      nebbiaAquaBeat: "nebbia.aquaBeat",
+      metaphorAnnihilation: "metaphor.annihilation"
     };
     var smartBeatActive = (settings) => settings !== null && settings !== void 0 && settings.mode !== "off";
   
-    // src/folia/components/visualizer/pendolo/pendoloParallax.ts
+    // folia/src/components/visualizer/pendolo/pendoloParallax.ts
     var DIAL_FACE = 0;
     var MAIN_SUN_TOP = 0.09;
     var SECOND_TOP = 0.1;
@@ -1325,7 +1331,7 @@ function __mpPendoloBundle() {
       return DIAL_FACE;
     };
   
-    // src/folia/components/visualizer/pendolo/pendoloBeatFxDraw.ts
+    // folia/src/components/visualizer/pendolo/pendoloBeatFxDraw.ts
     var TICK_COUNT = 60;
     var DIAL_SEGMENTS = 120;
     var DIAL_GLOW_WIDTH = 10;
@@ -1605,7 +1611,7 @@ function __mpPendoloBundle() {
       ctx.restore();
     };
   
-    // src/folia/components/visualizer/pendolo/pendoloClockworkMotion.ts
+    // folia/src/components/visualizer/pendolo/pendoloClockworkMotion.ts
     var createPendoloClockworkMotionState = () => ({
       phase: 0,
       smoothedBass: 0.15,
@@ -1688,7 +1694,7 @@ function __mpPendoloBundle() {
       };
     };
   
-    // src/folia/components/visualizer/pendolo/pendoloClockworkMeshes.ts
+    // folia/src/components/visualizer/pendolo/pendoloClockworkMeshes.ts
     var PENDOLO_MESH_STRIDE = 7;
     var PENDOLO_MAX_PARTS = 44;
     var PENDOLO_MITER_LIMIT = 10;
@@ -2321,7 +2327,7 @@ function __mpPendoloBundle() {
       }
     };
   
-    // src/folia/components/visualizer/pendolo/pendoloDialProjection.ts
+    // folia/src/components/visualizer/pendolo/pendoloDialProjection.ts
     var PENDOLO_TILT_LIMIT_DEG = 70;
     var PENDOLO_PERSPECTIVE_FACTOR = 1.2;
     var buildPendoloTiltProjection = (tiltDeg, axisDeg, viewportWidth, viewportHeight) => {
@@ -2443,7 +2449,7 @@ function __mpPendoloBundle() {
       return `matrix3d(${a}, ${d}, 0, ${g}, ${b}, ${e}, 0, ${h}, 0, 0, 1, 0, ${c}, ${f}, 0, ${i})`;
     };
   
-    // src/folia/components/visualizer/pendolo/pendoloClockworkWebGL.ts
+    // folia/src/components/visualizer/pendolo/pendoloClockworkWebGL.ts
     var PENDOLO_PROJECTION_NEAR = "0.02";
     var VERT = `#version 300 es
   precision highp float;
@@ -3248,7 +3254,7 @@ function __mpPendoloBundle() {
       }
     };
   
-    // src/folia/components/visualizer/pendolo/PendoloClockworkCanvas.tsx
+    // folia/src/components/visualizer/pendolo/PendoloClockworkCanvas.tsx
     var PendoloClockworkCanvas = ({
       centerX,
       centerY,
@@ -3667,7 +3673,7 @@ function __mpPendoloBundle() {
     };
     var PendoloClockworkCanvas_default = PendoloClockworkCanvas;
   
-    // src/folia/utils/lyrics/alternateText.ts
+    // folia/src/utils/lyrics/alternateText.ts
     var findAlternateText = (alternateTexts, role) => alternateTexts?.find((entry) => entry.role === role && entry.text.trim())?.text.trim() ?? null;
     var resolveTrackText = (source, role) => {
       const directText = role === "translation" ? source.translation : source.romanization;
@@ -7069,7 +7075,7 @@ function __mpPendoloBundle() {
       return { lineCount, height: lineCount * lineHeight, lines };
     }
   
-    // src/folia/components/visualizer/pendolo/pendoloGeometry.ts
+    // folia/src/components/visualizer/pendolo/pendoloGeometry.ts
     var resolvePendoloWheelCenterX = (viewportWidth, tuning) => tuning.mirrorLayout === true ? viewportWidth * (1 - tuning.wheelCenterX) : viewportWidth * tuning.wheelCenterX;
     function calculatePendoloWheelLayout(lines, targetLineIndex, escapementAngleOffsetRad, viewportWidth, viewportHeight, tuning, radiusOffsetPx = 0, lineBlockHeights) {
       const mirrored = tuning.mirrorLayout === true;
@@ -7132,7 +7138,7 @@ function __mpPendoloBundle() {
       return items;
     }
   
-    // src/folia/utils/lyrics/graphemeTiming.ts
+    // folia/src/utils/lyrics/graphemeTiming.ts
     var graphemeSegmenter = typeof Intl !== "undefined" && Intl.Segmenter ? new Intl.Segmenter(void 0, { granularity: "grapheme" }) : null;
     var splitLyricGraphemes = (text) => {
       if (!text) {
@@ -7241,13 +7247,13 @@ function __mpPendoloBundle() {
       return timeline;
     };
   
-    // src/folia/utils/lyrics/subtitleTrackStyle.ts
+    // folia/src/utils/lyrics/subtitleTrackStyle.ts
     var SECONDARY_TRACK_SIZE_FACTOR = 0.88;
     var SECONDARY_TRACK_OPACITY = 0.82;
     var SECONDARY_TRACK_FONT_WEIGHT_FALLBACK = 400;
     var SECONDARY_TRACK_GAP_EM = 0.25;
   
-    // src/folia/utils/lyrics/estimatedLineTiming.ts
+    // folia/src/utils/lyrics/estimatedLineTiming.ts
     var buildTimedWords = (text, startTime, endTime) => {
       const duration = Math.max(endTime - startTime, 0.1);
       const rawTokens = text.split(/\s+/).filter((token) => token);
@@ -7309,7 +7315,7 @@ function __mpPendoloBundle() {
       return startTime + duration;
     };
   
-    // src/folia/components/visualizer/wordColoring.ts
+    // folia/src/components/visualizer/wordColoring.ts
     var CJK_REGEX = /[\u4e00-\u9fa5\u3040-\u30ff\uac00-\ud7af]/;
     var isCJK2 = (text) => CJK_REGEX.test(text);
     var normalizeWordColorToken = (text) => text.toLowerCase().replace(/[^\w]/g, "");
@@ -7436,7 +7442,7 @@ function __mpPendoloBundle() {
       return colors;
     };
   
-    // src/folia/components/visualizer/monet/monetLyricsModel.ts
+    // folia/src/components/visualizer/monet/monetLyricsModel.ts
     var MONET_GRAPHEME_OFFSETS_CACHE_LIMIT = 420;
     var monetGraphemeOffsetsCache = /* @__PURE__ */ new Map();
     var graphemeSegmenter2 = typeof Intl !== "undefined" ? new Intl.Segmenter(void 0, { granularity: "grapheme" }) : null;
@@ -7468,7 +7474,7 @@ function __mpPendoloBundle() {
       return rememberBounded(monetGraphemeOffsetsCache, cacheKey, offsets, MONET_GRAPHEME_OFFSETS_CACHE_LIMIT);
     };
   
-    // src/folia/components/visualizer/pendolo/pendoloTextLayout.ts
+    // folia/src/components/visualizer/pendolo/pendoloTextLayout.ts
     var buildPendoloTextLayout = (text, fontSpec, maxWidth, lineHeight) => {
       const prepared = prepareWithSegments(text || " ", fontSpec, {
         whiteSpace: "pre-wrap"
@@ -7493,7 +7499,7 @@ function __mpPendoloBundle() {
       };
     };
   
-    // src/folia/components/visualizer/pendolo/pendoloColorRuns.ts
+    // folia/src/components/visualizer/pendolo/pendoloColorRuns.ts
     var buildPendoloColorRuns = (text, graphemeStart, tokenColors, fallbackColor) => {
       const runs = [];
       splitLyricGraphemes(text).forEach((grapheme, localIndex) => {
@@ -7508,7 +7514,7 @@ function __mpPendoloBundle() {
       return runs;
     };
   
-    // src/folia/components/visualizer/pendolo/PendoloActiveLyricSweep.tsx
+    // folia/src/components/visualizer/pendolo/PendoloActiveLyricSweep.tsx
     var PendoloSweepLine = ({
       layoutLine,
       timings,
@@ -7670,7 +7676,7 @@ function __mpPendoloBundle() {
     };
     var PendoloActiveLyricSweep_default = PendoloActiveLyricSweep;
   
-    // src/folia/components/visualizer/pendolo/pendoloSubtitleTracks.ts
+    // folia/src/components/visualizer/pendolo/pendoloSubtitleTracks.ts
     var FOCAL_SUBTITLE_PX = 16;
     var IDLE_SUBTITLE_PX = 12;
     var LEAD_TRACK_GAP_EM = 0.25;
@@ -7706,7 +7712,7 @@ function __mpPendoloBundle() {
       return total;
     };
   
-    // src/folia/components/visualizer/pendolo/pendoloMotionProfile.ts
+    // folia/src/components/visualizer/pendolo/pendoloMotionProfile.ts
     var PENDOLO_MOTION_PROFILES = {
       calm: {
         balanceSpeedMultiplier: 0.72,
@@ -7755,7 +7761,7 @@ function __mpPendoloBundle() {
       };
     };
   
-    // src/folia/components/visualizer/pendolo/pendoloTimeline.ts
+    // folia/src/components/visualizer/pendolo/pendoloTimeline.ts
     var resolvePendoloFallbackAnchorIndex = (lines, currentLineIndex, lastValidLineIndex, hasObservedLine, currentTime) => {
       if (currentLineIndex >= 0 && currentLineIndex < lines.length) {
         return currentLineIndex;
@@ -7779,7 +7785,7 @@ function __mpPendoloBundle() {
       return baseOpacity * edgeProgress;
     };
   
-    // src/folia/components/visualizer/pendolo/PendoloRotatingLine.tsx
+    // folia/src/components/visualizer/pendolo/PendoloRotatingLine.tsx
     var PENDOLO_STAND_FADE_DEG = 65;
     var PENDOLO_STAND_HIDE_DEG = 75;
     var resolvePendoloStandEdgeFade = (angleDeg) => Math.max(
@@ -7857,13 +7863,13 @@ function __mpPendoloBundle() {
     };
     var PendoloRotatingLine_default = react_shim_default.memo(PendoloRotatingLine);
   
-    // src/folia/services/analysis/drumHits.ts
+    // folia/src/services/analysis/drumHits.ts
     var DRUM_KICK = 1;
     var DRUM_SNARE = 2;
     var DRUM_HAT = 3;
     var getDrumHits = (_key) => null;
   
-    // src/folia/components/visualizer/pendolo/usePendoloBeatFx.ts
+    // folia/src/components/visualizer/pendolo/usePendoloBeatFx.ts
     var resolvePendoloWaveReach = (layout) => Math.hypot(
       Math.max(layout.centerX, layout.viewportWidth - layout.centerX),
       Math.max(layout.centerY, layout.viewportHeight - layout.centerY)
@@ -8073,7 +8079,7 @@ function __mpPendoloBundle() {
       return { shared, waveRadius, waveBand, waveStrength, shakeX, shakeY, haloScale, haloOpacity, waveX, waveY, haloX, haloY, breath, color };
     };
   
-    // src/folia/stores/useVisualizerSettingsStore.ts
+    // folia/src/stores/useVisualizerSettingsStore.ts
     var STATE = {
       smartBeat: { mode: "off", effects: {} },
       visualizerFrameRate: 60
@@ -8084,7 +8090,7 @@ function __mpPendoloBundle() {
     };
     useVisualizerSettingsStore.getState = () => STATE;
   
-    // src/folia/components/visualizer/pendolo/VisualizerPendolo.tsx
+    // folia/src/components/visualizer/pendolo/VisualizerPendolo.tsx
     var PENDOLO_SCROLL_IDLE_RESET_MS = 2500;
     var PENDOLO_HALO_ALPHA = 0.45;
     var PENDOLO_SCROLL_STEP_PX = 90;

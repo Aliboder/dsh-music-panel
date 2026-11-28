@@ -110,7 +110,7 @@ node scripts/build-client.mjs
 node scripts/build-client.mjs --check
 ```
 
-Host 在 index.js + src/host/**；客户端由 src/client/** 分片构建成单文件 client.js；src/folia/** 是 Folia 上游源码镜像，src/folia-adapters/** 是插件适配，src/folia-build/** 是构建入口与 bundle。
+Host 在 index.js + src/host/**；客户端由 src/client/** 分片构建成单文件 client.js；folia/src/** 是 Folia 上游源码镜像，src/folia-adapters/** 是插件适配，src/folia-build/** 是构建入口与 bundle。
 
 更多： [主题与组件规范](A_other/docs/主题与组件开发规范.md) · [Folia 移植规范](A_other/docs/上游移植规范.md) · [移植差距清单](A_other/docs/上游移植差距清单.md) · [移植完成情况](A_other/docs/上游移植完成情况.md) · [踩坑记录](A_other/docs/踩坑记录.md) · [发布流程](A_other/docs/发布手册.md)
 
@@ -118,7 +118,7 @@ Host 在 index.js + src/host/**；客户端由 src/client/** 分片构建成单�
 
 本项目**大量参考并移植了 [Folia](https://github.com/chthollyphile/folia-major)**（folia-major-main，AGPL-3.0-only）的代码：
 
-- src/folia/**：按上游路径移植的歌词舞台、背景与逐字歌词渲染；src/folia-adapters/** 适配 DSH，src/folia-build/** 产出 bundle；
+- folia/src/**：按上游路径移植的歌词舞台、背景与逐字歌词渲染；src/folia-adapters/** 适配 DSH，src/folia-build/** 产出 bundle；
 - src/client/utils/lyrics/**：歌词解析、staff / 副歌 / 行过滤、icu-folia 分词；
 - 在线层的能力位、注册表、统一门面和失败分类参考了 Folia 的架构；
 - 移植只改宿主边界（React props、播放时钟、主题、音频带、存储 / worker shim），渲染与解析尽量保持上游原样。

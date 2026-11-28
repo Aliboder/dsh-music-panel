@@ -5,7 +5,7 @@
  *   node scripts/build-folia-source.mjs bodian        # rebuild one platform
  *   node scripts/build-folia-source.mjs --check        # fail when any committed bundle is stale
  *
- * The upstream module stays TypeScript in src/folia-mods/ (mirrored byte for byte); esbuild
+ * The upstream module stays TypeScript in folia/ (mirrored byte for byte); esbuild
  * compiles it with the plugin's host surfaces in src/folia-adapters/ into one ESM file the
  * Host loads. Nothing of the module's logic is rewritten here.
  *
@@ -17,7 +17,7 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
-const KIT_INDEX = join(ROOT, 'src/folia-mods/packages/folium-source-kit/src/index.ts')
+const KIT_INDEX = join(ROOT, 'folia/packages/folium-source-kit/src/index.ts')
 
 /** 每个平台：入口、产物、要在运行时从 node_modules 解析的包（打进 bundle 之外）。 */
 const PLATFORMS = {
@@ -42,17 +42,18 @@ const PLATFORMS = {
     // 上游匹配链要的宿主接口，用插件侧替身；两个 npm 依赖留到运行时解析。
     external: ['wanakana', 'opencc-js/t2cn'],
     alias: {
-      '../../services/onlineMusic/providerRegistry': 'src/folia-adapters/lyrics-match/provider-registry.ts',
-      '../../services/onlineMusic/crossSource': 'src/folia-adapters/lyrics-match/cross-source.ts',
+      // 替身与上游同相对路径：src/folia-adapters/<上游相对路径>。
+      '../../services/onlineMusic/providerRegistry': 'src/folia-adapters/services/onlineMusic/providerRegistry.ts',
+      '../../services/onlineMusic/crossSource': 'src/folia-adapters/services/onlineMusic/crossSource.ts',
       // AMLL 库的网络访问是宿主的事（与在线源一样），匹配逻辑仍由上游决定问什么、怎么用。
-      './providers/amllDbProvider': 'src/folia-adapters/lyrics-match/amll-db-provider.ts',
+      './providers/amllDbProvider': 'src/folia-adapters/utils/lyrics/providers/amllDbProvider.ts',
       // 上游 mods/folium/lyricsSource.ts 用 `@/` 指向 src；镜像后指回 src/folia，解析工作交给进程内替身。
-      '@/utils/lyrics/adapters/LocalFileLyricAdapter': 'src/folia/utils/lyrics/adapters/LocalFileLyricAdapter.ts',
-      '@/utils/lyrics/filtering': 'src/folia/utils/lyrics/filtering.ts',
-      '@/utils/lyrics/parserCore': 'src/folia/utils/lyrics/parserCore.ts',
-      '@/utils/lyrics/foliaLyricDocument': 'src/folia/utils/lyrics/foliaLyricDocument.ts',
-      '@/utils/lyrics/chorusResolver': 'src/folia/utils/lyrics/chorusResolver.ts',
-      '@/utils/lyrics/workerClient': 'src/folia-adapters/lyrics-source/worker-client.ts',
+      '@/utils/lyrics/adapters/LocalFileLyricAdapter': 'folia/src/utils/lyrics/adapters/LocalFileLyricAdapter.ts',
+      '@/utils/lyrics/filtering': 'folia/src/utils/lyrics/filtering.ts',
+      '@/utils/lyrics/parserCore': 'folia/src/utils/lyrics/parserCore.ts',
+      '@/utils/lyrics/foliaLyricDocument': 'folia/src/utils/lyrics/foliaLyricDocument.ts',
+      '@/utils/lyrics/chorusResolver': 'folia/src/utils/lyrics/chorusResolver.ts',
+      '@/utils/lyrics/workerClient': 'src/folia-adapters/utils/lyrics/workerClient.ts',
     },
   },
   netease: {
@@ -64,17 +65,17 @@ const PLATFORMS = {
     // 网易云的后端跑在工作线程里，线程是一个磁盘文件：把上游 main 下的 .cjs 原样放到 bundle 旁边，
     // neteaseApiWorker.cjs 改名成 worker.cjs（上游 main 入口按这个文件名找它）。
     files: [
-      ['src/folia-mods/sources/netease/main/neteaseApiWorker.cjs', 'src/host/vendor/netease-folia/worker.cjs'],
-      ['src/folia-mods/sources/netease/main/neteaseBackend.cjs', 'src/host/vendor/netease-folia/neteaseBackend.cjs'],
-      ['src/folia-mods/sources/netease/main/neteaseApiStartup.cjs', 'src/host/vendor/netease-folia/neteaseApiStartup.cjs'],
-      ['src/folia-mods/sources/netease/main/neteaseApiHost.cjs', 'src/host/vendor/netease-folia/neteaseApiHost.cjs'],
-      ['src/folia-mods/sources/netease/main/neteaseLoginDiagnostics.cjs', 'src/host/vendor/netease-folia/neteaseLoginDiagnostics.cjs'],
-      ['src/folia-mods/sources/netease/main/neteaseLoginIdentity.cjs', 'src/host/vendor/netease-folia/neteaseLoginIdentity.cjs'],
-      ['src/folia-mods/sources/netease/main/networkRecorder.cjs', 'src/host/vendor/netease-folia/networkRecorder.cjs'],
-      ['src/folia-mods/sources/netease/main/networkErrorText.cjs', 'src/host/vendor/netease-folia/networkErrorText.cjs'],
-      ['src/folia-mods/sources/netease/main/upstreamAddressOrder.cjs', 'src/host/vendor/netease-folia/upstreamAddressOrder.cjs'],
-      ['src/folia-mods/sources/netease/main/backendLifecycle.cjs', 'src/host/vendor/netease-folia/backendLifecycle.cjs'],
-      ['src/folia-mods/sources/netease/main/lazyJsdom.cjs', 'src/host/vendor/netease-folia/lazyJsdom.cjs'],
+      ['folia/sources/netease/main/neteaseApiWorker.cjs', 'src/host/vendor/netease-folia/worker.cjs'],
+      ['folia/sources/netease/main/neteaseBackend.cjs', 'src/host/vendor/netease-folia/neteaseBackend.cjs'],
+      ['folia/sources/netease/main/neteaseApiStartup.cjs', 'src/host/vendor/netease-folia/neteaseApiStartup.cjs'],
+      ['folia/sources/netease/main/neteaseApiHost.cjs', 'src/host/vendor/netease-folia/neteaseApiHost.cjs'],
+      ['folia/sources/netease/main/neteaseLoginDiagnostics.cjs', 'src/host/vendor/netease-folia/neteaseLoginDiagnostics.cjs'],
+      ['folia/sources/netease/main/neteaseLoginIdentity.cjs', 'src/host/vendor/netease-folia/neteaseLoginIdentity.cjs'],
+      ['folia/sources/netease/main/networkRecorder.cjs', 'src/host/vendor/netease-folia/networkRecorder.cjs'],
+      ['folia/sources/netease/main/networkErrorText.cjs', 'src/host/vendor/netease-folia/networkErrorText.cjs'],
+      ['folia/sources/netease/main/upstreamAddressOrder.cjs', 'src/host/vendor/netease-folia/upstreamAddressOrder.cjs'],
+      ['folia/sources/netease/main/backendLifecycle.cjs', 'src/host/vendor/netease-folia/backendLifecycle.cjs'],
+      ['folia/sources/netease/main/lazyJsdom.cjs', 'src/host/vendor/netease-folia/lazyJsdom.cjs'],
     ],
   },
 }
@@ -94,7 +95,7 @@ const foliumAliases = (external, alias = {}) => ({
 
 const headerOf = (id) => [
   '// Generated by scripts/build-folia-source.mjs - do not edit by hand.',
-  '// Sources: A_other/upstream/folia-major-main/sources/' + id + ', mirrored verbatim to src/folia-mods/sources/' + id + ',',
+  '// Sources: A_other/upstream/folia-major-main/sources/' + id + ', mirrored verbatim to folia/sources/' + id + ',',
   '// compiled together with the plugin-side host surfaces in src/folia-adapters/source-host/.',
   '',
 ].join('\n')

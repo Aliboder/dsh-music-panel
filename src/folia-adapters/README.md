@@ -1,54 +1,27 @@
-# Folia 适配层 (`src/folia-adapters/`)
+# Folia 适配层（`src/folia-adapters/`）
 
-插件适配层：shims、vendor 和插件特有的实现。已移植的 Folia 源码在 `src/folia/`，构建入口与 bundle 在 `src/folia-build/`。
+插件侧的东西都在这里：替换上游模块的替身、宿主面实现、构建期 shims 与 vendored 包。
+上游镜像本身在 `folia/`（规则见 [`folia/README.md`](../folia/README.md)），构建入口与 bundle 在 `src/folia-build/`。
 
-## What is here
+## 替换上游模块的替身（与上游同相对路径）
 
-| Path | Origin | Notes |
+| 这里 | 替的是上游 | 为什么 |
 |---|---|---|
-| `components/visualizer/pendolo/` | `src/components/visualizer/pendolo/` | All 23 files, unchanged. The settings panel, `entry.tsx` and `tuning.ts` are kept but not compiled/registered yet. |
-| `components/visualizer/{still,tilt,partita,claddagh,cappella,cadenza,fume,monet,lumiere,sonnet,tempera,hanabi,nebbia,diorama}/` | same paths | Verbatim sources for the 16 styles compiled by `styles.bundle.js`, including `cappella` and `machi`; their entries declare labels/glyphs and the settings panels are build-time no-ops. |
-| `components/visualizer/machi/` | same path | Source kept for reference; the runtime actually uses the already compiled `machi.bundle.js` (Folia engine) through `src/render/styles/machi-native.js`. |
-| `components/visualizer/diorama/` | same path | Verbatim source, enabled; `@react-three/fiber@8.18.0` is vendored in `vendor/r3f/`. Canvas/CameraRig/DioramaScene render; a React 18 host is caught by the style error boundary and falls back to classic. |
-| `components/visualizer/backgrounds/` | `src/components/visualizer/backgrounds/` | The six background renderers and their entries, unchanged except: `registry.tsx` is an explicit-import boundary (Vite's `import.meta.glob` is not available here); `monet/monetBackgroundPipeline.ts` paints on an `OffscreenCanvas` instead of a Worker (same `paintMonetBackground`); `nomand/NomandBackgroundEffectSettings.tsx` keeps only the effect data used by the entry. Settings cards are aliased to a no-op stub at build time. |
-| `components/visualizer/{styleTransition/firstFrame,layerTransition}.ts`, `backgrounds/useBlendedColors.ts` | same paths | Background timing/colour-blend helpers. |
-| `components/visualizer/preview/frozenPicture.ts` | rewritten boundary | Only the two data attributes the backgrounds read. |
-| `backgrounds-entry.tsx` | build entry | Exports the renderer, registry, mode ids and tuning defaults. |
-| `types.ts`, `types/visualizerModes.ts`, `utils/**`, `stores/motionSignals.ts` | Folia paths | Shared types, colour/paper-shader helpers, cover URL helpers, the two beat signals Latent reads. |
-| `shims/` | build-time | React/framer-motion/lucide from the plugin client; settings cards and quick controls are no-ops; beat services stay off. |
-| `vendor/pretext/`, `vendor/paper-shaders*/`, `vendor/twgl/` | npm packages | MIT / Apache-2.0 / MIT, vendored because the plugin ships one client file. The paper-shaders React wrappers are patched locally to forward `ref` to `ShaderMount` (Folia runs React 19 where `ref` is a prop; the plugin host is React 18). |
-| `pendolo.bundle.js`, `backgrounds.bundle.js` | generated | `node scripts/build-pendolo.mjs`, `node scripts/build-backgrounds.mjs`. |
+| `services/onlineMusic/providerRegistry.ts` | `src/services/onlineMusic/providerRegistry.ts` | 平台的 provider 由插件注册表注入 |
+| `services/onlineMusic/crossSource.ts` | `src/services/onlineMusic/crossSource.ts` | 可参与匹配的源名单由插件提供 |
+| `utils/lyrics/providers/amllDbProvider.ts` | `src/utils/lyrics/providers/amllDbProvider.ts` | AMLL 的网络访问收进宿主 AMLL 客户端 |
+| `utils/lyrics/workerClient.ts` | `src/utils/lyrics/workerClient.ts` | Node 没有 Web Worker，进程内解析 |
 
-## Boundary (plugin side)
+每个文件头都写着「替身上游：…」。新增替身时放到 `src/folia-adapters/<上游相对路径>`，并在构建入口里用 alias 接上。
 
-- `src/render/styles/folia-audio.js` is Folia's audio write path: one analyser wave →
-  `audioPower`, the five 0–255 bands and the raw `spectrum`, with upstream's Hz splits,
-  power curve and idle breath. Every Folia stage below reads it.
-- `src/render/styles/folia-pendolo.js` builds Folia's `VisualizerSharedProps` (clock,
-  bands, `Line[]`, `Theme`, defaults tuning) and mounts the style once per song.
-- `src/render/styles/folia-backdrop.js` builds Folia's `VisualizerBackgroundConfig`
-  (mode, URL list, per-mode defaults), theme and audio signals, and mounts the
-  background renderer inside the player page (`.mp-np`, not a global overlay).
-- The player sheet's 背景 row now lists Folia's six modes plus 空; `prefs.bgMode`
-  defaults to `latent`, old flow/cover/aurora/stars/off values migrate.
+## 宿主面（没有单一上游文件）
 
+- `source-host/`：给四个 Folia 音源模组（bodian / qishui / qq / netease）的宿主 API——`rpc`、`net.fetch`/`request`、`media.allow`、`legacy.store`、`seal`、`pageStore`、`texts`、`errors`、`source-deps`。
+- `kugou/`：酷狗模组自己的宿主面（rpc、seal、pageStore、legacyStore、texts、packageReady 等）。
 
-## Not ported yet (and therefore different from Folia)
+## 其它
 
-- Folia's **settings windows / per-style tuning UI** and background settings cards; the
-  plugin mounts styles with their default tuning. The cover palette + built-in theme
-  generator *are* ported (`utils/builtinTheme`, `services/baseThemes`).
-- AI/custom themes and the theme editor.
-- Style-switch soft focus and background transition frames (`VisualizerBackgroundTransition`),
-  the shared subtitle/harmony overlays and Folia's player chrome.
-- Background tuning UI (Paper shader sliders, Monet layout, Nomand effect picker, URL list
-  management): only the mode choice and one URL string are exposed in the player sheet.
-- Monet's background Worker: the same `paintMonetBackground` runs on an `OffscreenCanvas`
-  in the main thread because the plugin has no separate worker file.
-- `nebbia` stroke data (`nebbia-strokes.json`); falls back to the font skeleton. Cappella's
-  built-in avatars/emoji are Folia's images, served from the plugin's `/music/assets/cappella/` route.
-- Smart beat (`beat_this`) and drum stems (`htdemucs`): the drum-head / gear-beat effects
-  stay off; the base picture is unaffected.
-- Global render quality tiers, frame-rate cap, prewarm and the per-style tuning UI.
-- Folia's app-level wallpaper/transparent page modes.
+- `shims/`：构建期替身（framer-motion、lucide-react、i18n、settings-card、ttml 等），把上游组件接到插件 client。
+- `vendor/`：因为插件只发一个 client 文件而 vendored 的 npm 包（pixi、paper-shaders、pretext、twgl、r3f）。
+- `components/visualizer/backgrounds/monet/monetBackgroundPipeline.ts`：Monet 背景在 `OffscreenCanvas` 上的适配版（同一套绘制）。
 

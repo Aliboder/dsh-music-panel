@@ -1,0 +1,31 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link rel="stylesheet" href="_theme.css">
+</head><body style="margin:0">
+<div class="mp-np is-open is-visualizer mp-style-classic" style="position:absolute;inset:0;--mp-pane-gap:5vw">
+  <div class="mp-np-body">
+    <div class="mp-np-right">
+      <div id="shell" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;line-height:1.5">
+        <div id="area" class="relative z-10 w-full h-[70vh] flex items-center justify-center p-8">
+          <div id="line" class="flex flex-wrap w-full max-w-6xl content-center justify-center items-center" style="min-height:300px">
+    <div class="gword inline-block origin-center relative whitespace-nowrap" style="font-size:72px;line-height:1.1;font-weight:700;margin-inline-end:3rem">.</div>
+    <div class="gword inline-block origin-center relative whitespace-nowrap" style="font-size:72px;line-height:1.1;font-weight:700;margin-inline-end:3rem">.</div>
+    <div class="gword inline-block origin-center relative whitespace-nowrap" style="font-size:72px;line-height:1.1;font-weight:700;margin-inline-end:3rem">.</div>
+    <div class="gword inline-block origin-center relative whitespace-nowrap" style="font-size:72px;line-height:1.1;font-weight:700;margin-inline-end:3rem">.</div>
+    <div class="gword inline-block origin-center relative whitespace-nowrap" style="font-size:72px;line-height:1.1;font-weight:700;margin-inline-end:3rem">.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+function rect(el){const r=el.getBoundingClientRect();return {l:+r.left.toFixed(1),r:+r.right.toFixed(1),t:+r.top.toFixed(1),b:+r.bottom.toFixed(1),w:+r.width.toFixed(1)}}
+const out={vw:window.innerWidth,vh:window.innerHeight};
+out.shell=rect(document.getElementById("shell"));
+out.area=rect(document.getElementById("area"));
+out.line=rect(document.getElementById("line"));
+out.dots=[...document.querySelectorAll(".gword")].map(rect);
+out.inkCenter=+(((out.dots[0].l+out.dots[out.dots.length-1].r)/2)).toFixed(1);
+out.shellCenter=+(((out.shell.l+out.shell.r)/2)).toFixed(1);
+document.body.setAttribute("data-result", JSON.stringify(out));
+</script></body></html>

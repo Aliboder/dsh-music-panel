@@ -2,7 +2,7 @@
  * 「匹配歌词」的 Folia 算法 bundle 入口。
  *
  * 上游 utils/lyrics 下的匹配链（autoMatchBestLyric / lyricMatchSources / lyricSources /
- * matchScore / amllDbProvider …）逐字节镜像在 src/folia/utils/lyrics/，这里只做两件事：
+ * matchScore / amllDbProvider …）逐字节镜像在 folia/src/utils/lyrics/，这里只做两件事：
  *   1. 把上游要的宿主接口（providerRegistry、crossSource）接到插件侧替身；
  *   2. 暴露上游的公开函数给 Host 调用。
  * 算法、阈值、超时、顺序全部来自镜像文件，本文件不写匹配逻辑。
@@ -11,17 +11,17 @@
  *
  * @module dsh-music-panel/folia-build/lyrics-match-host-entry
  */
-import { resolveFoliumSourceLyricsResult } from '../folia/mods/folium/lyricsSource'
-import { configureAmllDb } from '../folia-adapters/lyrics-match/amll-db-provider'
-import { setLyricsMatchParticipants } from '../folia-adapters/lyrics-match/cross-source'
-import { registerLyricsMatchProvider } from '../folia-adapters/lyrics-match/provider-registry'
-import { autoMatchBestLyric } from '../folia/utils/lyrics/autoMatchBestLyric'
+import { resolveFoliumSourceLyricsResult } from '../../folia/src/mods/folium/lyricsSource'
+import { configureAmllDb } from '../folia-adapters/utils/lyrics/providers/amllDbProvider'
+import { setLyricsMatchParticipants } from '../folia-adapters/services/onlineMusic/crossSource'
+import { registerLyricsMatchProvider } from '../folia-adapters/services/onlineMusic/providerRegistry'
+import { autoMatchBestLyric } from '../../folia/src/utils/lyrics/autoMatchBestLyric'
 import {
   fetchLyricsForMatchSource,
   getLyricSourceAccess,
   isLyricMatchSourceOffered,
   searchLyricsByMatchSource,
-} from '../folia/utils/lyrics/lyricMatchSources'
+} from '../../folia/src/utils/lyrics/lyricMatchSources'
 import {
   getLyricSource,
   getLyricSourceIds,
@@ -29,10 +29,10 @@ import {
   LYRIC_SOURCES,
   registerLyricSource,
   registerLyricSourceAccess,
-} from '../folia/utils/lyrics/lyricSources'
-import { calculateMatchScore, calculateMatchScoreDetails } from '../folia/utils/lyrics/matchScore'
-import { buildLyricSourceOrder, DEFAULT_PREFERRED_LYRIC_SOURCE } from '../folia/utils/lyrics/sourcePriority'
-import { hasRenderableLyrics } from '../folia/utils/lyrics/validity'
+} from '../../folia/src/utils/lyrics/lyricSources'
+import { calculateMatchScore, calculateMatchScoreDetails } from '../../folia/src/utils/lyrics/matchScore'
+import { buildLyricSourceOrder, DEFAULT_PREFERRED_LYRIC_SOURCE } from '../../folia/src/utils/lyrics/sourcePriority'
+import { hasRenderableLyrics } from '../../folia/src/utils/lyrics/validity'
 
 export interface LyricsMatchSourceConfig {
   id: string

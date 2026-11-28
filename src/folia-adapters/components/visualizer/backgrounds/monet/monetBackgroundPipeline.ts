@@ -1,6 +1,6 @@
-import type { MonetBackgroundImage, MonetBackgroundTuning, Theme } from '../../../../../folia/types';
-import { paintMonetBackground, MONET_BACKGROUND_WIDTH, MONET_BACKGROUND_HEIGHT } from '../../../../../folia/components/visualizer/monet/monetBackgroundPaint';
-import type { MonetBackgroundPaintRequest } from '../../../../../folia/components/visualizer/monet/monetBackgroundPaint';
+import type { MonetBackgroundImage, MonetBackgroundTuning, Theme } from '../../../../../../folia/src/types';
+import { paintMonetBackground, MONET_BACKGROUND_WIDTH, MONET_BACKGROUND_HEIGHT } from '../../../../../../folia/src/components/visualizer/monet/monetBackgroundPaint';
+import type { MonetBackgroundPaintRequest } from '../../../../../../folia/src/components/visualizer/monet/monetBackgroundPaint';
 
 // src/render/folia/components/visualizer/backgrounds/monet/monetBackgroundPipeline.ts
 // Boundary port of Folia's pipeline. The reference paints the poster in a Worker

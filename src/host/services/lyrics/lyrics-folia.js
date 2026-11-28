@@ -2,7 +2,7 @@
  * 「匹配歌词」的 Folia 算法宿主适配层。
  *
  * 算法（打分、来源顺序、候选挑选、自动匹配的两次重试、AMLL 探测时机）全部来自
- * `src/host/vendor/lyrics-folia/match.bundle.mjs`（即 src/folia/utils/lyrics 的逐字节镜像）；
+ * `src/host/vendor/lyrics-folia/match.bundle.mjs`（即 folia/src/utils/lyrics 的逐字节镜像）；
  * 这里只做三件事：把我们的平铺歌对象换成上游的 SongResult、把上游的 LyricData 换回我们的行，
  * 以及用调用方注入的 io（搜索/取词/AMLL）搭出上游要的 provider。
  *

@@ -9,14 +9,14 @@
  *
  * @module dsh-music-panel/folia-build/qq-host-entry
  */
-import activateMain from '../folia-mods/sources/qq/main/index'
-import activateClient from '../folia-mods/sources/qq/client/index'
-import zhCN from '../folia-mods/sources/qq/locales/zh-CN.json'
-import en from '../folia-mods/sources/qq/locales/en.json'
-import inLocale from '../folia-mods/sources/qq/locales/in.json'
-import vi from '../folia-mods/sources/qq/locales/vi.json'
+import activateMain from '../../folia/sources/qq/main/index'
+import activateClient from '../../folia/sources/qq/client/index'
+import zhCN from '../../folia/sources/qq/locales/zh-CN.json'
+import en from '../../folia/sources/qq/locales/en.json'
+import inLocale from '../../folia/sources/qq/locales/in.json'
+import vi from '../../folia/sources/qq/locales/vi.json'
 import { createSourceHost } from '../folia-adapters/source-host/host'
-import { isPureMusicLyricText } from '../folia/utils/lyrics/pureMusic'
+import { isPureMusicLyricText } from '../../folia/src/utils/lyrics/pureMusic'
 
 export interface FoliaQqOptions {
   dir: string

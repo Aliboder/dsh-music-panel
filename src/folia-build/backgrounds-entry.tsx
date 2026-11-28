@@ -1,17 +1,17 @@
-import VisualizerBackgroundRenderer from '../folia/components/visualizer/backgrounds/VisualizerBackgroundRenderer';
+import VisualizerBackgroundRenderer from '../../folia/src/components/visualizer/backgrounds/VisualizerBackgroundRenderer';
 import {
     DEFAULT_VISUALIZER_BACKGROUND_MODE,
     VISUALIZER_BACKGROUND_REGISTRY,
     VISUALIZER_BACKGROUND_MODE_IDS,
     getVisualizerBackgroundRegistryEntry,
     hasVisualizerBackgroundMode,
-} from '../folia/components/visualizer/backgrounds/registry';
+} from '../../folia/src/components/visualizer/backgrounds/registry';
 import {
     DEFAULT_LATENT_BACKGROUND_TUNING,
     DEFAULT_MONET_BACKGROUND_TUNING,
     DEFAULT_NOMAND_BACKGROUND_TUNING,
     DEFAULT_SORA_BACKGROUND_TUNING,
-} from '../folia/types';
+} from '../../folia/src/types';
 
 // src/render/folia/backgrounds-entry.tsx
 // Build entry for Folia's six shell backgrounds (common / monet / nomand / latent /

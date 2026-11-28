@@ -1,7 +1,7 @@
 /**
  * 波点：Folia 音源模组的移植源（注册在源注册表里的那个对象）。
  *
- * 上游 src/folia-mods/sources/bodian 的 main/client 入口原样跑在 bundle 里（src/host/vendor/bodian-folia），
+ * 上游 folia/sources/bodian 的 main/client 入口原样跑在 bundle 里（src/host/vendor/bodian-folia），
  * 这里只做三件事：起一个实例、把定义交给共用映射（folia-bridge）、登记进注册表。
  * 平台逻辑一行都不在本文件里。
  *

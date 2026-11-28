@@ -9,11 +9,11 @@
  *
  * @module dsh-music-panel/folia-build/kugou-host-entry
  */
-import activateMain from '../folia-mods/sources/kugou/main/index'
-import activateClient from '../folia-mods/sources/kugou/client/index'
-import { KUGOU_OPERATIONS } from '../folia-mods/sources/kugou/core/index'
+import activateMain from '../../folia/sources/kugou/main/index'
+import activateClient from '../../folia/sources/kugou/client/index'
+import { KUGOU_OPERATIONS } from '../../folia/sources/kugou/core/index'
 import { createClientFacade, createFoliaKugouHost, type FoliaKugouHost, type FoliaKugouHostOptions } from '../folia-adapters/kugou/host'
-import { isPureMusicLyricText } from '../folia/utils/lyrics/pureMusic'
+import { isPureMusicLyricText } from '../../folia/src/utils/lyrics/pureMusic'
 
 export { KUGOU_OPERATIONS }
 export type { FoliaKugouHost, FoliaKugouHostOptions }

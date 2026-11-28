@@ -1,0 +1,16 @@
+<!doctype html><html><body style="background:#222;color:#fff;font:14px sans-serif;padding:40px">
+<style>
+.mp-tuning-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:16px;align-items:start}
+.mp-tuning-grid>div,.mp-tuning-grid>div>div:not(.mp-set-label){display:contents}
+.mp-tuning-grid .mp-set-row{grid-column:1/-1;order:2;min-width:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(96px,44%);align-items:center;gap:10px;min-height:36px;padding:4px 0}
+.mp-tuning-grid .mp-set-row.mp-tuning-range{grid-column:span 1;order:1}
+.mp-tuning-grid .mp-set-label{grid-column:1/-1;order:0;padding:8px 0 0 !important;white-space:nowrap;overflow:visible}
+.mp-tuning-grid .mp-set-row .mp-set-label{font-size:13px;white-space:nowrap;overflow:visible;text-overflow:clip}
+.mp-tuning-label{display:block;max-width:100%;overflow:hidden;white-space:nowrap}
+.mp-tuning-range-wrap{display:flex;align-items:center;gap:8px;width:100%;min-width:0}
+.mp-tuning-range-wrap input{flex:1 1 auto;min-width:0;width:100%}
+.mp-tuning-range-value{flex:0 0 auto;min-width:32px;text-align:right}
+</style>
+<div class="mp-tuning-grid"><div><div><div class="mp-set-row mp-tuning-range"><div class="mp-set-text"><div class="mp-set-label"><span class="mp-tuning-label"><span class="mp-tuning-label-inner">镜头强度</span></span></div></div><div class="mp-set-control"><div class="mp-tuning-range-wrap"><input id="r" type="range" min="0" max="2" step="0.1" value="1"><span class="mp-tuning-range-value">1</span></div></div></div></div></div></div>
+<script>const r=document.getElementById('r');const v=r.nextElementSibling;r.addEventListener('input',()=>v.textContent=r.value);</script>
+</body></html>
