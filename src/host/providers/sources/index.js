@@ -18,6 +18,7 @@ import { createOmni } from './omni.js'
 import { createRegistry } from './registry.js'
 import { configureBodianFolia, createBodianFoliaSource } from './bodian-folia/index.js'
 import { configureKugouFolia } from './kugou-folia/instance.js'
+import { configureQishuiFolia, createQishuiFoliaSource } from './qishui-folia/index.js'
 import { createQishuiSource } from './qishui/index.js'
 import { ensureQishuiDeviceId } from './qishui/device.js'
 import { createQishuiSessions } from './qishui/sessions.js'
@@ -265,6 +266,18 @@ export function registerBodianSource(options) {
 export function registerBodianFoliaSource(options) {
   configureBodianFolia({ dir: options.dir, language: options.language })
   const source = createBodianFoliaSource()
+  registry.register(source)
+  return source
+}
+
+/**
+ * Qishui: the ported Folia source module (with the ticket-guard renewal our old layer had).
+ *
+ * @param {{ dir: string, language?: string }} options
+ */
+export function registerQishuiFoliaSource(options) {
+  configureQishuiFolia({ dir: options.dir, language: options.language })
+  const source = createQishuiFoliaSource()
   registry.register(source)
   return source
 }

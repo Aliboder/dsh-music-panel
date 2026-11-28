@@ -26,6 +26,11 @@ const PLATFORMS = {
     out: 'src/host/vendor/bodian-folia/source.bundle.mjs',
     external: ['bodian-music-api'],
   },
+  qishui: {
+    entry: 'src/folia-build/qishui-host-entry.ts',
+    out: 'src/host/vendor/qishui-folia/source.bundle.mjs',
+    external: ['qishui-music-api'],
+  },
 }
 
 const foliumAliases = (external) => ({

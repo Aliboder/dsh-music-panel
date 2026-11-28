@@ -24,7 +24,7 @@ import { createStats } from './src/host/stores/stats.js'
 import { createLyricState } from './src/host/stores/lyric-state.js'
 import { readLyricsFor } from './src/host/services/lyrics/lyrics.js'
 import { enqueueControl } from './src/host/services/playback/control.js'
-import { omni, registerBodianFoliaSource, registerKugouSource, registerLocalSource, registerOnlineSources, registerQishuiSource, resetSources } from './src/host/providers/sources/index.js'
+import { omni, registerBodianFoliaSource, registerKugouSource, registerLocalSource, registerOnlineSources, registerQishuiFoliaSource, resetSources } from './src/host/providers/sources/index.js'
 import { stopNeteaseService } from './src/host/services/netease-api.js'
 import { stopQqService } from './src/host/services/qq-api.js'
 import { createAudioFocusService } from './src/host/services/audio-focus.js'
@@ -131,7 +131,7 @@ export function apply(ctx, rawConfig) {
   registerOnlineSources()
   registerKugouSource({ dir: settings.dir })
   registerBodianFoliaSource({ dir: settings.dir })
-  registerQishuiSource({ dir: settings.dir, store: qishuiStore })
+  registerQishuiFoliaSource({ dir: settings.dir })
   if (library !== null && typeof library.scan === 'function') {
     registerLocalSource({
       scan: (options) => library.scan(options),
