@@ -36,7 +36,31 @@ export const createNet = (options: { fetchImpl?: typeof fetch } = {}): SourceNet
         ? requestOptions.headers as Record<string, string>
         : undefined
       const transport = url.protocol === 'https:' ? https : http
-      return transport.request(url, { method, ...(headers === undefined ? {} : { headers }) })
+      const client = transport.request(url, { method, ...(headers === undefined ? {} : { headers }) })
+      // Electron 的 Chromium 自己算 Content-Length；Node 不会。波点的包在有 requestFactory 时不设
+      // Content-Length（包自己的 http.cjs:86-89 只给没有 requestFactory 的那条路设），
+      // 不补的话 GET 带 JSON 正文会变成 chunked，平台未必收。这里在 end(body) 时补上。
+      const wrapped = {
+        setHeader: (name: string, value: string | number | readonly string[]) => { client.setHeader(name, value); return wrapped },
+        getHeader: (name: string) => client.getHeader(name),
+        removeHeader: (name: string) => client.removeHeader(name),
+        on: (event: string, listener: (...args: unknown[]) => void) => { client.on(event, listener as never); return wrapped },
+        once: (event: string, listener: (...args: unknown[]) => void) => { client.once(event, listener as never); return wrapped },
+        write: (chunk: unknown) => { client.write(chunk as never); return wrapped },
+        end: (body?: unknown) => {
+          const hasBody = body !== undefined && body !== null && body !== ''
+          if (hasBody && client.getHeader('content-length') === undefined) {
+            const text = typeof body === 'string' || Buffer.isBuffer(body) ? body : String(body)
+            client.setHeader('content-length', String(Buffer.byteLength(text as string)))
+          }
+          client.end(hasBody ? (body as never) : undefined)
+          return wrapped
+        },
+        destroy: () => { client.destroy(); return wrapped },
+        abort: () => { client.destroy(); return wrapped },
+        get socket() { return client.socket },
+      }
+      return wrapped
     },
   }
 }

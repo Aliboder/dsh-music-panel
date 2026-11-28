@@ -16,6 +16,7 @@ import { createBodianSessions } from './bodian/sessions.js'
 import { createLocalSource } from './local.js'
 import { createOmni } from './omni.js'
 import { createRegistry } from './registry.js'
+import { configureBodianFolia, createBodianFoliaSource } from './bodian-folia/index.js'
 import { configureKugouFolia } from './kugou-folia/instance.js'
 import { createQishuiSource } from './qishui/index.js'
 import { ensureQishuiDeviceId } from './qishui/device.js'
@@ -251,6 +252,21 @@ export function registerBodianSource(options) {
     // Keep the rest of the plugin working; the platform simply will not appear.
     return null
   }
+}
+
+/**
+ * Bodian: the ported Folia source module.
+ *
+ * Starts its bundle instance (upstream main/client entries against the plugin's
+ * host surfaces) and registers the source the bridge builds from its definition.
+ *
+ * @param {{ dir: string, language?: string }} options
+ */
+export function registerBodianFoliaSource(options) {
+  configureBodianFolia({ dir: options.dir, language: options.language })
+  const source = createBodianFoliaSource()
+  registry.register(source)
+  return source
 }
 
 /**

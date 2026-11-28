@@ -850,7 +850,48 @@ var createNet = (options = {}) => {
       const method = String(requestOptions.method ?? "GET").toUpperCase();
       const headers = requestOptions.headers && typeof requestOptions.headers === "object" ? requestOptions.headers : void 0;
       const transport = url.protocol === "https:" ? https : http;
-      return transport.request(url, { method, ...headers === void 0 ? {} : { headers } });
+      const client = transport.request(url, { method, ...headers === void 0 ? {} : { headers } });
+      const wrapped = {
+        setHeader: (name, value) => {
+          client.setHeader(name, value);
+          return wrapped;
+        },
+        getHeader: (name) => client.getHeader(name),
+        removeHeader: (name) => client.removeHeader(name),
+        on: (event, listener) => {
+          client.on(event, listener);
+          return wrapped;
+        },
+        once: (event, listener) => {
+          client.once(event, listener);
+          return wrapped;
+        },
+        write: (chunk) => {
+          client.write(chunk);
+          return wrapped;
+        },
+        end: (body) => {
+          const hasBody = body !== void 0 && body !== null && body !== "";
+          if (hasBody && client.getHeader("content-length") === void 0) {
+            const text2 = typeof body === "string" || Buffer.isBuffer(body) ? body : String(body);
+            client.setHeader("content-length", String(Buffer.byteLength(text2)));
+          }
+          client.end(hasBody ? body : void 0);
+          return wrapped;
+        },
+        destroy: () => {
+          client.destroy();
+          return wrapped;
+        },
+        abort: () => {
+          client.destroy();
+          return wrapped;
+        },
+        get socket() {
+          return client.socket;
+        }
+      };
+      return wrapped;
     }
   };
 };

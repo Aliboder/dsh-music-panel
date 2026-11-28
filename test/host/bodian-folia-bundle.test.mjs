@@ -38,7 +38,7 @@ try {
     request.on('data', (chunk) => { body += chunk })
     request.on('end', () => {
       response.writeHead(200, { 'content-type': 'application/json' })
-      response.end(JSON.stringify({ method: request.method, body }))
+      response.end(JSON.stringify({ method: request.method, body, headers: request.headers }))
     })
   })
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve))
@@ -57,6 +57,8 @@ try {
     })
     assert.equal(answer.method, 'POST')
     assert.equal(answer.body, '{"hello":"bodian"}', 'a GET/POST with a JSON body works like Electron ClientRequest')
+    assert.equal(answer.headers['transfer-encoding'], undefined, 'the body is sent with a Content-Length, not chunked (the package leaves it to the host)')
+    assert.equal(answer.headers['content-length'], String(Buffer.byteLength('{"hello":"bodian"}')))
   } finally {
     await new Promise((resolve) => server.close(resolve))
   }
