@@ -608,7 +608,7 @@ function activate(api) {
     loading ??= (async () => {
       try {
         process.env.platform = "lite";
-        const module = await import("kugoumusicapi");
+        const module = await import("../kugoumusicapi/main.js");
         loaded = { ...module.default ?? {}, ...module };
       } catch (error) {
         loadError = error instanceof Error ? error : new Error(String(error));
@@ -2943,7 +2943,7 @@ var createPageStoreFactory = (options) => {
 
 // src/folia-adapters/kugou/rpc.ts
 var NAME_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9._-]*$/;
-var createRpcRegistry = () => {
+var createRpcRegistry = (options = {}) => {
   const handlers = /* @__PURE__ */ new Map();
   return {
     handle(name, handler) {
@@ -2953,6 +2953,7 @@ var createRpcRegistry = () => {
       handlers.set(name, handler);
     },
     async call(name, ...args) {
+      options.beforeCall?.();
       const handler = handlers.get(name);
       if (!handler) throw new Error("rpc: no handler for " + name);
       return await handler(...args);
@@ -3037,6 +3038,23 @@ var createSourceError = (code, message, details = {}) => {
   if (details.retryAfterMs !== void 0) Object.defineProperty(error, "retryAfterMs", { value: details.retryAfterMs, enumerable: true });
   if (details.cause !== void 0) Object.defineProperty(error, "cause", { value: details.cause, enumerable: false });
   return error;
+};
+
+// src/folia-adapters/kugou/packageReady.ts
+import { createRequire } from "node:module";
+var requireHere = createRequire(import.meta.url);
+var ready = false;
+var ensureKugouPackageReady = () => {
+  if (ready) return;
+  ready = true;
+  try {
+    const util = requireHere("../kugoumusicapi/util/util.js");
+    const global = globalThis;
+    if (typeof util?.generateWebGLHash === "function" && typeof global.generateWebGLHash !== "function") {
+      global.generateWebGLHash = util.generateWebGLHash;
+    }
+  } catch {
+  }
 };
 
 // src/folia-mods/sources/kugou/locales/zh-CN.json
@@ -3170,7 +3188,8 @@ var createAllowed = () => Object.assign(() => {
 } });
 var createFoliaKugouHost = (options) => {
   const fetchImpl = options.fetchImpl ?? globalThis.fetch;
-  const rpc = createRpcRegistry();
+  const NET_FETCH_TIMEOUT_MS = 15e3;
+  const rpc = createRpcRegistry({ beforeCall: ensureKugouPackageReady });
   const seal = createSeal({ dir: options.dir });
   const legacyStore = createLegacyStore({ file: join2(options.dir, "kugou-legacy-store.json") });
   const pageStore = createPageStoreFactory({ file: join2(options.dir, "kugou-page-store.json") });
@@ -3180,7 +3199,9 @@ var createFoliaKugouHost = (options) => {
     net: {
       fetch: async (url, init = {}) => {
         const { session: _session, ...rest } = init;
-        return fetchImpl(String(url), rest);
+        const timeout = AbortSignal.timeout(NET_FETCH_TIMEOUT_MS);
+        const signal = rest.signal === void 0 ? timeout : AbortSignal.any([rest.signal, timeout]);
+        return fetchImpl(String(url), { ...rest, signal });
       }
     },
     // 跨域放行：本插件所有的播放地址都经 Host 自己的 /music/online/stream 代理，浏览器不去碰平台域，

@@ -15,7 +15,8 @@ export interface RpcRegistry {
   names(): string[]
 }
 
-export const createRpcRegistry = (): RpcRegistry => {
+/** `beforeCall`：每次真正进 handler 之前的钩子（挂 KuGouMusicApi 需要的全局补丁用）。 */
+export const createRpcRegistry = (options: { beforeCall?: () => void } = {}): RpcRegistry => {
   const handlers = new Map<string, (...args: unknown[]) => unknown>()
   return {
     handle(name, handler) {
@@ -25,6 +26,7 @@ export const createRpcRegistry = (): RpcRegistry => {
       handlers.set(name, handler)
     },
     async call<T>(name: string, ...args: unknown[]): Promise<T> {
+      options.beforeCall?.()
       const handler = handlers.get(name)
       if (!handler) throw new Error('rpc: no handler for ' + name)
       return (await handler(...args)) as T

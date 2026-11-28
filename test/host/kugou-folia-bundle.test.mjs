@@ -29,6 +29,19 @@ try {
   await assert.rejects(call('anonymousSearch', 'x', 0, 10), /a keyword and two page numbers/)
   await assert.rejects(call('legacyPlayInfo', 'not-a-hash'), /a track hash/)
 
+  // ── the vendored KuGouMusicApi the upstream main entry imports ─────────────
+  // The bundle loads it by the specifier `../kugoumusicapi/main.js`, relative to the bundle's own
+  // directory; resolving it here from that same directory is what the installed layout does.
+  const bundleDir = new URL('../../src/host/vendor/kugou-folia/', import.meta.url)
+  // ESM importing that CJS entry hands the flat API table as the namespace's `default` (its exports are
+  // assembled at load time, so no named exports): that is exactly what the upstream loader spreads.
+  const vendored = await import(new URL('../kugoumusicapi/main.js', bundleDir).href)
+  assert.equal(typeof vendored.default.search, 'function')
+  assert.equal(typeof vendored.default.song_url_new, 'function')
+  // The package's generate_simulate.js calls generateWebGLHash without importing it; the adapter puts
+  // the vendored copy on globalThis before the first rpc call.
+  assert.equal(typeof globalThis.generateWebGLHash, 'function')
+
   // ── plugin-side surfaces the desktop host used to provide ─────────────────
   const sealed = host.seal.seal('token=abc;userid=1')
   assert.equal(host.seal.available(), true)

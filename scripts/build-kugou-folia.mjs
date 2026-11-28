@@ -32,6 +32,14 @@ const foliumAliases = {
   name: 'folia-package-aliases',
   setup(context) {
     context.onResolve({ filter: /^@folia\/folium-source-kit$/ }, () => ({ path: KIT_INDEX }))
+    // `await import('kugoumusicapi')` in the upstream main entry stays a runtime load, pointed at the package
+    // this plugin already ships (v1.6.0, identical to upstream's): ../kugoumusicapi from src/host/vendor/kugou-folia/.
+    context.onResolve({ filter: /^kugoumusicapi(\/.*)?$/ }, (args) => ({
+      path: args.path === 'kugoumusicapi'
+        ? '../kugoumusicapi/main.js'
+        : '../kugoumusicapi' + args.path.slice('kugoumusicapi'.length),
+      external: true,
+    }))
   },
 }
 
@@ -48,7 +56,6 @@ const bundle = async () => {
     logLevel: 'silent',
     legalComments: 'none',
     loader: { '.ts': 'ts', '.json': 'json' },
-    external: ['kugoumusicapi'],
     banner: { js: 'import { createRequire as __mpCreateRequire } from "node:module"; const require = __mpCreateRequire(import.meta.url);' },
     plugins: [foliumAliases],
   })

@@ -16,6 +16,7 @@ import { createPageStoreFactory, type PageStoreFactory } from './pageStore'
 import { createRpcRegistry, type RpcRegistry } from './rpc'
 import { createSeal, type Seal } from './seal'
 import { createSourceError, type SourceErrorFactory } from './errors'
+import { ensureKugouPackageReady } from './packageReady'
 import { createSourceTexts, type SourceTexts, type FoliumText } from './texts'
 
 /** 一个真正实现出来的宿主对象；类型由上游声明，这里是结构上的最小实现。 */
@@ -46,7 +47,9 @@ const createAllowed = (): (() => void) & { add(url: string): void } => Object.as
 
 export const createFoliaKugouHost = (options: FoliaKugouHostOptions): FoliaKugouHost => {
   const fetchImpl = options.fetchImpl ?? globalThis.fetch
-  const rpc = createRpcRegistry()
+  // 上游 source 档给 api.net.fetch 的限额是 15 s（foliumShared.json limits.source.netFetch）。
+  const NET_FETCH_TIMEOUT_MS = 15_000
+  const rpc = createRpcRegistry({ beforeCall: ensureKugouPackageReady })
   const seal = createSeal({ dir: options.dir })
   const legacyStore = createLegacyStore({ file: join(options.dir, 'kugou-legacy-store.json') })
   const pageStore = createPageStoreFactory({ file: join(options.dir, 'kugou-page-store.json') })
@@ -57,7 +60,11 @@ export const createFoliaKugouHost = (options: FoliaKugouHostOptions): FoliaKugou
     net: {
       fetch: async (url: string, init: Record<string, unknown> = {}) => {
         const { session: _session, ...rest } = init
-        return fetchImpl(String(url), rest as RequestInit)
+        const timeout = AbortSignal.timeout(NET_FETCH_TIMEOUT_MS)
+        const signal = rest.signal === undefined
+          ? timeout
+          : AbortSignal.any([rest.signal as AbortSignal, timeout])
+        return fetchImpl(String(url), { ...rest, signal } as RequestInit)
       },
     },
     // 跨域放行：本插件所有的播放地址都经 Host 自己的 /music/online/stream 代理，浏览器不去碰平台域，
