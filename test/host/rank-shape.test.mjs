@@ -6,7 +6,7 @@ import assert from 'node:assert/strict'
 import { listeningRank } from '../../src/host/providers/index.js'
 import { resetUpstreamOverride as resetNetease, setUpstreamOverride as setNetease } from '../../src/host/services/netease-api.js'
 import { resetUpstreamOverride as resetQq, setUpstreamOverride as setQq } from '../../src/host/services/qq-api.js'
-import { resetUpstreamOverride as resetKugou, setUpstreamOverride as setKugou } from '../../src/host/services/kugou-api.js'
+import { installKugouFoliaStub, resetKugouFolia } from './helpers/kugou-folia-stub.mjs'
 
 setNetease(async (route) => {
   if (route === '/user/account') return { code: 200, profile: { userId: 7 } }
@@ -41,19 +41,35 @@ try {
   resetQq()
 }
 
-setKugou(async (operation, params) => {
-  assert.equal(operation, 'user_listen')
-  assert.equal(params.type, 0)
-  return { body: { data: { lists: [{ hash: 'KGHASH', songname: 'Kugou song', singername: 'C', duration: 188, listen_count: 5 }] } } }
+// 酷狗现在是 Folia 移植源：排行行来自上游 catalog@1.getListeningRankTracks，
+// 替身直接给上游的 Song 形状（毫秒时长、hash 大写、listenCount 挂在 row 上）。
+installKugouFoliaStub({
+  'catalog@1': {
+    async getListeningRankTracks(range, limit, offset) {
+      assert.equal(range, 'week')
+      return {
+        items: [{
+          id: 'KGHASH',
+          title: 'Kugou song',
+          artists: [{ id: '1', name: 'C' }],
+          durationMs: 188000,
+          coverUrl: 'https://cover/kg',
+          row: { listenCount: 5 },
+          data: { hash: 'KGHASH' },
+        }],
+        hasMore: false,
+      }
+    },
+  },
 })
 try {
   const [song] = await listeningRank('kugou', 'week', '', { userid: '9' })
-  assert.equal(song.provider, 'kugou')
+  assert.equal(song.provider, 'kugouLite')
   assert.equal(song.id, 'kghash')
   assert.equal(song.durationSec, 188)
   assert.equal(song.listenCount, 5)
 } finally {
-  resetKugou()
+  resetKugouFolia()
 }
 
 console.log('rank-shape.test ok')

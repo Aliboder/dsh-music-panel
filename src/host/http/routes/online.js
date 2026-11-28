@@ -24,7 +24,7 @@ import { createLoginBridge, createQrAdapter } from '../../providers/login/bridge
 import { loginFailureOf } from '../../services/core/login-failure.js'
 import { neteaseServiceStatus, restartNeteaseService } from '../../services/netease-api.js'
 import { qqServiceStatus, restartQqService } from '../../services/qq-api.js'
-import { kugouServiceStatus, restartKugouService } from '../../services/kugou-api.js'
+import { kugouServiceStatus, refreshKugouAccount, restartKugouService } from '../../providers/sources/kugou-folia/status.js'
 import { createAmllClient } from '../../services/lyrics/amll.js'
 import { pickBestLyricCandidate } from '../../services/lyrics/lyrics-match.js'
 import { buildLyricSourceOrder, isLyricSource } from '../../services/lyrics/lyrics-sources.js'
@@ -659,10 +659,7 @@ export function createOnlineRoutes(deps) {
 
           let cookie = providerStore === undefined ? '' : await providerStore.cookie(provider)
           let session = providerStore === undefined ? {} : await providerStore.session(provider)
-          if ((provider === 'kugou' || provider === 'kugouLite') && (session.mid === undefined || session.mid === '')) {
-            session = omni.createDevice(provider)
-            if (providerStore !== undefined) await providerStore.setSession(provider, session)
-          }
+          // 酷狗的设备身份归移植源的桥（dfid/mid 都在它的会话里），这里不再补 session。
           // Provider lookups occasionally fail on a transient network hiccup:
           // retry once before surfacing the error.
           let stream = null
@@ -1279,11 +1276,7 @@ export function createOnlineRoutes(deps) {
         }
         try {
           const cookie = providerStore === undefined ? '' : await providerStore.cookie(provider)
-          let session = providerStore === undefined ? {} : await providerStore.session(provider)
-          if (provider === 'kugou' && (session.mid === undefined || session.mid === '')) {
-            session = omni.createDevice(provider)
-            if (providerStore !== undefined) await providerStore.setSession('kugou', session)
-          }
+          const session = providerStore === undefined ? {} : await providerStore.session(provider)
           const config = await settings.read()
           const stream = await omni.stream(provider, id, { cookie, session }, config.onlineQuality || 'high')
           return sendJson(res, 200, { ok: true, quality: stream.quality || '', playable: stream.url !== '' })
@@ -1344,11 +1337,7 @@ export function createOnlineRoutes(deps) {
           return fail(res, 400, 'BAD_REQUEST', '缺少 provider / ids')
         }
         const cookie = providerStore === undefined ? '' : await providerStore.cookie(provider)
-        let session = providerStore === undefined ? {} : await providerStore.session(provider)
-        if (provider === 'kugou' && (session.mid === undefined || session.mid === '')) {
-          session = omni.createDevice(provider)
-          if (providerStore !== undefined) await providerStore.setSession('kugou', session)
-        }
+        const session = providerStore === undefined ? {} : await providerStore.session(provider)
         const config = await settings.read()
         const quality = config.onlineQuality || 'standard'
         const playable = {}
@@ -2265,10 +2254,9 @@ export function createOnlineRoutes(deps) {
       }
 
       if (pathname === '/online/providers' && method === 'GET') {
-        if (kugouSessions !== undefined) {
-          await kugouSessions.refreshIfDue('kugou')
-          await kugouSessions.validate('kugouLite')
-        }
+        // 酷狗的登录态在移植源里（桥自己加密存），过期由上游的读取判定；这里只读一次账号，
+        // 让下面的头像/昵称补全有东西可用。
+        await refreshKugouAccount()
         const summary = providerStore === undefined ? {} : await providerStore.summary()
         const accounts = accountStore === undefined ? {} : await accountStore.summary()
         // The registry also contains the local library (kind: 'local'). It is not an

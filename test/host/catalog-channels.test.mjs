@@ -7,7 +7,7 @@ import assert from 'node:assert/strict'
 import { albumSongs, artistAlbums, artistSongs, searchPage } from '../../src/host/providers/index.js'
 import { resetUpstreamOverride as resetNetease, setUpstreamOverride as setNetease } from '../../src/host/services/netease-api.js'
 import { resetUpstreamOverride as resetQq, setUpstreamOverride as setQq } from '../../src/host/services/qq-api.js'
-import { resetUpstreamOverride as resetKugou, setUpstreamOverride as setKugou } from '../../src/host/services/kugou-api.js'
+import { installKugouFoliaStub, resetKugouFolia } from './helpers/kugou-folia-stub.mjs'
 
 // ── QQ: /getSingerHotsong + /getAlbumInfo + /getSingerAlbum ────────────────
 {
@@ -72,60 +72,59 @@ import { resetUpstreamOverride as resetKugou, setUpstreamOverride as setKugou } 
   resetQq()
 }
 
-// ── KuGou: artist_audios / album_detail + album_songs / artist_detail + artist_albums ──
+// ── KuGou（Folia 移植源）：catalog@1 的歌手歌曲 / 专辑详情+曲目 / 歌手详情+专辑 ──
 {
   const calls = []
-  setKugou(async (operation, params) => {
-    calls.push([operation, params])
-    if (operation === 'artist_audios') {
-      return { body: { data: { lists: [{ hash: 'kg-song', songname: '晴天', singername: '周杰伦', albumname: '叶惠美' }] } }, cookie: [] }
-    }
-    if (operation === 'album_detail') {
-      return { body: { data: [{ album_id: 'kg-album', album_name: '叶惠美', sizable_cover: 'https://cover', author_name: '周杰伦' }] }, cookie: [] }
-    }
-    if (operation === 'album_songs') {
-      return {
-        body: {
-          total: 1,
-          data: {
-            total: 1,
-            songs: [{
-              base: { audio_name: '晴天', album_id: 966846, author_name: '周杰伦' },
-              audio_info: { hash: 'kg-song', duration: 269000 },
-              album_info: { album_name: '叶惠美', cover: 'https://cover' },
-              authors: [{ author_id: 3520, author_name: '周杰伦' }],
-            }],
-          },
-        },
-        cookie: [],
-      }
-    }
-    if (operation === 'artist_detail') {
-      return { body: { data: { author_id: '12345', author_name: '周杰伦', sizable_avatar: 'https://a', intro: 'bio' } }, cookie: [] }
-    }
-    if (operation === 'artist_albums') {
-      return { body: { data: { lists: [{ album_id: 'kg-album', album_name: '叶惠美', sizable_cover: 'https://cover', author_name: '周杰伦', song_count: 1 }] } }, cookie: [] }
-    }
-    throw new Error('unexpected KuGou operation: ' + operation)
+  const kgSong = {
+    id: 'kg-song',
+    title: '晴天',
+    artists: [{ id: '3520', name: '周杰伦' }],
+    album: { id: 'kg-album', name: '叶惠美', coverUrl: 'https://cover' },
+    durationMs: 269000,
+    data: { hash: 'kg-song' },
+  }
+  installKugouFoliaStub({
+    'catalog@1': {
+      async getArtistSongs(id, limit, offset) {
+        calls.push(['getArtistSongs', id])
+        return { items: [kgSong], hasMore: false, total: 1, nextOffset: 1 }
+      },
+      async getAlbumDetail(id) {
+        calls.push(['getAlbumDetail', id])
+        return { id, type: 'album', name: '叶惠美', coverUrl: 'https://cover', artists: [{ id: '3520', name: '周杰伦' }], trackCount: 1 }
+      },
+      async getAlbumTracks(id, limit, offset) {
+        calls.push(['getAlbumTracks', id])
+        return { items: [kgSong], hasMore: false, total: 1, nextOffset: 1 }
+      },
+      async getArtistDetail(id) {
+        calls.push(['getArtistDetail', id])
+        return { id, type: 'artist', name: '周杰伦', coverUrl: 'https://a', description: 'bio' }
+      },
+      async getArtistAlbums(id, limit, offset) {
+        calls.push(['getArtistAlbums', id])
+        return { items: [{ id: 'kg-album', type: 'album', name: '叶惠美', coverUrl: 'https://cover', artists: [{ id: '3520', name: '周杰伦' }], trackCount: 1 }], hasMore: false }
+      },
+    },
   })
 
   const artistPage = await artistSongs('kugou', '周杰伦', '', {}, '12345', { limit: 10, offset: 0 })
   assert.equal(artistPage.songs[0].id, 'kg-song')
   assert.equal(artistPage.hasMore, false)
-  assert.equal(calls[0][0], 'artist_audios')
+  assert.equal(calls[0][0], 'getArtistSongs')
 
   const album = await albumSongs('kugou', 'kg-album', '', {})
   assert.equal(album.name, '叶惠美')
   assert.equal(album.songs[0].id, 'kg-song')
-  assert.equal(calls.some(([operation]) => operation === 'album_detail'), true)
-  assert.equal(calls.some(([operation]) => operation === 'album_songs'), true)
+  assert.equal(calls.some(([operation]) => operation === 'getAlbumDetail'), true)
+  assert.equal(calls.some(([operation]) => operation === 'getAlbumTracks'), true)
 
   const artist = await artistAlbums('kugou', '12345', '', {})
   assert.equal(artist.artist.name, '周杰伦')
   assert.equal(artist.albums[0].id, 'kg-album')
-  assert.equal(calls.some(([operation]) => operation === 'artist_detail'), true)
-  assert.equal(calls.some(([operation]) => operation === 'artist_albums'), true)
-  resetKugou()
+  assert.equal(calls.some(([operation]) => operation === 'getArtistDetail'), true)
+  assert.equal(calls.some(([operation]) => operation === 'getArtistAlbums'), true)
+  resetKugouFolia()
 }
 
 // ── 翻页：歌手页按「这一页吃掉的原始行」前进，搜索只在自己能翻页时报 hasMore ──
@@ -156,34 +155,30 @@ import { resetUpstreamOverride as resetKugou, setUpstreamOverride as setKugou } 
 }
 
 {
+  // 移植源的歌手页分页：游标按上游这一页实际给的行数前进（上游 pageOf 已这么定），
+  // 我们只保证 nextOffset 原样传到下一页，并且下一页真的换了 offset。
   const calls = []
-  setKugou(async (operation, params) => {
-    calls.push([operation, params])
-    if (operation === 'artist_audios') {
-      const pageNo = Number(params.page) || 1
-      const size = Number(params.pagesize) || 10
-      const rows = Array.from({ length: size }, (_, index) => {
-        const n = (pageNo - 1) * size + index
-        return {
-          base: { audio_name: '歌 ' + n, album_id: 1, author_name: '歌手' },
-          audio_info: { hash: 'kg' + n, duration: 200000 },
-          album_info: { album_name: '专辑' },
-          authors: [{ author_name: '歌手' }],
-        }
-      })
-      return { body: { data: { total: 25, lists: rows } }, cookie: [] }
-    }
-    throw new Error('unexpected KuGou operation: ' + operation)
+  installKugouFoliaStub({
+    'catalog@1': {
+      async getArtistSongs(id, limit, offset) {
+        calls.push([id, limit, offset])
+        const rows = Array.from({ length: limit }, (_, index) => {
+          const n = offset + index
+          return { id: 'kg' + n, title: '歌 ' + n, artists: [{ id: '1', name: '歌手' }], durationMs: 200000, data: { hash: 'kg' + n } }
+        })
+        return { items: rows, total: 25, hasMore: offset + rows.length < 25, nextOffset: offset + rows.length }
+      },
+    },
   })
-  const head = await artistSongs('kugouLite', '歌手', '', {}, '123', { limit: 10, offset: 0 })
+  const head = await artistSongs('kugou', '歌手', '', {}, '123', { limit: 10, offset: 0 })
   assert.equal(head.songs.length, 10)
   assert.equal(head.total, 25)
   assert.equal(head.hasMore, true)
   assert.equal(head.nextOffset, 10)
-  const next = await artistSongs('kugouLite', '歌手', '', {}, '123', { limit: 10, offset: head.nextOffset })
+  const next = await artistSongs('kugou', '歌手', '', {}, '123', { limit: 10, offset: head.nextOffset })
   assert.equal(next.songs[0].id, 'kg10', 'the second page starts at the next row')
-  assert.equal(calls[1][1].page, 2)
-  resetKugou()
+  assert.equal(calls[1][2], 10, 'the second read asks from the cursor the first one gave')
+  resetKugouFolia()
 }
 
 {
@@ -215,17 +210,24 @@ import { resetUpstreamOverride as resetKugou, setUpstreamOverride as setKugou } 
 }
 
 {
-  // KuGou answers one capped list: the Host reports no next page, so the UI stops asking.
-  setKugou(async (operation) => {
-    if (operation === 'search') {
-      return { body: { status: 1, data: { total: 900, lists: [{ FileHash: 'H1', SongName: 'A', SingerName: '歌手', Duration: 200 }] } }, cookie: [] }
-    }
-    throw new Error('unexpected KuGou operation: ' + operation)
+  // 移植源的搜索按上游的 hasMore 答：上游说还有，Host 就说还有；上游说没有，UI 就停。
+  installKugouFoliaStub({
+    'search@1': {
+      async searchSongs(query, limit, offset) {
+        return {
+          items: [{ id: 'H1', title: 'A', artists: [{ id: '1', name: '歌手' }], durationMs: 200000, data: { hash: 'H1' } }],
+          total: 1,
+          hasMore: false,
+          nextOffset: 1,
+        }
+      },
+    },
   })
-  const page = await searchPage('kugouLite', '歌', '', {}, 1)
-  assert.equal(page.hasMore, false, 'a one-shot search has no next page')
-  assert.equal(page.total, page.results.length, 'the total matches what was actually returned')
-  resetKugou()
+  const page = await searchPage('kugou', '歌', '', {}, 1)
+  assert.equal(page.hasMore, false, 'the source answered the last page')
+  assert.equal(page.results.length, 1)
+  assert.equal(page.total, 1)
+  resetKugouFolia()
 }
 
 console.log('catalog-channels.test.mjs ok')

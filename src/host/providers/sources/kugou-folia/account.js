@@ -10,7 +10,7 @@
  * @module dsh-music-panel/sources/kugou-folia/account
  */
 import { MusicError } from '../../../services/core/errors.js'
-import { SOURCE_ID, kugouCall, kugouDefinition, kugouError } from './instance.js'
+import { SOURCE_ID, kugouCall, kugouDefinition, kugouError, kugouUserId } from './instance.js'
 
 const auth = () => kugouDefinition().capabilities['auth@1']
 
@@ -93,6 +93,9 @@ export async function loginStatus(provider, key, mode = 'qq') {
 
 /** 登录着的账号；没登录时 null。 */
 export async function providerProfile() {
+  // 没有账号提示就直接答「没登录」：上游 getLoginStatus 会为此发一次 user_detail，
+  // 每开一次面板都发没有意义（提示由上游自己在登录/读取成功后写进页存储）。
+  if (kugouUserId() === '') return null
   try {
     const user = await auth().getLoginStatus()
     if (!user) return null

@@ -9,6 +9,7 @@
  * @module dsh-music-panel/sources/kugou-folia/dto
  */
 import { SOURCE_ID, kugouTexts } from './instance.js'
+import { rememberSong } from './cache.js'
 
 /** FoliumText / 普通字符串 → 当前语言的字符串。 */
 export function text(value) {
@@ -36,6 +37,8 @@ export function songOf(song) {
   const album = item.album && typeof item.album === 'object' ? item.album : {}
   const durationMs = Number(item.durationMs) || 0
   const artists = Array.isArray(item.artists) ? item.artists : []
+  // 读到的完整歌对象留一份：稍后只拿到 id 的取流与点赞要靠它的 data 侧车（hash/albumId/albumAudioId/fileId）。
+  rememberSong(item)
   const coverUrl = String(item.coverUrl || album.coverUrl || '')
   return {
     provider: SOURCE_ID,
@@ -127,8 +130,12 @@ export function playlistCardOf(collection) {
 /** 我的歌单行 → 门面的 shapePlaylist 形状（isOwned / isLike / addable 都在这里定）。 */
 export function playlistRowOf(collection, canAdd) {
   const item = collection && typeof collection === 'object' ? collection : {}
-  const isLike = String(item.id) === '2' || text(item.name) === '我喜欢'
-  const isOwned = item.isOwned !== false
+  // 上游只给「自建」歌单写 isOwned: true（收藏的、别人的都不写），所以这里是 === true 而不是 !== false。
+  const isOwned = item.isOwned === true
+  // 「我喜欢」那张：上游的判据是 data.listId === '2' 或者名字就是「我喜欢 / 我喜欢的音乐」。
+  const isLike = String(item.data?.listId ?? '') === '2'
+    || String(item.id) === '2'
+    || /^我喜欢/.test(text(item.name))
   return {
     provider: SOURCE_ID,
     id: String(item.id ?? ''),
@@ -168,6 +175,8 @@ export function artistCardOf(collection) {
     id: String(item.id ?? ''),
     name: text(item.name),
     avatar: String(item.coverUrl ?? ''),
+    // 旧的 artistCard 用 cover 这个键，客户端两种都存在过，两个都给。
+    cover: String(item.coverUrl ?? ''),
     albumCount: Number(item.albumCount) || 0,
     source: SOURCE_ID,
     type: 'artist',

@@ -893,7 +893,8 @@ export async function resolveLegacyStream(provider, id) {
 
 /** Stable KuGou device identity (generated once, then persisted by the caller). */
 export function createKugouDevice() {
-  if (provider === 'kugou') return kugouFacade('createKugouDevice', arguments)
+  // 没有 provider 参数：这个门面函数只服务酷狗，直接交给移植源。
+  return kugouFacade('createKugouDevice', arguments)
   return KG.createDeviceIdentity()
 }
 

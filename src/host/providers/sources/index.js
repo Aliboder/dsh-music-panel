@@ -182,7 +182,7 @@ export const ONLINE_SPECS = [
     // （adapter.js:36 的 providerKey ?? spec.id，门面里每个酷狗方法开头那行 kugouFacade 只在
     // provider === 'kugou' 时生效）。
     id: 'kugouLite',
-    // providerKey: 'kugou',
+    providerKey: 'kugou',
     displayName: 'KuGou Music',
     capabilities: KUGOU_CAPABILITIES,
     qualityLevels: KUGOU_QUALITY,

@@ -64,6 +64,24 @@ export function kugouError(error) {
   return toMusicError(error, SOURCE_ID)
 }
 
+/** 当前登录账号的 id：上游把账号提示写在自己的页存储里（transport 的 persistAccountHint）。 */
+export function kugouUserId() {
+  try {
+    return String(kugouFolia().host.pageStore('kugou').get('userid') ?? '')
+  } catch {
+    return ''
+  }
+}
+
+/**
+ * 测试用：直接换掉当前实例定义（跳过 bundle 与真实网络）。
+ * 只在测试里用；生产路径只有 configureKugouFolia 一个入口。
+ */
+export function useKugouFoliaForTests(definition) {
+  current = { definition, call: async () => { throw new Error('test definition has no rpc') }, host: { texts: { resolveText: (value) => (typeof value === 'string' ? value : '') } } }
+  return current
+}
+
 /** 测试用：丢掉当前实例。 */
 export function resetKugouFolia() {
   current = null
