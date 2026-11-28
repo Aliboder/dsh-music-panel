@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.47.2"
-    var CLIENT_BUILD = "859889a9fa9e"
+    var CLIENT_BUILD = "aac9e396e99a"
 
     // ── src/client/app/runtime.js
     /**
@@ -198751,10 +198751,11 @@ window.__ModuleLoader__.load({
     // The card is bottom-anchored at the real anchor offset, so its body room is
     // viewport - top margin - bottom offset - card chrome. Using the fixed bottom gap here
     // ignored that offset and let the dock slide under the clipped edge.
-    function clampCardBodyHeight(measured, viewport, bottom) {
+    function clampCardBodyHeight(measured, viewport, bottom, topClearance) {
       var height = viewport > 0 ? viewport : (typeof window === 'undefined' ? 800 : window.innerHeight || 800)
       var gap = bottom >= 0 ? bottom : MP_BOTTOM_GAP
-      var room = height - MP_TOP_MARGIN - gap - MP_PADDING * 2 - MP_FOLDED - MP_DOCK_HEIGHT - MP_DOCK_GAP - MP_BODY_GAP - MP_BODY_LINE - MP_BODY_UNDER
+      var top = Number(topClearance) >= 0 && Number(topClearance) > 0 ? Number(topClearance) : MP_TOP_MARGIN
+      var room = height - top - gap - MP_PADDING * 2 - MP_FOLDED - MP_DOCK_HEIGHT - MP_DOCK_GAP - MP_BODY_GAP - MP_BODY_LINE - MP_BODY_UNDER
       return Math.max(0, Math.min(measured, room))
     }
 
@@ -198913,6 +198914,12 @@ window.__ModuleLoader__.load({
       var viewportPair = useState(0)
       var viewportH = viewportPair[0]
       var setViewportH = viewportPair[1]
+      // The player page's fullscreen button is absolute inside the page, not at the window's
+      // top edge, so a fixed margin cannot know where it ends. Measure its bottom when the
+      // card opens (and on resize) and keep that much room above the card.
+      var topPair = useState(MP_TOP_MARGIN)
+      var topClearance = topPair[0]
+      var setTopClearance = topPair[1]
       var cardBottom = props.anchor && props.anchor.bottom >= 0 ? props.anchor.bottom : MP_BOTTOM_GAP
 
       var contentRef = useRef(null)
@@ -198953,6 +198960,12 @@ window.__ModuleLoader__.load({
           if (props.open !== true) return undefined
           function update() {
             setViewportH(window.innerHeight || 800)
+            var button = document.querySelector('.mp-np-fs')
+            var rect = button !== null && typeof button.getBoundingClientRect === 'function'
+              ? button.getBoundingClientRect()
+              : null
+            var measured = rect !== null && rect.height > 0 ? Math.ceil(rect.bottom) + 12 : MP_TOP_MARGIN
+            setTopClearance(Math.max(MP_TOP_MARGIN, measured))
           }
           update()
           window.addEventListener('resize', update)
@@ -198968,9 +198981,9 @@ window.__ModuleLoader__.load({
           if (props.open !== true) return
           var el = contentRef.current
           if (el === null) return
-          setBodyH(clampCardBodyHeight(el.scrollHeight, viewportH, cardBottom))
+          setBodyH(clampCardBodyHeight(el.scrollHeight, viewportH, cardBottom, topClearance))
         },
-        [props.open, index, viewportH, cardBottom],
+        [props.open, index, viewportH, cardBottom, topClearance],
       )
 
       // The under-cover block changes height with the title (one line, two lines, no album);
@@ -199183,7 +199196,7 @@ window.__ModuleLoader__.load({
       // The cover is capped by the room left after padding, dock, gap and the title block,
       // otherwise a tall cover pushes the dock under the clipped edge on short windows.
       var viewportForLayout = viewportH > 0 ? viewportH : 800
-      var cardMaxH = Math.max(240, viewportForLayout - MP_TOP_MARGIN - cardBottom)
+      var cardMaxH = Math.max(240, viewportForLayout - topClearance - cardBottom)
       var coverRoom = cardMaxH - MP_PADDING * 2 - MP_DOCK_HEIGHT - MP_DOCK_GAP - MP_COVER_GAP - underHForLayout
       var coverBig = 'min(336px, 52vh, ' + String(Math.max(140, coverRoom)) + 'px)'
       var headerH = isCover
