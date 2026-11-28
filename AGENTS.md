@@ -19,6 +19,7 @@
 - **最终给用户的回答格式：**简要修改流程 代码块“段A→段B→段C...、通俗易懂的简要说明（问题、思路、做法、收益）、(若有)受影响的文档修改清单和变更内容简介（代码块）、存档点代码块（axxbxx：优化了...）”
 - 当我让你参考folia的代码或者对齐代码时，能照搬folia的代码就照搬，不要只借鉴思路。
 - **Folia 移植目录必须与上游对齐**：已移植文件放在 `src/folia/`，目录名和相对路径与 `A_other/upstream/folia-major-main/src` 一致；插件适配（shims / vendor / 插件特有实现）放 `src/folia-adapters/`，构建入口与 bundle 放 `src/folia-build/`；上游不存在的文件不得混进 `src/folia/`。
+- **上游 `src/` 以外的树**（`sources/<id>/`、`packages/<包>/`）镜像到 `src/folia-mods/`，并保持相对路径一致（如 `src/folia-mods/sources/kugou/main/index.ts` ↔ 上游 `sources/kugou/main/index.ts`）；这些文件逐字节照搬，插件侧的宿主面、接线与改动一律放 `src/folia-adapters/`，构建入口与产物放 `src/folia-build/` 与 `src/host/vendor/`。
 - 相关文档描述内容实际发生变更时，要更新文档。
 
 🚫 **不要做**
@@ -29,7 +30,7 @@
 
 ```bash
 npm test                                  # 全量 Node 测试
-npm run check                             # 语法 + i18n key + client 同步
+npm run check                             # 语法 + i18n key + client 同步 + 各 bundle 是否最新
 node scripts/build-client.mjs             # 改 src/client/** 后重建 client.js
 node scripts/build-client.mjs --check     # 只检查 client.js 是否最新
 node scripts/install-local.mjs desktop    # 把当前构建装进 DSH profile（验证前必做，装完完全退出再启动）
@@ -69,6 +70,7 @@ src/client/                  Client：浏览器侧片段，按 manifest.json 顺
   i18n/ types/ utils/ vendor/
 src/audio/                   音频引擎 TS 源码 → 构建为 src/client/audio/engine.bundle.js
 src/folia/                   Folia 上游源码镜像（路径与上游 src 对齐）
+src/folia-mods/              上游 src/ 以外的树（sources/<id>、packages/<包>）镜像，相对路径与上游一致
 src/folia-adapters/          插件适配：shims / vendor / 插件特有实现
 src/folia-build/             构建入口与 bundle（styles / backgrounds / pendolo / css）
 src/shared/types.ts          Host/Client 共享类型
@@ -83,7 +85,7 @@ A_other/                     非插件资料：design / docs / releases / shared
 
 - **Host**：承担重活与全部外部访问——扫库与标签、歌词抓取与匹配、在线源与登录、媒体缓存写入、`/music/*` HTTP。浏览器侧不直连外部平台，凭据和缓存都落在 Host 的数据目录。
 - **Client**：只消费 Host 的 HTTP 接口，负责面板、播放器、队列与歌词舞台；片段顺序由 `src/client/manifest.json` 定死。
-- **构建产物**（都提交进仓，改源码后由对应脚本重建）：`client.js`、`src/client/audio/engine.bundle.js`、`src/client/render/lyrics/lyrics.bundle.js`、`src/client/services/automix/profile.bundle.js`、`src/folia-build/*.bundle.js`、`src/client/vendor/*.bundle.js`。
+- **构建产物**（都提交进仓，改源码后由对应脚本重建）：`client.js`、`src/client/audio/engine.bundle.js`、`src/client/render/lyrics/lyrics.bundle.js`、`src/client/services/automix/profile.bundle.js`、`src/folia-build/*.bundle.js`、`src/client/vendor/*.bundle.js`、`src/host/vendor/kugou-folia/source.bundle.mjs`（`node scripts/build-kugou-folia.mjs`）。
 
 > 构建产物、播放/Folia、歌词、安装与数据相关的具体陷阱，全部记在
 > [踩坑记录](A_other/docs/踩坑记录.md)；改这些区域前先查对应条目，不要在这里重复维护。
