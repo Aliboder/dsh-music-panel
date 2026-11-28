@@ -133,18 +133,16 @@ const fallbackOnly = await findBestLyrics(track, {
 assert.equal(fallbackOnly.source, 'netease', 'the first line-level answer is the fallback')
 assert.equal(fallbackOnly.wordLevel, false)
 
-// AMLL is asked first when ids are supplied.
+// AMLL is probed through a NetEase candidate: Folia searches NetEase when the song is not one
+// of its own (getBestCandidate('netease')), then asks AMLL with that candidate's id.
 const amllFirst = await findBestLyrics(track, {
   order: ['netease', 'amll'],
-  neteaseId: '186016',
-  search: async () => {
-    throw new Error('platform search must not run when AMLL answered word-level')
-  },
+  search: async (sourceId) => [{ id: sourceId + '-ncm', title: '晴天', artist: '周杰伦', album: '叶惠美', durationMs: 269000 }],
   fetchLyric: async () => lineLyric,
-  fetchAmll: async (platform, id) => ({ lines: wordLyric.lines }),
+  fetchAmll: async () => ({ lines: wordLyric.lines }),
 })
 assert.equal(amllFirst.source, 'amll')
-assert.equal(amllFirst.id, '186016')
+assert.equal(amllFirst.id, 'netease-ncm', 'AMLL is keyed by the NetEase candidate id')
 
 // One failing source does not stop the next one (timeouts are asserted separately).
 const survived = await findBestLyrics(track, {
@@ -174,48 +172,44 @@ assert.equal(withRaw.raw.formatHint, 'yrc')
 assert.equal(withRaw.translation, '[00:01.000]story')
 assert.equal(withRaw.romaji, '[00:01.000]monogatari')
 
-// AMLL's TTML travels with its lines, so the client parses it the same way.
-const amllRaw = await findBestLyrics(track, {
-  order: ['amll'],
-  neteaseId: '186016',
+// AMLL answers the matcher as parsed lines (LyricData); the route builds the LRC from them.
+const amllOnly = await findBestLyrics(track, {
+  order: ['netease', 'amll'],
+  search: async () => [{ id: 'netease-ncm', title: '晴天', artist: '周杰伦', album: '叶惠美', durationMs: 269000 }],
   fetchLyric: async () => lineLyric,
-  fetchAmll: async () => ({ lines: wordLyric.lines, text: '<tt xmlns="http://www.w3.org/ns/ttml"></tt>' }),
+  fetchAmll: async () => ({ lines: wordLyric.lines }),
 })
-assert.equal(amllRaw.source, 'amll')
-assert.equal(amllRaw.raw.formatHint, 'ttml')
-assert.match(amllRaw.raw.lrcContent, /<tt/)
+assert.equal(amllOnly.source, 'amll')
+assert.equal(amllOnly.wordLevel, true)
+assert.equal(amllOnly.lyrics[0].text, '故事')
 
-// AMLL's candidate ids are resolved lazily: a word-level answer from an earlier source
-// never pays for the extra search (Folia asks for the id only at the AMLL step).
-let amllIdsAsked = 0
+// The AMLL step's NetEase candidate is the one the loop already found: no second search.
+let neteaseSearches = 0
 const lazyIds = await findBestLyrics(track, {
   order: ['netease', 'amll', 'qq'],
-  search: async (sourceId) => [{ id: sourceId + '-1', title: '晴天', artist: '周杰伦', album: '叶惠美', durationMs: 269000 }],
-  fetchLyric: async (sourceId) => (sourceId === 'qq' ? wordLyric : lineLyric),
-  resolveAmllIds: async () => {
-    amllIdsAsked += 1
-    return { neteaseId: '186016' }
+  search: async (sourceId) => {
+    if (sourceId === 'netease') neteaseSearches += 1
+    return [{ id: sourceId + '-1', title: '晴天', artist: '周杰伦', album: '叶惠美', durationMs: 269000 }]
   },
+  fetchLyric: async (sourceId) => (sourceId === 'qq' ? wordLyric : lineLyric),
   fetchAmll: async () => null,
 })
 assert.equal(lazyIds.source, 'qq', 'the word-level answer still wins')
-assert.equal(amllIdsAsked, 1, 'the candidate search ran once, at the AMLL step')
+assert.equal(neteaseSearches, 1, 'the NetEase candidate search ran once, reused by the AMLL step')
 
 // A line-level AMLL answer is the fallback: a word-level lyric from a later source still wins.
 const amllRunsFirst = await findBestLyrics(track, {
-  order: ['amll', 'qq'],
-  resolveAmllIds: async () => ({ neteaseId: '186016' }),
+  order: ['amll', 'netease', 'qq'],
   search: async (sourceId) => [{ id: sourceId + '-1', title: '晴天', artist: '周杰伦', album: '叶惠美', durationMs: 269000 }],
-  fetchLyric: async () => wordLyric,
+  fetchLyric: async (sourceId) => (sourceId === 'qq' ? wordLyric : lineLyric),
   fetchAmll: async () => ({ lines: lineLyric.lines }),
 })
 assert.equal(amllRunsFirst.source, 'qq', 'word-level outranks the earlier line-level answer')
 assert.equal(amllRunsFirst.wordLevel, true)
 
-// When every source is line-level, the first one asked is the answer.
+// When every source is line-level, the first one asked is the answer (AMLL via its NetEase candidate).
 const amllOnlyLineLevel = await findBestLyrics(track, {
-  order: ['amll', 'qq'],
-  resolveAmllIds: async () => ({ neteaseId: '186016' }),
+  order: ['amll', 'netease', 'qq'],
   search: async (sourceId) => [{ id: sourceId + '-1', title: '晴天', artist: '周杰伦', album: '叶惠美', durationMs: 269000 }],
   fetchLyric: async () => lineLyric,
   fetchAmll: async () => ({ lines: lineLyric.lines }),

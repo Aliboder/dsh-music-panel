@@ -44,6 +44,8 @@ const PLATFORMS = {
     alias: {
       '../../services/onlineMusic/providerRegistry': 'src/folia-adapters/lyrics-match/provider-registry.ts',
       '../../services/onlineMusic/crossSource': 'src/folia-adapters/lyrics-match/cross-source.ts',
+      // AMLL 库的网络访问是宿主的事（与在线源一样），匹配逻辑仍由上游决定问什么、怎么用。
+      './providers/amllDbProvider': 'src/folia-adapters/lyrics-match/amll-db-provider.ts',
     },
   },
   netease: {

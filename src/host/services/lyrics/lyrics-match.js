@@ -17,6 +17,9 @@ import * as wanakana from 'wanakana'
 
 const t2sConverter = OpenCC.Converter({ from: 't', to: 'cn' })
 
+import { calculateMatchScoreDetails as calculateFoliaMatchScoreDetails } from '../../vendor/lyrics-folia/match.bundle.mjs'
+import { songResultOf } from './lyrics-folia.js'
+
 export const SCORE_WEIGHTS = { title: 45, artist: 25, album: 30 }
 export const AUTO_MATCH_MIN_SCORE = 75
 export const AUTO_MATCH_COMPONENT_MISS_SCORE_CAP = 74
@@ -122,60 +125,17 @@ export function calculateDurationScore(targetMs, searchMs) {
  * @param {{ title: string, artist: string, album?: string, durationMs?: number }} track
  * @param {{ title?: string, name?: string, artist?: string, album?: string, durationMs?: number, durationSec?: number }} candidate
  */
-export function calculateMatchScoreDetails(track, candidate) {
-  const searchTitle = String(candidate?.title ?? candidate?.name ?? '')
-  const searchArtist = String(candidate?.artist ?? '')
-  const rawAlbum = String(candidate?.album ?? '')
-  const searchAlbum = /^unknown album$/i.test(rawAlbum.trim()) ? '' : rawAlbum
-  const targetDurationMs = Number(track?.durationMs ?? (Number(track?.durationSec) || 0) * 1000) || 0
-  const searchDurationMs =
-    Number(candidate?.durationMs ?? (Number(candidate?.durationSec) || 0) * 1000) || 0
-
-  const titleSimilarity = stringSimilarity(track?.title, searchTitle, normalizeTitleForMatch)
-  const titleScore = titleSimilarity * SCORE_WEIGHTS.title
-
-  const artistText = String(track?.artist ?? '').trim()
-  const artistSimilarity = artistText === '' ? 1 : calculateArtistSimilarity(artistText, searchArtist)
-  const artistScore = artistSimilarity * SCORE_WEIGHTS.artist
-
-  const targetAlbum = String(track?.album ?? '').trim()
-  const hasTargetAlbum = targetAlbum !== ''
-  const hasSearchAlbum = searchAlbum.trim() !== ''
-  const albumSimilarity =
-    hasTargetAlbum && hasSearchAlbum ? stringSimilarity(targetAlbum, searchAlbum, normalizeTitleForMatch) : null
-  const albumScore =
-    albumSimilarity === null ? (hasTargetAlbum ? 0 : SCORE_WEIGHTS.album) : albumSimilarity * SCORE_WEIGHTS.album
-
-  const duration = calculateDurationScore(targetDurationMs, searchDurationMs)
-  const identityScore = titleScore + artistScore + albumScore
-  const titleMatched = titleSimilarity >= 0.65
-  const artistMatched = artistText === '' || artistSimilarity >= 0.5
-  const albumMatched = !hasTargetAlbum ? null : hasSearchAlbum ? (albumSimilarity ?? 0) >= 0.65 : null
-  const hasReliableIdentityMatch = artistMatched || albumMatched === true
-  const cappedIdentityScore =
-    !titleMatched || !hasReliableIdentityMatch
-      ? Math.min(identityScore, AUTO_MATCH_COMPONENT_MISS_SCORE_CAP)
-      : identityScore
-  const finalScore = cappedIdentityScore * duration.multiplier
-
-  return {
-    score: Math.min(100, Math.max(0, Math.round(finalScore))),
-    titleScore,
-    artistScore,
-    albumScore,
-    durationScore: duration.multiplier * 100,
-    durationMultiplier: duration.multiplier,
-    titleSimilarity,
-    artistSimilarity,
-    albumSimilarity,
-    titleMatched,
-    artistMatched,
-    albumMatched,
-    durationMatched: duration.matched,
-  }
+export function calculateMatchScoreDetails(target, candidate) {
+  const converted = songResultOf(candidate, candidate && candidate.provider)
+  return calculateFoliaMatchScoreDetails({
+    title: String(target?.title ?? ''),
+    artist: String(target?.artist ?? ''),
+    ...(target?.album ? { album: String(target.album) } : {}),
+    durationMs: Number(target?.durationMs) || 0,
+  }, converted)
 }
 
-/** Score 0..100 for one candidate. */
+/** Score 0..100 for one candidate — now Folia's own matchScore (src/folia/utils/lyrics), via the host adapter. */
 export function calculateMatchScore(track, candidate) {
   return calculateMatchScoreDetails(track, candidate).score
 }

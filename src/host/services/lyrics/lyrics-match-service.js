@@ -1,10 +1,13 @@
 /**
  * Lyric match service — the backend of the "匹配歌词" window.
  *
- * Ported from Folia's lyric match flow: the tab order is the shared lyric-source
- * registry (NetEase, AMLL, QQ, KuGou Lite, Qishui), every candidate is scored with
- * the automatic pick's `calculateMatchScoreDetails`, and AMLL DB candidates keep
- * the platform their id belongs to so the preview asks the right platform endpoint.
+ * 打分与来源顺序来自 Folia 的镜像实现（src/folia/utils/lyrics/matchScore.ts 与
+ * lyricSources.ts，经 src/host/vendor/lyrics-folia 暴露）：每个候选都用同一套
+ * `calculateMatchScoreDetails` 排序，tab 顺序来自同一张源注册表，AMLL 候选保留它的
+ * 平台 id（ncm/qq），预览才能问对端点。
+ *
+ * 窗口自己的「搜什么、取哪份原文」是插件这一侧的事：Folia 把它写在 React hook 与组件里，
+ * 本插件保留自己的对话框，所以这里只做与 UI 的胶水，不再复刻匹配判断。
  *
  * Media come from the unified source layer (`omni`), never from public web APIs, so
  * the window searches through the same transport playback uses.

@@ -88,7 +88,7 @@ A_other/                     非插件资料：design / docs / releases / shared
 
 - **Host**：承担重活与全部外部访问——扫库与标签、歌词抓取与匹配、在线源与登录、媒体缓存写入、`/music/*` HTTP。浏览器侧不直连外部平台，凭据和缓存都落在 Host 的数据目录。
 - **Client**：只消费 Host 的 HTTP 接口，负责面板、播放器、队列与歌词舞台；片段顺序由 `src/client/manifest.json` 定死。
-- **构建产物**（都提交进仓，改源码后由对应脚本重建）：`client.js`、`src/client/audio/engine.bundle.js`、`src/client/render/lyrics/lyrics.bundle.js`、`src/client/services/automix/profile.bundle.js`、`src/folia-build/*.bundle.js`、`src/client/vendor/*.bundle.js`、`src/host/vendor/kugou-folia/source.bundle.mjs`（`node scripts/build-kugou-folia.mjs`）。
+- **构建产物**（都提交进仓，改源码后由对应脚本重建）：`client.js`、`src/client/audio/engine.bundle.js`、`src/client/render/lyrics/lyrics.bundle.js`、`src/client/services/automix/profile.bundle.js`、`src/folia-build/*.bundle.js`、`src/client/vendor/*.bundle.js`、`src/host/vendor/kugou-folia/source.bundle.mjs`（`node scripts/build-kugou-folia.mjs`）、`src/host/vendor/{bodian,qishui,qq,netease}-folia/source.bundle.mjs` 与 `src/host/vendor/lyrics-folia/match.bundle.mjs`（`node scripts/build-folia-source.mjs <平台|lyrics>`，`--check` 已并入 `npm run check`）。
 
 > 构建产物、播放/Folia、歌词、安装与数据相关的具体陷阱，全部记在
 > [踩坑记录](A_other/docs/踩坑记录.md)；改这些区域前先查对应条目，不要在这里重复维护。

@@ -19,6 +19,11 @@
 - 网易云的后端跑在工作线程里，线程是 bundle 旁边的 `worker.cjs`（由上游 `neteaseApiWorker.cjs` 复制改名）；QQ 的内嵌后端在第一次问状态时拉起、监听本机端口。插件停用或退出时会关掉它们。
 - **登录态需要重新扫码一次**：旧实现在 `sessions.json`（明文）里，移植源各自用插件数据目录下的加密存储（`<平台>-legacy-store.json` + `<平台>-seal.key`），两者不是一套格式。已存的收藏、歌单、播放历史、队列不受影响（歌曲 id 形态没变）。
 
+### 匹配歌词 · 算法改为 Folia 原样移植
+
+- **自动匹配、打分、来源顺序全部换成 Folia 的实现**：`src/folia/utils/lyrics/**`（29 个文件，SHA256 与上游全等）经 `src/folia-adapters/lyrics-match/` 的宿主替身打成 `src/host/vendor/lyrics-folia/match.bundle.mjs`；`lyrics-match-runner` 直接调用上游 `autoMatchBestLyric`，`lyrics-match.js` 的打分改为上游 `matchScore`。
+- **行为随上游**：时长分档补回 ≤1s → ×1（旧自写版缺这一档）；未指定偏好时默认偏好是 QQ（上游的 `DEFAULT_PREFERRED_LYRIC_SOURCE`）；AMLL 探测走「先找网易云候选、再用它的 id 问 AMLL」这条上游路径，不再由插件自己预解析 id；别名重试只给标题时，宿主把 artist 补成歌手的名字（上游会对 `artist.trim()` 取用）。
+- **界面不变**：匹配窗口仍是插件自己的对话框；它拿到的分数、排序来自上游，预览仍返回客户端需要的行/LRC/TTML 原文（AMLL 的原文仍随预览一起给）。
 ### 在线音乐 · 未登录体验
 
 - **源菜单与账号菜单分开**：未登录的平台不再显示「重新登录 / 退出登录」（它们只属于已登录账号），改为一项「登录」；原因是客户端把「已配置」当成了「已登录」。

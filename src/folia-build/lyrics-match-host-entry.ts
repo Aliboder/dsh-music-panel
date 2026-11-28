@@ -11,6 +11,7 @@
  *
  * @module dsh-music-panel/folia-build/lyrics-match-host-entry
  */
+import { configureAmllDb } from '../folia-adapters/lyrics-match/amll-db-provider'
 import { setLyricsMatchParticipants } from '../folia-adapters/lyrics-match/cross-source'
 import { registerLyricsMatchProvider } from '../folia-adapters/lyrics-match/provider-registry'
 import { autoMatchBestLyric } from '../folia/utils/lyrics/autoMatchBestLyric'
@@ -73,6 +74,7 @@ export function configureLyricsMatch(config: LyricsMatchConfig): void {
 }
 
 export {
+  configureAmllDb,
   autoMatchBestLyric,
   calculateMatchScore,
   calculateMatchScoreDetails,

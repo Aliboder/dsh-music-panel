@@ -9,8 +9,8 @@
  * @module dsh-music-panel/lyrics-match-runner
  */
 
-import { AUTO_MATCH_MIN_SCORE, pickBestLyricCandidate } from './lyrics-match.js'
-import { LYRIC_SOURCES } from './lyrics-sources.js'
+import { AUTO_MATCH_MIN_SCORE } from './lyrics-match.js'
+import { findBestLyricsViaFolia } from './lyrics-folia.js'
 
 /** Folia: `AUTO_MATCH_SEARCH_LIMIT`. */
 export const AUTO_MATCH_SEARCH_LIMIT = 10
@@ -142,162 +142,10 @@ export function buildKugouLyricSearchQuery(track) {
  *   log?: (message: string) => void,
  * }} io
  */
-/**
- * One pass over the sources for one title/artist. `findBestLyrics` wraps this with the
- * alias retries Folia's automatic pick does.
- */
-async function searchOnce(track, io) {
-  const query = buildLyricSearchQuery(track)
-  if (query === '') return null
-  const order = Array.isArray(io.order) && io.order.length > 0 ? io.order : LYRIC_SOURCES.map((source) => source.id)
-  const log = typeof io.log === 'function' ? io.log : () => {}
-  let fallback = null
+// Folia 的自动匹配（autoMatchBestLyric）在镜像里：本节只把调用方注入的 io 换成它的宿主面，
+// 再把它交回的 LyricData 换成本插件路由认的行形状。算法、顺序、阈值、超时、两次重试都在那边。
 
-  for (const sourceId of order) {
-    if (sourceId === 'amll') {
-      if (typeof io.fetchAmll !== 'function') continue
-      // Folia probes AMLL with the candidate id it found for NetEase/QQ in this run. The
-      // resolver is asked only when the pick reaches AMLL, so a word-level answer from an
-      // earlier source never pays for the extra search.
-      let musicIds = { neteaseId: io.neteaseId, qqId: io.qqId }
-      if (typeof io.resolveAmllIds === 'function') {
-        try {
-          musicIds = { ...musicIds, ...(await io.resolveAmllIds()) }
-        } catch (error) {
-          log(`amll candidate: ${error.message}`)
-        }
-      }
-      const ids = [
-        ['ncm', musicIds.neteaseId],
-        ['qq', musicIds.qqId],
-      ].filter(([, id]) => String(id ?? '').trim() !== '')
-      for (const [platform, id] of ids) {
-        try {
-          const found = await withTimeout(io.fetchAmll(platform, String(id)), LYRIC_TIMEOUT_MS, 'amll')
-          if (found !== null && hasRenderableLyrics(found)) {
-            // AMLL answers TTML: word-level when the DB has it, line-level otherwise. The
-            // document itself travels with the answer, so the client parses it with Folia's
-            // parser instead of trusting the shapes decided here.
-            const result = {
-              lyrics: found.lines,
-              source: 'amll',
-              id: String(id),
-              score: 100,
-              wordLevel: isWordLevel(found),
-              ...(typeof found.text === 'string' && found.text !== ''
-                ? { raw: { type: 'local', lrcContent: found.text, formatHint: 'ttml' } }
-                : {}),
-            }
-            if (result.wordLevel) return result
-            fallback = fallback ?? result
-          }
-        } catch (error) {
-          log(`amll ${platform}/${String(id)}: ${error.message}`)
-        }
-      }
-      continue
-    }
-
-    let candidates = []
-    try {
-      const sourceQuery = sourceId === 'kugouLite' || sourceId === 'kugou'
-        ? buildKugouLyricSearchQuery(track)
-        : query
-      candidates = await withTimeout(
-        io.search(sourceId, sourceQuery, AUTO_MATCH_SEARCH_LIMIT),
-        SEARCH_TIMEOUT_MS,
-        `${sourceId} search`,
-      )
-    } catch (error) {
-      log(`${sourceId} search: ${error.message}`)
-      continue
-    }
-    const best = pickBestLyricCandidate(track, candidates)
-    if (best === null) continue
-
-    let lyrics = null
-    try {
-      lyrics = await withTimeout(
-        io.fetchLyric(sourceId, String(best.candidate.id), best.candidate),
-        LYRIC_TIMEOUT_MS,
-        `${sourceId} lyric`,
-      )
-    } catch (error) {
-      log(`${sourceId} lyric: ${error.message}`)
-      continue
-    }
-    if (lyrics === null || !hasRenderableLyrics(lyrics)) continue
-
-    const result = {
-      lyrics: lyrics.lines,
-      source: sourceId,
-      id: String(best.candidate.id),
-      score: best.score,
-      wordLevel: isWordLevel(lyrics),
-      // The candidate itself travels with the answer, so a caller that persists the
-      // match (a local song's record) keeps the title/artist/album/cover it came from.
-      candidate: best.candidate,
-      // The platform's own raw document, translation and romanization, when it sent any:
-      // the client parses that with Folia's pipeline (words, credits, split) rather than
-      // the line array this module compares.
-      ...(lyrics.raw && typeof lyrics.raw === 'object' ? { raw: lyrics.raw } : {}),
-      ...(typeof lyrics.translation === 'string' && lyrics.translation !== ''
-        ? { translation: lyrics.translation }
-        : {}),
-      ...(typeof lyrics.romaji === 'string' && lyrics.romaji !== '' ? { romaji: lyrics.romaji } : {}),
-    }
-    // Word-level wins immediately; a line-level answer is kept only as a fallback.
-    if (result.wordLevel) return result
-    fallback = fallback ?? result
-  }
-
-  return fallback
-}
-
-/**
- * The automatic pick, with Folia's two retries: a song its platform lists under another
- * name is searched again as that name (only while no word-level answer is in hand), and
- * an artist the sources spell differently gets one more pass when nothing matched at all.
- *
- * @param {object} track
- * @param {object} io — `searchOnce`'s callbacks plus `searchAlias` / `alternateArtist`
- */
 export async function findBestLyrics(track, io) {
-  const match = await searchOnce(track, io)
-  if (match !== null && match.wordLevel === true) return match
-
-  if (typeof io.searchAlias === 'function') {
-    let alias = null
-    try {
-      alias = await io.searchAlias()
-    } catch (error) {
-      alias = null
-    }
-    const title = alias !== null && typeof alias === 'object' ? String(alias.title ?? '').trim() : ''
-    if (title !== '' && title !== String(track.title ?? '')) {
-      const retried = await searchOnce(
-        {
-          ...track,
-          title,
-          artist: String(alias.artist ?? track.artist ?? ''),
-          album: String(alias.album ?? track.album ?? ''),
-        },
-        io,
-      )
-      if (retried !== null && (match === null || retried.wordLevel === true)) return retried
-    }
-  }
-
-  if (match !== null || typeof io.alternateArtist !== 'function') return match
-  let artist = null
-  try {
-    artist = await io.alternateArtist()
-  } catch (error) {
-    artist = null
-  }
-  const wanted = String(artist ?? '').trim()
-  if (wanted === '' || wanted === String(track.artist ?? '')) return match
-  return await searchOnce({ ...track, artist: wanted }, io)
+  return await findBestLyricsViaFolia(track, io)
 }
-
 export { AUTO_MATCH_MIN_SCORE }
