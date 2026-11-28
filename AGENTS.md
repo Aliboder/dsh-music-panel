@@ -57,6 +57,7 @@ client.js                    Client 构建产物（src/client + src/folia 片段
 src/host/                    Host：Node 侧，随包发布（见 package.json files）
   http/                      /music/* 路由（routes/、routes.js）+ URL 安全检查
   providers/                 在线源适配：sources（注册表 + 网易云/QQ/酷狗/波点/汽水/本地）、login、vendor
+    sources/kugou-folia/     酷狗：委派表 + 移植源适配（上游在 src/folia-mods/sources/kugou）
   services/                  core（契约/端口/错误）、media（扫描/标签/缓存/回收站）、lyrics、playback
   stores/                    持久化：settings / stats / favorites / playlists / accounts / media-cache
   assets/                    icu-folia 词典、歌词样式缩略图
