@@ -19,7 +19,7 @@
 - **最终给用户的回答格式：**简要修改流程 代码块“段A→段B→段C...、通俗易懂的简要说明（问题、思路、做法、收益）、(若有)受影响的文档修改清单和变更内容简介（代码块）、存档点代码块（axxbxx：优化了...）”
 - 当我让你参考folia的代码或者对齐代码时，能照搬folia的代码就照搬，不要只借鉴思路。
 - **Folia 移植目录必须与上游仓库根 1:1**：镜像统一放在 `folia/`，三条树的相对路径与上游一致——`folia/src/**` ↔ 上游 `src/**`、`folia/sources/<id>/**` ↔ 上游 `sources/<id>/**`、`folia/packages/<包>/**` ↔ 上游 `packages/<包>/**`。镜像是有意的最小可用子集（上游多出来的文件可以不搬），但**路径不许自创、上游不存在的文件不得混进 `folia/`**。
-- **镜像内容默认逐字节相同**：确有插件适配的，登记在 `folia/mirror.manifest.json`（含登记时的上游 SHA256，上游一变就报错复核）；`node scripts/check-folia-mirror.mjs` 校验路径、内容与清单，已并入 `npm run check` 与 `npm test`。需要改行为时，优先把改动放进 `src/folia-adapters/` 而不是改镜像。
+- **镜像内容默认逐字节相同**：确有插件适配的，登记在 `folia/mirror.manifest.json`（含登记时的上游 SHA256，上游一变就报错复核）；`node scripts/check-folia-mirror.mjs` 校验路径、内容与清单，已并入 `npm run check` 与 `npm test`。需要改行为时，优先把改动放进 `src/folia-adapters/` 而不是改镜像。细则见 [Folia 移植规范](A_other/docs/Folia移植规范.md)。
 - **适配层按上游路径组织**：替换上游某个模块的替身放在 `src/folia-adapters/<上游相对路径>`（如 `src/folia-adapters/services/onlineMusic/providerRegistry.ts` ↔ 上游 `src/services/onlineMusic/providerRegistry.ts`），文件头写「替身上游：…」；宿主面（RPC / net / seal / pageStore 等没有单一上游文件的实现）、shims 与 vendor 仍按用途分组。构建入口与 bundle 放 `src/folia-build/` 与 `src/host/vendor/`。
 - 相关文档描述内容实际发生变更时，要更新文档。
 
@@ -108,6 +108,7 @@ A_other/                     非插件资料：design / docs / releases / shared
 - [主题与组件开发规范](A_other/docs/主题与组件开发规范.md)
 - [踩坑记录](A_other/docs/踩坑记录.md)
 - [在线平台对齐清单](A_other/docs/在线平台对齐清单.md)
+- [Folia 移植规范](A_other/docs/Folia移植规范.md)（镜像目录、适配层、校验、移植流程）
 - [目录结构图](A_other/docs/目录结构图.html)
 - [发布流程](A_other/docs/发布手册.md)
 - [CHANGELOG](CHANGELOG.md)

@@ -1,6 +1,7 @@
 # Folia 镜像（`folia/`）
 
 这里逐字节镜像 Folia 仓库（`A_other/upstream/folia-major-main`，只读）里本插件真正用到的那部分源码。
+完整规则（适配层、校验、移植流程）见 [Folia 移植规范](../A_other/docs/Folia移植规范.md)。
 目录与上游**仓库根** 1:1，没有自创目录、没有第二套前缀：
 
 | 本仓库 | 上游 |
