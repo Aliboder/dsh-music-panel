@@ -472,7 +472,9 @@ function PlayerSheetInner(props) {
   // The cover is capped by the room left after padding, dock, gap and the title block,
   // otherwise a tall cover pushes the dock under the clipped edge on short windows.
   var viewportForLayout = viewportH > 0 ? viewportH : 800
-  var cardMaxH = Math.max(240, viewportForLayout - MP_TOP_MARGIN - cardBottom)
+  // The listener asked for 90% of the previous maximum: the card keeps a tenth of its old
+  // free height as breathing room above the dock (and above the fullscreen button).
+  var cardMaxH = Math.max(240, Math.round((viewportForLayout - MP_TOP_MARGIN - cardBottom) * 0.9))
   var coverRoom = cardMaxH - MP_PADDING * 2 - MP_DOCK_HEIGHT - MP_DOCK_GAP - MP_COVER_GAP - underHForLayout
   var coverBig = 'min(336px, 52vh, ' + String(Math.max(140, coverRoom)) + 'px)'
   var headerH = isCover
@@ -2082,7 +2084,9 @@ function PlayerSheetInner(props) {
     // button (`.mp-np-fs`, top 22 + 36 tall) lives in that same box: 100% is that box's height.
     // Expressing the bound as a percentage keeps the two in one coordinate space, so the card
     // cannot reach the button no matter where the page sits in the window (title bar, scale).
-    maxHeight: 'max(240px, calc(100% - ' + String(MP_TOP_MARGIN) + 'px - ' + String(cardBottom) + 'px))',
+    // 90% of the free height in the card's own coordinate space (see the note above):
+    // 0.9 * (100% - top margin - bottom offset) = 90% - 0.9 * (top margin + bottom offset).
+    maxHeight: 'max(240px, calc(90% - ' + String(Math.round((MP_TOP_MARGIN + cardBottom) * 0.9 * 10) / 10) + 'px))',
     onClose: onClose,
     header: header,
     body: body,

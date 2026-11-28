@@ -19,10 +19,10 @@ test('the body is clamped with the real viewport and bottom anchor', () => {
 })
 
 test('the surface and the cover are capped by the free height', () => {
-  assert.match(sheet, /var cardMaxH = Math\.max\(240, viewportForLayout - MP_TOP_MARGIN - cardBottom\)/)
+  assert.match(sheet, /var cardMaxH = Math\.max\(240, Math\.round\(\(viewportForLayout - MP_TOP_MARGIN - cardBottom\) \* 0\.9\)\)/)
   assert.match(sheet, /var coverRoom = cardMaxH - MP_PADDING \* 2 - MP_DOCK_HEIGHT - MP_DOCK_GAP - MP_COVER_GAP - underHForLayout/)
   assert.match(sheet, /min\(336px, 52vh, /)
-  assert.match(sheet, /maxHeight: 'max\(240px, calc\(100% - '/)
+  assert.match(sheet, /maxHeight: 'max\(240px, calc\(90% - '/)
   assert.doesNotMatch(sheet, /maxHeight:[\s\S]{0,120}100dvh/)
 })
 
@@ -31,7 +31,8 @@ test('the top edge clears the player page fullscreen button', () => {
   // sibling in that same box (top 22 + 36 tall). The max height is expressed as a percentage
   // of that box, so the card's top cannot reach the button whatever the window does.
   assert.match(sheet, /var MP_TOP_MARGIN = 70/)
-  assert.match(sheet, /maxHeight: 'max\(240px, calc\(100% - ' \+ String\(MP_TOP_MARGIN\) \+ 'px - ' \+ String\(cardBottom\) \+ 'px\)\)'/) 
+  assert.match(sheet, /calc\(90% - '/)
+  assert.match(sheet, /\(MP_TOP_MARGIN \+ cardBottom\) \* 0\.9/) 
 })
 
 test('resizing the window re-clamps the body', () => {
