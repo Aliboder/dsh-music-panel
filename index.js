@@ -26,6 +26,7 @@ import { readLyricsFor } from './src/host/services/lyrics/lyrics.js'
 import { enqueueControl } from './src/host/services/playback/control.js'
 import { disposeNeteaseFolia } from './src/host/providers/sources/netease-folia/index.js'
 import { disposeQqFolia } from './src/host/providers/sources/qq-folia/index.js'
+import { initSongRegistry, clearSongRegistry } from './src/host/providers/sources/song-registry.js'
 import { omni, registerBodianFoliaSource, registerKugouSource, registerLocalSource, registerNeteaseFoliaSource, registerOnlineSources, registerQqFoliaSource, registerQishuiFoliaSource, resetSources } from './src/host/providers/sources/index.js'
 import { createAudioFocusService } from './src/host/services/audio-focus.js'
 import { createUpdateChecker } from './src/host/services/update/checker.js'
@@ -43,6 +44,8 @@ export const inject = ['webServer']
 export function apply(ctx, rawConfig) {
   const config = rawConfig !== null && typeof rawConfig === 'object' ? rawConfig : {}
   const settings = createSettings({ dshHome: config.dshHome, seed: config })
+  // 交出去过的歌的侧车（QQ 的 songmid 等）：取流时按 id 找回，重启后仍在。
+  initSongRegistry(settings.dir)
   const stats = createStats({ dir: settings.dir })
   const lyricState = createLyricState({ dir: settings.dir })
   const playback = createPlayback({ dir: settings.dir })
@@ -91,6 +94,7 @@ export function apply(ctx, rawConfig) {
     playback.invalidate?.()
     favorites.invalidate?.()
     playlists.invalidate?.()
+    clearSongRegistry()
     await providerStore.clear()
     await accountReads.clearAll()
     await mediaCache.clear('all')

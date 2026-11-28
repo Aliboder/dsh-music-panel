@@ -34,7 +34,7 @@ const CATEGORIES = [
     'qishui-legacy-store.json', 'qishui-seal.key', 'qishui-page-store.json',
   ] },
   // The new-version check cache is regenerable state: clearing the cache clears it too.
-  { id: 'cache', label: 'cache', names: ['cache', 'update-check.json', 'update-check.json.bak'] },
+  { id: 'cache', label: 'cache', names: ['cache', 'update-check.json', 'update-check.json.bak', 'online-songs.json'] },
   { id: 'trash', label: 'trash', names: ['trash'] },
 ]
 

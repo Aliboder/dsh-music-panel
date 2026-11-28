@@ -10,6 +10,8 @@
  * @module dsh-music-panel/sources/kugou-folia/cache
  */
 
+import { playbackSongOf, rememberSong as rememberSideCar } from '../song-registry.js'
+
 const collections = new Map()
 const songs = new Map()
 
@@ -38,11 +40,19 @@ export function collectionOf(id, type = 'playlist') {
   return { id: String(id), type, name: '', data: {} }
 }
 
-/** 存一首上游的歌（拿到完整 song 对象时调）。 */
+/** 存一首上游的歌（拿到完整 song 对象时调）；同时落盘最小侧车，重启后仍能拼回。 */
 export function rememberSong(song) {
   if (!song || typeof song !== 'object') return song
   const id = String(song.id ?? song.data?.hash ?? '').toLowerCase()
-  if (id !== '') songs.set(id, song)
+  if (id !== '') {
+    songs.set(id, song)
+    rememberSideCar('kugouLite', {
+      id,
+      data: song.data && typeof song.data === 'object' ? song.data : null,
+      lyricIds: song.lyricIds && typeof song.lyricIds === 'object' ? song.lyricIds : null,
+      variant: typeof song.variant === 'string' ? song.variant : '',
+    })
+  }
   return song
 }
 
@@ -55,15 +65,16 @@ export function foliaSongOf(song) {
   const id = String(item.id ?? '').toLowerCase()
   const known = songs.get(id)
   if (known) return known
-  const data = item.data && typeof item.data === 'object' ? item.data : {}
+  const saved = playbackSongOf('kugouLite', id)
+  const data = saved?.data !== undefined ? saved.data : (item.data && typeof item.data === 'object' ? item.data : {})
   return {
     id,
     title: String(item.title ?? ''),
     artists: [],
     durationMs: Number(item.durationMs) || (Number(item.durationSec) || 0) * 1000,
     ...(item.coverUrl ? { coverUrl: String(item.coverUrl) } : {}),
-    ...(item.variant ? { variant: String(item.variant) } : {}),
-    ...(item.lyricIds && typeof item.lyricIds === 'object' ? { lyricIds: item.lyricIds } : {}),
+    ...((item.variant || saved?.variant) ? { variant: String(item.variant || saved.variant) } : {}),
+    ...((item.lyricIds || saved?.lyricIds) ? { lyricIds: item.lyricIds ?? saved.lyricIds } : {}),
     data: { ...data, hash: String(data.hash ?? id) },
   }
 }

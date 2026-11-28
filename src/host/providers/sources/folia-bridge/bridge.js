@@ -11,6 +11,7 @@ import { capabilities as buildCapabilities } from '../../../services/core/contra
 import { MusicError } from '../../../services/core/errors.js'
 import { albumCardOf, artistCardOf, playlistCardOf, playlistRowOf, searchPageOf, songOf, songsOf, songsPageOf } from './dto.js'
 import { foliaError, hasMethod } from './errors.js'
+import { playbackSongOf } from '../song-registry.js'
 import { resolveSourceLyrics } from '../../../services/lyrics/folia-lyrics-source.js'
 
 const PAGE_SIZE = 100
@@ -56,6 +57,22 @@ export function createFoliaSource(options) {
       ...(item.variant ? { variant: String(item.variant) } : {}),
       ...(item.lyricIds && typeof item.lyricIds === 'object' ? { lyricIds: item.lyricIds } : {}),
       data: item.data && typeof item.data === 'object' ? item.data : {},
+    }
+  }
+
+  // 取流 / 歌词 / 写歌单要整首歌的侧车（QQ 的 songmid、波点的 freeSign、酷狗的 variant），
+  // 而 HTTP 路由只带得动 id：按 id 找回宿主见过的侧车，找不到就维持最小形状（上游自己会拒绝）。
+  const fullSongOf = (song) => {
+    const base = foliaSongOf(song)
+    if (base.id === '') return base
+    const known = playbackSongOf(sourceId, base.id)
+    if (known === null) return base
+    const hasData = base.data !== null && typeof base.data === 'object' && Object.keys(base.data).length > 0
+    return {
+      ...base,
+      ...(known.variant ? { variant: known.variant } : {}),
+      ...(known.lyricIds ? { lyricIds: base.lyricIds ?? known.lyricIds } : {}),
+      data: hasData ? base.data : (known.data ?? {}),
     }
   }
 
@@ -268,7 +285,7 @@ export function createFoliaSource(options) {
   if (declared.likeWrite) {
     source.setLiked = async (song, on) => {
       try {
-        await mutations.likeSong(foliaSongOf(song), on === true)
+        await mutations.likeSong(fullSongOf(song), on === true)
         return true
       } catch (error) { throw foliaError(error, sourceId) }
     }
@@ -276,7 +293,7 @@ export function createFoliaSource(options) {
   if (declared.playlistAdd) {
     source.addToPlaylist = async (song, playlistId) => {
       try {
-        await mutations.updatePlaylistTracks('add', collectionOf(playlistId), [foliaSongOf(song)])
+        await mutations.updatePlaylistTracks('add', collectionOf(playlistId), [fullSongOf(song)])
         return true
       } catch (error) { throw foliaError(error, sourceId) }
     }
@@ -284,7 +301,7 @@ export function createFoliaSource(options) {
   if (declared.playlistTrackMutations) {
     source.removeFromPlaylist = async (song, playlistId) => {
       try {
-        await mutations.updatePlaylistTracks('del', collectionOf(playlistId), [foliaSongOf(song)])
+        await mutations.updatePlaylistTracks('del', collectionOf(playlistId), [fullSongOf(song)])
         return true
       } catch (error) { throw foliaError(error, sourceId) }
     }
@@ -369,7 +386,7 @@ export function createFoliaSource(options) {
   if (declared.playbackReports) {
     // 上游的 reports@1：canReport 先判「这首歌值不值得报」（云盘、非数字 id 不报），report 真正上报。
     source.reportPlayback = async (song, report) => {
-      const target = foliaSongOf(song)
+      const target = fullSongOf(song)
       try {
         if (hasMethod(reports, 'canReport') && reports.canReport(target) !== true) return false
         await reports.report(target, report)
@@ -382,7 +399,7 @@ export function createFoliaSource(options) {
   if (declared.playback) {
     source.stream = async (id, ctx, quality = 'high') => {
       try {
-        const answered = await playback.getAudioSource(foliaSongOf({ id }), quality)
+        const answered = await playback.getAudioSource(fullSongOf({ id }), quality)
         if (!answered || typeof answered.url !== 'string' || answered.url === '') {
           return { url: '', quality: '', replayGain: null }
         }
@@ -405,7 +422,7 @@ export function createFoliaSource(options) {
     // 解析走移植的 Folia 宿主步骤（mods/folium/lyricsSource.ts），这里只换成插件源对象的形状。
     source.lyric = async (id) => {
       try {
-        const answered = await lyrics.getLyrics(foliaSongOf({ id }))
+        const answered = await lyrics.getLyrics(fullSongOf({ id }))
         const resolved = await resolveSourceLyrics(answered, sourceId)
         return {
           lrc: resolved.lrc,

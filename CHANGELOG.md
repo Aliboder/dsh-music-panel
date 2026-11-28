@@ -19,6 +19,11 @@
 - 网易云的后端跑在工作线程里，线程是 bundle 旁边的 `worker.cjs`（由上游 `neteaseApiWorker.cjs` 复制改名）；QQ 的内嵌后端在第一次问状态时拉起、监听本机端口。插件停用或退出时会关掉它们。
 - **登录态需要重新扫码一次**：旧实现在 `sessions.json`（明文）里，移植源各自用插件数据目录下的加密存储（`<平台>-legacy-store.json` + `<平台>-seal.key`），两者不是一套格式。已存的收藏、歌单、播放历史、队列不受影响（歌曲 id 形态没变）。
 
+### 在线播放：取流带上整首歌的侧车（修 QQ「son has no songmid」）
+
+- **根因**：Folia 宿主交出去的播放请求是整首 `FoliumSourceSong`（`omni.getAudioSource(song, quality)`）；本插件的 HTTP 边界只有 `provider + id`。QQ 的播放键 songmid 不在 id 里（id 是数字 songid，songmid 在 `lyricIds.qq` / `data.songMid`，`mediaMid` 在 `data.mediaMid`），于是上游 `qqProvider` 直接报「QQ song has no songmid」。同一处还会丢：波点的 `data.freeSign`（免费曲取流要它）、酷狗的 `data.albumId` / `albumAudioId` / `variant: cloud`。
+- **修法（对齐 Folia 的「宿主握着整首歌」）**：新增 `src/host/providers/sources/song-registry.js`，在 DTO 交出一首歌时按 provider+id 记下最小侧车（`data` / `lyricIds` / `variant`），取流 / 歌词 / 点赞 / 歌单写入时由 bridge 的 `fullSongOf` 与酷狗门面按 id 找回；侧车落盘到数据目录 `online-songs.json`，重启后恢复队列仍能播，LRU 3000 条、单条 4KB 上限。清空插件数据时随 `cache` 分类一起删。
+- **各平台核对**：网易云、汽水只读 `song.id`，本来就够；波点免费曲要 `freeSign`、酷狗要专辑/variant、QQ 要 songmid+mediaMid——现在都从侧车补齐。恢复队列如果是升级前保存的（sidecar 文件还没有），第一次播放会缺字段，重新打开一次对应平台的列表/搜索即可补记。
 ### 试听片段：时长与歌词时钟对齐 Folia
 
 - **时长**：试听片段播放时，进度条与时间显示改用媒体元素自己的时长（Folia 的舞台时长就是 `audioElement.duration`），不再用整首歌的目录时长。`effectivePlayerDuration` 新增 `preview` 参数：试听时媒体时长优先；普通播放仍取「媒体 / 目录」的较大值，避免 MediaSource 只报已追加前缀时把时长缩短。

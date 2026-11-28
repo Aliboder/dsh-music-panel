@@ -9,6 +9,7 @@
  */
 
 import { vipOfSong } from '../song-vip.js'
+import { rememberSong } from '../song-registry.js'
 
 const textOf = (texts, value) => {
   if (value === null || value === undefined) return ''
@@ -33,7 +34,7 @@ export function songOf(song, sourceId, texts) {
   const data = item.data && typeof item.data === 'object' ? item.data : {}
   // 本插件自己的 VIP 角标：可用行上的 availability 文案之外，再按平台字段补一个 'VIP'。
   const qualityHint = vipOfSong(sourceId, item) ? 'VIP' : (item.availability?.label ? textOf(texts, item.availability.label) : '')
-  return {
+  const track = {
     provider: sourceId,
     id: String(item.publicId ?? item.id ?? ''),
     title: String(item.title ?? ''),
@@ -69,6 +70,9 @@ export function songOf(song, sourceId, texts) {
     replayGain: item.replayGain ?? null,
     pureMusic: item.pureMusic === true,
   }
+  // 取流/歌词/写歌单要的侧车（QQ 的 songmid、波点的 freeSign、酷狗的 variant…）跟着歌走。
+  rememberSong(sourceId, track)
+  return track
 }
 
 export function songsOf(songs, sourceId, texts) {
