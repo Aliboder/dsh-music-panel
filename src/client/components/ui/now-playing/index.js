@@ -726,9 +726,12 @@ function NowPlaying(props) {
 
   // The per-song correction plus Folia's device-wide offset: one clock for every surface.
   var lyricGlobalOffsetMs = Math.max(-2000, Math.min(2000, Number(prefs.lyricGlobalOffsetMs) || 0))
-  var lyricNow = lyricClock(time.currentTime, offsetMs, lyricGlobalOffsetMs)
+  // Folia adds the preview clip's start to the element clock (usePlaybackVisualizerBridge),
+  // so a clip cut from the middle of a song still highlights the right line.
+  var clipStartSec = (Number(time.clipStartMs) || 0) / 1000
+  var lyricNow = lyricClock(time.currentTime + clipStartSec, offsetMs, lyricGlobalOffsetMs)
   var active = lyricActiveIndex(lyrics, lyricNow)
-  var duration = effectivePlayerDuration(time.duration, track ? track.durationSec : 0)
+  var duration = effectivePlayerDuration(time.duration, track ? track.durationSec : 0, time.preview === true)
   var favorite = track !== null && props.favoriteSet[track.path] === true
 
   // Every offset edit goes through here: state + Folia's per-song memory. The card used to

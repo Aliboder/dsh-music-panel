@@ -9,7 +9,7 @@ window.__ModuleLoader__.load({
   factory: function (require) {
     'use strict'
     var APP_VERSION = "0.47.2"
-    var CLIENT_BUILD = "d53721328d62"
+    var CLIENT_BUILD = "78fa73c4bdf2"
 
     // ── src/client/app/runtime.js
     /**
@@ -33434,10 +33434,11 @@ window.__ModuleLoader__.load({
         function readTime() {
           if (player && typeof player.getPlaybackTime === 'function') {
             var playback = player.getPlaybackTime()
-            return Number(playback && playback.currentTime) || 0
+            // Folia's visualizer runs on the element clock plus the preview clip's start.
+            return (Number(playback && playback.currentTime) || 0) + (Number(playback && playback.clipStartMs) || 0) / 1000
           }
           var time = player.getTime()
-          return Number(time && time.currentTime) || 0
+          return (Number(time && time.currentTime) || 0) + (Number(time && time.clipStartMs) || 0) / 1000
         }
 
         function tick() {
@@ -33475,9 +33476,11 @@ window.__ModuleLoader__.load({
       var theme = useFoliaCoverTheme(props.coverUrl, props.seed, props.accent)
 
       var seek = useCallback(function (seconds) {
-        // The rail's timestamps are raw audio time; the clock is offset, so seek to the
-        // line's place in the shifted clock or the next line becomes active.
-        player.seek((Number(seconds) || 0) + offsetRef.current)
+        // The rail's timestamps are song time; a preview clip plays the song's timeline from
+        // its own start, so subtract the clip start and add the offset before seeking.
+        var snapshot = player && typeof player.getTime === 'function' ? player.getTime() : null
+        var clipStartSec = (Number(snapshot && snapshot.clipStartMs) || 0) / 1000
+        player.seek((Number(seconds) || 0) - clipStartSec + offsetRef.current)
       }, [])
 
       var active = Number(props.active)
@@ -159320,10 +159323,11 @@ window.__ModuleLoader__.load({
         function readTime() {
           if (player && typeof player.getPlaybackTime === 'function') {
             var playback = player.getPlaybackTime()
-            return Number(playback && playback.currentTime) || 0
+            // Folia's visualizer runs on the element clock plus the preview clip's start.
+            return (Number(playback && playback.currentTime) || 0) + (Number(playback && playback.clipStartMs) || 0) / 1000
           }
           var time = player.getTime()
-          return Number(time && time.currentTime) || 0
+          return (Number(time && time.currentTime) || 0) + (Number(time && time.clipStartMs) || 0) / 1000
         }
         var probeFrame = 0
         function tick() {
@@ -159511,10 +159515,13 @@ window.__ModuleLoader__.load({
         songArtist: props.artist || '',
         songAlbum: props.album || '',
         isDaylight: false,
-        // A lyric line's timestamp is raw audio time; the stage clock is shifted by the
-        // offsets, so seeking to the raw value would stop on the neighbouring line.
+        // A lyric line's timestamp is song time; the stage clock (and the element inside a
+        // preview clip) run on the clip's own timeline, so subtract the clip start and add the
+        // offset, or the seek stops on the neighbouring line.
         onLyricLineSeek: function (seconds) {
-          player.seek((Number(seconds) || 0) + offsetRef.current)
+          var snapshot = player && typeof player.getTime === 'function' ? player.getTime() : null
+          var clipStartSec = (Number(snapshot && snapshot.clipStartMs) || 0) / 1000
+          player.seek((Number(seconds) || 0) - clipStartSec + offsetRef.current)
         },
       }
 
@@ -177081,6 +177088,9 @@ window.__ModuleLoader__.load({
           counted: false,
           reported: false,
           preview: false,
+          // Where a preview clip starts inside the whole song (Folia's clipStartMs); 0 for a
+          // whole song and for every source that does not tell.
+          clipStartMs: 0,
         }
       }
 
@@ -177712,6 +177722,11 @@ window.__ModuleLoader__.load({
         applyBalancePlan(choice, plan, rampSec)
       }
 
+      /** `playOnlineMse` declares its own `session`; this reads the module-level playback session. */
+      function isPreviewSession() {
+        return session.preview === true
+      }
+
       function onTime(event) {
         if (balanceMeter !== null && balancing()) {
           reconsiderBalance(balanceMeter.liveLoudness())
@@ -177719,6 +177734,21 @@ window.__ModuleLoader__.load({
         if (!isActiveEvent(event)) return
         if (audio === null) return
         state = Object.assign({}, state, { currentTime: audio.currentTime })
+        // Folia's stage duration is the element's own duration. A preview clip is the whole
+        // file (about 30 s), so the bar and the clock must follow it rather than the catalogue
+        // length; MSE reports only appended data, hence the buffered fallback.
+        if (session.preview === true) {
+          var mediaDuration = Number(audio.duration)
+          if (!isFinite(mediaDuration) || mediaDuration <= 0) {
+            var buffered = audio.buffered
+            if (buffered !== null && buffered !== undefined && buffered.length > 0) {
+              mediaDuration = Number(buffered.end(buffered.length - 1))
+            }
+          }
+          if (isFinite(mediaDuration) && mediaDuration > 0 && Math.abs((Number(state.duration) || 0) - mediaDuration) > 0.25) {
+            state = Object.assign({}, state, { duration: mediaDuration })
+          }
+        }
         emitTime()
         trackListening()
         maybeCrossfade()
@@ -178295,6 +178325,12 @@ window.__ModuleLoader__.load({
           }
           if (pendingAutoplay && audio.paused) playAfterLoudness(token)
         }
+        // A preview clip starts at its own beginning; a position saved from a whole-song play
+        // (or the catalogue clock) would land past its end.
+        if (session.preview === true) {
+          pendingResumeSeconds = null
+          return
+        }
         function whenReady(seconds) {
           if (audio === null) return
           if (audio.readyState >= 1) {
@@ -178467,6 +178503,7 @@ window.__ModuleLoader__.load({
               }
               if (info && info.preview === true && session.preview !== true) {
                 session.preview = true
+                session.clipStartMs = Math.max(0, Number(info.clipStartMs) || 0)
                 showToast(t('online.previewOnly'))
               }
               playOnlineMse(item, token, loudness)
@@ -178637,6 +178674,10 @@ window.__ModuleLoader__.load({
             }
             /** Folia's startAtSec / 每首歌记住播放位置 on the MSE path too. */
             function applySavedStart() {
+              if (isPreviewSession()) {
+                pendingResumeSeconds = null
+                return
+              }
               if (pendingResumeSeconds !== null) {
                 var savedSeconds = pendingResumeSeconds
                 pendingResumeSeconds = null
@@ -179659,7 +179700,14 @@ window.__ModuleLoader__.load({
           emit()
         },
         getTime: function () {
-          return { currentTime: state.currentTime, duration: state.duration, buffered: state.buffered }
+          return {
+            currentTime: state.currentTime,
+            duration: state.duration,
+            buffered: state.buffered,
+            // Folia's `preview`/`clipStartMs` of the handed-out source, for the lyric clock.
+            preview: session.preview === true,
+            clipStartMs: Number(session.clipStartMs) || 0,
+          }
         },
         /**
          * The active deck's media time, read at frame rate. `getTime()` is driven by
@@ -179674,6 +179722,8 @@ window.__ModuleLoader__.load({
             currentTime: Number(currentTime) || 0,
             duration: Number(duration) || 0,
             buffered: Number(state.buffered) || 0,
+            preview: session.preview === true,
+            clipStartMs: Number(session.clipStartMs) || 0,
           }
         },
         /** The deck currently producing sound; the Folia stages read it instead of the first DOM audio. */
@@ -180504,10 +180554,18 @@ window.__ModuleLoader__.load({
      * <audio> element starts at 0 before metadata. The scanned track length is the
      * full-song ceiling; never let the smaller, still-growing media duration win.
      */
-    function effectivePlayerDuration(mediaDuration, trackDuration) {
+    /**
+     * A preview clip IS the file: its media duration is the truth for the clock and the seek
+     * bar (Folia reads the stage duration from the element). Everything else keeps the larger
+     * of the two, because MediaSource reports only the appended prefix until more data lands.
+     */
+    function effectivePlayerDuration(mediaDuration, trackDuration, preview) {
       var media = Number(mediaDuration)
       var known = Number(trackDuration)
-      return Math.max(isFinite(media) && media > 0 ? media : 0, isFinite(known) && known > 0 ? known : 0)
+      var mediaKnown = isFinite(media) && media > 0 ? media : 0
+      var trackKnown = isFinite(known) && known > 0 ? known : 0
+      if (preview === true) return mediaKnown > 0 ? mediaKnown : trackKnown
+      return Math.max(mediaKnown, trackKnown)
     }
 
     // ── src/client/services/player/online-fallback.js
@@ -184679,7 +184737,7 @@ window.__ModuleLoader__.load({
       var pair = useState(null)
       var seeking = pair[0]
       var setSeeking = pair[1]
-      var duration = effectivePlayerDuration(time.duration, props.fallbackDuration)
+      var duration = effectivePlayerDuration(time.duration, props.fallbackDuration, time.preview === true)
       var position = seeking !== null ? seeking : Math.min(time.currentTime, duration || 0)
       var percent = duration > 0 ? clamp(position / duration, 0, 1) * 100 : 0
       var buffered = Math.min(duration, Math.max(0, Number(time.buffered) || 0))
@@ -187536,7 +187594,7 @@ window.__ModuleLoader__.load({
       var setSeeking = seekPair[1]
       var seekingRef = useRef(null)
       var hoverRef = useRef(null)
-      var duration = effectivePlayerDuration(time.duration, props.fallbackDuration)
+      var duration = effectivePlayerDuration(time.duration, props.fallbackDuration, time.preview === true)
       var position = seeking !== null ? seeking : Math.min(time.currentTime, duration || 0)
       var progress = duration > 0 ? clamp(position / duration, 0, 1) : 0
       var buffered = duration > 0 ? Math.min(duration, Math.max(0, Number(time.buffered) || 0)) : 0
@@ -187868,7 +187926,7 @@ window.__ModuleLoader__.load({
               'div',
               { className: 'mp-np-times' },
               h('span', null, fmtClock(time.currentTime)),
-              h('span', null, fmtClock(effectivePlayerDuration(duration, track ? track.durationSec : 0))),
+              h('span', null, fmtClock(effectivePlayerDuration(duration, track ? track.durationSec : 0, time.preview === true))),
             ),
             h(
               'div',
@@ -188213,7 +188271,7 @@ window.__ModuleLoader__.load({
       var snap = usePlayerSnapshot()
       var time = usePlayerTime()
       var track = snap.queue[snap.index] || null
-      var duration = effectivePlayerDuration(time.duration, track ? track.durationSec : 0)
+      var duration = effectivePlayerDuration(time.duration, track ? track.durationSec : 0, time.preview === true)
       var position = Math.min(Number(time.currentTime) || 0, duration || 0)
       // 顺序 → 随机 → 单曲：和面板播放条、播放页右侧是同一个三段轮转。
       var mode = playModeOf(snap)
@@ -189339,9 +189397,12 @@ window.__ModuleLoader__.load({
 
       // The per-song correction plus Folia's device-wide offset: one clock for every surface.
       var lyricGlobalOffsetMs = Math.max(-2000, Math.min(2000, Number(prefs.lyricGlobalOffsetMs) || 0))
-      var lyricNow = lyricClock(time.currentTime, offsetMs, lyricGlobalOffsetMs)
+      // Folia adds the preview clip's start to the element clock (usePlaybackVisualizerBridge),
+      // so a clip cut from the middle of a song still highlights the right line.
+      var clipStartSec = (Number(time.clipStartMs) || 0) / 1000
+      var lyricNow = lyricClock(time.currentTime + clipStartSec, offsetMs, lyricGlobalOffsetMs)
       var active = lyricActiveIndex(lyrics, lyricNow)
-      var duration = effectivePlayerDuration(time.duration, track ? track.durationSec : 0)
+      var duration = effectivePlayerDuration(time.duration, track ? track.durationSec : 0, time.preview === true)
       var favorite = track !== null && props.favoriteSet[track.path] === true
 
       // Every offset edit goes through here: state + Folia's per-song memory. The card used to
@@ -198111,7 +198172,7 @@ window.__ModuleLoader__.load({
       var time = usePlayerTime()
       var [preview, setPreview] = useState(null)
       var current = snap.queue[snap.index] || null
-      var duration = effectivePlayerDuration(time.duration, current ? current.durationSec : 0)
+      var duration = effectivePlayerDuration(time.duration, current ? current.durationSec : 0, time.preview === true)
       if (!current) {
         return h('footer', { className: 'mpv3-player is-empty' },
           h('div', { className: 'mpv3-player-track' },
@@ -202676,10 +202737,12 @@ window.__ModuleLoader__.load({
       )
 
       if (prefs.composerLyrics !== true || track === null) return null
-      // Same clock as the player page: the lyric record's per-song offset plus the global one.
+      // Same clock as the player page: the lyric record's per-song offset plus the global one,
+      // and the preview clip's start (Folia adds it in the one lyric clock every surface uses).
+      var composerClipStartSec = (Number(time.clipStartMs) || 0) / 1000
       var index = lyricActiveIndex(
         lines,
-        lyricClock(time.currentTime, lyricOffsetMs, prefs.lyricGlobalOffsetMs),
+        lyricClock(time.currentTime + composerClipStartSec, lyricOffsetMs, prefs.lyricGlobalOffsetMs),
       )
       var line = index >= 0 ? lines[index] : null
       return h(

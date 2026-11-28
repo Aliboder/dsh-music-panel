@@ -176,10 +176,12 @@ function ComposerLyrics() {
   )
 
   if (prefs.composerLyrics !== true || track === null) return null
-  // Same clock as the player page: the lyric record's per-song offset plus the global one.
+  // Same clock as the player page: the lyric record's per-song offset plus the global one,
+  // and the preview clip's start (Folia adds it in the one lyric clock every surface uses).
+  var composerClipStartSec = (Number(time.clipStartMs) || 0) / 1000
   var index = lyricActiveIndex(
     lines,
-    lyricClock(time.currentTime, lyricOffsetMs, prefs.lyricGlobalOffsetMs),
+    lyricClock(time.currentTime + composerClipStartSec, lyricOffsetMs, prefs.lyricGlobalOffsetMs),
   )
   var line = index >= 0 ? lines[index] : null
   return h(

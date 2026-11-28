@@ -250,10 +250,11 @@ function FoliaStyleStage(props) {
     function readTime() {
       if (player && typeof player.getPlaybackTime === 'function') {
         var playback = player.getPlaybackTime()
-        return Number(playback && playback.currentTime) || 0
+        // Folia's visualizer runs on the element clock plus the preview clip's start.
+        return (Number(playback && playback.currentTime) || 0) + (Number(playback && playback.clipStartMs) || 0) / 1000
       }
       var time = player.getTime()
-      return Number(time && time.currentTime) || 0
+      return (Number(time && time.currentTime) || 0) + (Number(time && time.clipStartMs) || 0) / 1000
     }
     var probeFrame = 0
     function tick() {
@@ -441,10 +442,13 @@ function FoliaStyleStage(props) {
     songArtist: props.artist || '',
     songAlbum: props.album || '',
     isDaylight: false,
-    // A lyric line's timestamp is raw audio time; the stage clock is shifted by the
-    // offsets, so seeking to the raw value would stop on the neighbouring line.
+    // A lyric line's timestamp is song time; the stage clock (and the element inside a
+    // preview clip) run on the clip's own timeline, so subtract the clip start and add the
+    // offset, or the seek stops on the neighbouring line.
     onLyricLineSeek: function (seconds) {
-      player.seek((Number(seconds) || 0) + offsetRef.current)
+      var snapshot = player && typeof player.getTime === 'function' ? player.getTime() : null
+      var clipStartSec = (Number(snapshot && snapshot.clipStartMs) || 0) / 1000
+      player.seek((Number(seconds) || 0) - clipStartSec + offsetRef.current)
     },
   }
 

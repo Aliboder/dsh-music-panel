@@ -228,10 +228,11 @@ function FoliaPendoloStage(props) {
     function readTime() {
       if (player && typeof player.getPlaybackTime === 'function') {
         var playback = player.getPlaybackTime()
-        return Number(playback && playback.currentTime) || 0
+        // Folia's visualizer runs on the element clock plus the preview clip's start.
+        return (Number(playback && playback.currentTime) || 0) + (Number(playback && playback.clipStartMs) || 0) / 1000
       }
       var time = player.getTime()
-      return Number(time && time.currentTime) || 0
+      return (Number(time && time.currentTime) || 0) + (Number(time && time.clipStartMs) || 0) / 1000
     }
 
     function tick() {
@@ -269,9 +270,11 @@ function FoliaPendoloStage(props) {
   var theme = useFoliaCoverTheme(props.coverUrl, props.seed, props.accent)
 
   var seek = useCallback(function (seconds) {
-    // The rail's timestamps are raw audio time; the clock is offset, so seek to the
-    // line's place in the shifted clock or the next line becomes active.
-    player.seek((Number(seconds) || 0) + offsetRef.current)
+    // The rail's timestamps are song time; a preview clip plays the song's timeline from
+    // its own start, so subtract the clip start and add the offset before seeking.
+    var snapshot = player && typeof player.getTime === 'function' ? player.getTime() : null
+    var clipStartSec = (Number(snapshot && snapshot.clipStartMs) || 0) / 1000
+    player.seek((Number(seconds) || 0) - clipStartSec + offsetRef.current)
   }, [])
 
   var active = Number(props.active)

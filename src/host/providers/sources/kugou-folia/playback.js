@@ -35,6 +35,9 @@ export async function resolveStream(provider, id, cookie = '', session = {}, qua
       quality: source.quality ? facadeQualityOf(source.quality) : qualityOf(quality),
       replayGain: source.replayGain ?? null,
       ...(source.preview === true ? { preview: true } : {}),
+    ...(source.preview === true && Number.isFinite(source.clipStartMs) && source.clipStartMs > 0
+      ? { clipStartMs: source.clipStartMs }
+      : {}),
     }
   } catch (error) {
     throw kugouError(error)

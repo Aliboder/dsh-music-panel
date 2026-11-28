@@ -600,7 +600,7 @@ function P3PlayerBar(props) {
   var time = usePlayerTime()
   var [preview, setPreview] = useState(null)
   var current = snap.queue[snap.index] || null
-  var duration = effectivePlayerDuration(time.duration, current ? current.durationSec : 0)
+  var duration = effectivePlayerDuration(time.duration, current ? current.durationSec : 0, time.preview === true)
   if (!current) {
     return h('footer', { className: 'mpv3-player is-empty' },
       h('div', { className: 'mpv3-player-track' },

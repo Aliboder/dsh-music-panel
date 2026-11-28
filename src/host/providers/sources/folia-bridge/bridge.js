@@ -391,6 +391,11 @@ export function createFoliaSource(options) {
           quality: answered.quality ?? quality,
           replayGain: answered.replayGain ?? null,
           ...(answered.preview === true ? { preview: true } : {}),
+          // Folia 宿主记下试听片段在整首歌里的起点（omni.ts 的 audioSourceLevels），客户端据此
+          // 把歌词时钟加上这个偏移；音源没说就是 0。
+          ...(answered.preview === true && Number.isFinite(answered.clipStartMs) && answered.clipStartMs > 0
+            ? { clipStartMs: answered.clipStartMs }
+            : {}),
         }
       } catch (error) { throw foliaError(error, sourceId) }
     }

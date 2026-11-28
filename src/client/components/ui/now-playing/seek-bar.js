@@ -6,7 +6,7 @@ function WaveSeekBar(props) {
   var setSeeking = seekPair[1]
   var seekingRef = useRef(null)
   var hoverRef = useRef(null)
-  var duration = effectivePlayerDuration(time.duration, props.fallbackDuration)
+  var duration = effectivePlayerDuration(time.duration, props.fallbackDuration, time.preview === true)
   var position = seeking !== null ? seeking : Math.min(time.currentTime, duration || 0)
   var progress = duration > 0 ? clamp(position / duration, 0, 1) : 0
   var buffered = duration > 0 ? Math.min(duration, Math.max(0, Number(time.buffered) || 0)) : 0

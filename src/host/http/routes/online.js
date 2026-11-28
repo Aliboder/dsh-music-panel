@@ -690,6 +690,8 @@ export function createOnlineRoutes(deps) {
           return sendJson(res, 200, {
             ok: true,
             preview: stream !== null && stream.preview === true,
+            // Folia 的 omni 记着试听片段在整首歌里的起点；客户端把它加进歌词时钟。
+            clipStartMs: stream !== null && Number(stream.clipStartMs) > 0 ? Math.round(stream.clipStartMs) : 0,
             quality: stream !== null && typeof stream.quality === 'string' ? stream.quality : quality,
           })
         } catch (error) {
@@ -904,6 +906,9 @@ export function createOnlineRoutes(deps) {
             'accept-ranges': 'bytes',
           }
           if (stream.preview === true) headers['x-music-preview'] = '1'
+          if (stream.preview === true && Number(stream.clipStartMs) > 0) {
+            headers['x-music-preview-start-ms'] = String(Math.round(stream.clipStartMs))
+          }
           Object.assign(headers, replayGainHeaders(stream.replayGain))
           const totalHeader = upstream.headers.get('content-length')
           if (hasRange && seekStart === 0 && upstream.status === 200 && /^bytes=0-$/.test(String(rangeHeader || '').trim()) && totalHeader !== null) {

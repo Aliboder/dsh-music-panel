@@ -34,7 +34,7 @@ function NpTransportPill(props) {
           'div',
           { className: 'mp-np-times' },
           h('span', null, fmtClock(time.currentTime)),
-          h('span', null, fmtClock(effectivePlayerDuration(duration, track ? track.durationSec : 0))),
+          h('span', null, fmtClock(effectivePlayerDuration(duration, track ? track.durationSec : 0, time.preview === true))),
         ),
         h(
           'div',

@@ -312,6 +312,9 @@ var mseFallbackToken = -1
       counted: false,
       reported: false,
       preview: false,
+      // Where a preview clip starts inside the whole song (Folia's clipStartMs); 0 for a
+      // whole song and for every source that does not tell.
+      clipStartMs: 0,
     }
   }
 
@@ -943,6 +946,11 @@ var mseFallbackToken = -1
     applyBalancePlan(choice, plan, rampSec)
   }
 
+  /** `playOnlineMse` declares its own `session`; this reads the module-level playback session. */
+  function isPreviewSession() {
+    return session.preview === true
+  }
+
   function onTime(event) {
     if (balanceMeter !== null && balancing()) {
       reconsiderBalance(balanceMeter.liveLoudness())
@@ -950,6 +958,21 @@ var mseFallbackToken = -1
     if (!isActiveEvent(event)) return
     if (audio === null) return
     state = Object.assign({}, state, { currentTime: audio.currentTime })
+    // Folia's stage duration is the element's own duration. A preview clip is the whole
+    // file (about 30 s), so the bar and the clock must follow it rather than the catalogue
+    // length; MSE reports only appended data, hence the buffered fallback.
+    if (session.preview === true) {
+      var mediaDuration = Number(audio.duration)
+      if (!isFinite(mediaDuration) || mediaDuration <= 0) {
+        var buffered = audio.buffered
+        if (buffered !== null && buffered !== undefined && buffered.length > 0) {
+          mediaDuration = Number(buffered.end(buffered.length - 1))
+        }
+      }
+      if (isFinite(mediaDuration) && mediaDuration > 0 && Math.abs((Number(state.duration) || 0) - mediaDuration) > 0.25) {
+        state = Object.assign({}, state, { duration: mediaDuration })
+      }
+    }
     emitTime()
     trackListening()
     maybeCrossfade()
@@ -1526,6 +1549,12 @@ var mseFallbackToken = -1
       }
       if (pendingAutoplay && audio.paused) playAfterLoudness(token)
     }
+    // A preview clip starts at its own beginning; a position saved from a whole-song play
+    // (or the catalogue clock) would land past its end.
+    if (session.preview === true) {
+      pendingResumeSeconds = null
+      return
+    }
     function whenReady(seconds) {
       if (audio === null) return
       if (audio.readyState >= 1) {
@@ -1698,6 +1727,7 @@ var mseFallbackToken = -1
           }
           if (info && info.preview === true && session.preview !== true) {
             session.preview = true
+            session.clipStartMs = Math.max(0, Number(info.clipStartMs) || 0)
             showToast(t('online.previewOnly'))
           }
           playOnlineMse(item, token, loudness)
@@ -1868,6 +1898,10 @@ var mseFallbackToken = -1
         }
         /** Folia's startAtSec / 每首歌记住播放位置 on the MSE path too. */
         function applySavedStart() {
+          if (isPreviewSession()) {
+            pendingResumeSeconds = null
+            return
+          }
           if (pendingResumeSeconds !== null) {
             var savedSeconds = pendingResumeSeconds
             pendingResumeSeconds = null
@@ -2890,7 +2924,14 @@ var mseFallbackToken = -1
       emit()
     },
     getTime: function () {
-      return { currentTime: state.currentTime, duration: state.duration, buffered: state.buffered }
+      return {
+        currentTime: state.currentTime,
+        duration: state.duration,
+        buffered: state.buffered,
+        // Folia's `preview`/`clipStartMs` of the handed-out source, for the lyric clock.
+        preview: session.preview === true,
+        clipStartMs: Number(session.clipStartMs) || 0,
+      }
     },
     /**
      * The active deck's media time, read at frame rate. `getTime()` is driven by
@@ -2905,6 +2946,8 @@ var mseFallbackToken = -1
         currentTime: Number(currentTime) || 0,
         duration: Number(duration) || 0,
         buffered: Number(state.buffered) || 0,
+        preview: session.preview === true,
+        clipStartMs: Number(session.clipStartMs) || 0,
       }
     },
     /** The deck currently producing sound; the Folia stages read it instead of the first DOM audio. */

@@ -225,7 +225,7 @@ function SeekBar(props) {
   var pair = useState(null)
   var seeking = pair[0]
   var setSeeking = pair[1]
-  var duration = effectivePlayerDuration(time.duration, props.fallbackDuration)
+  var duration = effectivePlayerDuration(time.duration, props.fallbackDuration, time.preview === true)
   var position = seeking !== null ? seeking : Math.min(time.currentTime, duration || 0)
   var percent = duration > 0 ? clamp(position / duration, 0, 1) * 100 : 0
   var buffered = Math.min(duration, Math.max(0, Number(time.buffered) || 0))

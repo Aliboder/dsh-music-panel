@@ -9,7 +9,7 @@ function NowPlayingCapsule(props) {
   var snap = usePlayerSnapshot()
   var time = usePlayerTime()
   var track = snap.queue[snap.index] || null
-  var duration = effectivePlayerDuration(time.duration, track ? track.durationSec : 0)
+  var duration = effectivePlayerDuration(time.duration, track ? track.durationSec : 0, time.preview === true)
   var position = Math.min(Number(time.currentTime) || 0, duration || 0)
   // 顺序 → 随机 → 单曲：和面板播放条、播放页右侧是同一个三段轮转。
   var mode = playModeOf(snap)
