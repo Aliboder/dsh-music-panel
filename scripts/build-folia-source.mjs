@@ -125,7 +125,21 @@ const bundleOf = async (id) => {
     banner: { js: 'import { createRequire as __mpCreateRequire } from "node:module"; import { fileURLToPath as __mpFileURLToPath } from "node:url"; const require = __mpCreateRequire(import.meta.url); const __filename = __mpFileURLToPath(import.meta.url); const __dirname = __mpFileURLToPath(new URL(".", import.meta.url)).replace(/[\\\\/]$/, "");' },
     plugins: [foliumAliases(platform.external ?? [], platform.alias ?? {})],
   })
-  return headerOf(id) + result.outputFiles[0].text.replace(/\r\n/g, '\n')
+  return headerOf(id) + normalizeBundledPaths(result.outputFiles[0].text.replace(/\r\n/g, '\n'))
+}
+
+/**
+ * esbuild 会把 CommonJS 依赖的模块路径写进注释与包装键。这份 bundle 是提交进仓库的产物，
+ * 本机 pnpm 的 `node_modules/.pnpm/...` 布局、npm 的扁平布局与 CI 的绝对路径会各写出
+ * 一种路径，`--check` 于是把同一份源码判成 STALE。这里统一折叠成 `node_modules/<pkg>/...`。
+ */
+const normalizeBundledPaths = (text) => {
+  const rootPosix = ROOT.replace(/\\/g, '/')
+  let next = text.split(rootPosix + '/node_modules/').join('node_modules/')
+  next = next.replace(/[A-Za-z]:\/[^"'\n]*?\/node_modules\//g, 'node_modules/')
+  next = next.replace(/\/(?:home|Users|runner|opt|tmp)\/[^"'\n]*?\/node_modules\//g, 'node_modules/')
+  next = next.replace(/node_modules\/\.pnpm\/[^/"'\n]+?\/node_modules\//g, 'node_modules/')
+  return next
 }
 
 const argv = process.argv.slice(2)
