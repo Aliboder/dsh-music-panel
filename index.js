@@ -25,7 +25,7 @@ import { createStats } from './src/host/stores/stats.js'
 import { createLyricState } from './src/host/stores/lyric-state.js'
 import { readLyricsFor } from './src/host/services/lyrics/lyrics.js'
 import { enqueueControl } from './src/host/services/playback/control.js'
-import { omni, registerBodianSource, registerLocalSource, registerOnlineSources, registerQishuiSource, resetSources } from './src/host/providers/sources/index.js'
+import { omni, registerBodianSource, registerKugouSource, registerLocalSource, registerOnlineSources, registerQishuiSource, resetSources } from './src/host/providers/sources/index.js'
 import { stopNeteaseService } from './src/host/services/netease-api.js'
 import { stopQqService } from './src/host/services/qq-api.js'
 import { stopAllKugouServices } from './src/host/services/kugou-api.js'
@@ -133,6 +133,7 @@ export function apply(ctx, rawConfig) {
   // become observable with an empty registry: the client asks for account status
   // immediately on boot, and a delayed effect used to lose that race.
   registerOnlineSources()
+  registerKugouSource({ dir: settings.dir })
   registerBodianSource({ dir: settings.dir, store: bodianStore })
   registerQishuiSource({ dir: settings.dir, store: qishuiStore })
   if (library !== null && typeof library.scan === 'function') {

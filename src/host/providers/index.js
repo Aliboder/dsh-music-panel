@@ -19,6 +19,7 @@ import * as ND from './navidrome.js'
 import { callUpstream as ncUpstream } from '../services/netease-api.js'
 import { callUpstream as qqUpstream } from '../services/qq-api.js'
 import { callKugou } from '../services/kugou-api.js'
+import { kugouFacade } from './sources/kugou-folia/dispatch.js'
 
 export const PROVIDERS = ['netease', 'qq', 'kugouLite', 'navidrome']
 
@@ -109,6 +110,7 @@ function shape(provider, song) {
  * @param {string} [cookie]
  */
 export async function search(provider, query, cookie = '', session = {}) {
+  if (provider === 'kugou') return kugouFacade('search', arguments)
   const text = String(query ?? '').trim()
   if (text === '') return []
   if (provider === 'navidrome') {
@@ -148,6 +150,7 @@ export async function search(provider, query, cookie = '', session = {}) {
  * providers currently return one comparable page.
  */
 export async function searchPage(provider, query, cookie = '', session = {}, page = 1) {
+  if (provider === 'kugou') return kugouFacade('searchPage', arguments)
   const target = Math.max(1, Number(page) || 1)
   if (provider === 'netease') {
     const text = String(query ?? '').trim()
@@ -200,6 +203,7 @@ function playlistCard(provider, raw) {
 
 /** Folia daily recommendations for the platforms that expose the route. */
 export async function dailySongs(provider, cookie = '', session = {}) {
+  if (provider === 'kugou') return kugouFacade('dailySongs', arguments)
   if (provider === 'netease') {
     const rows = await NC.dailySongs(cookie)
     return rows.map((song) => {
@@ -227,6 +231,7 @@ export async function dailySongs(provider, cookie = '', session = {}) {
 
 /** Folia recommended collections for the platforms that expose the route. */
 export async function recommendedCollections(provider, cookie = '', session = {}, limit = 30) {
+  if (provider === 'kugou') return kugouFacade('recommendedCollections', arguments)
   let rows = []
   if (provider === 'netease') rows = await NC.recommendedCollections(cookie, limit)
   else if (provider === 'qq') rows = await QQ.recommendedCollections(cookie, limit)
@@ -241,6 +246,7 @@ export async function recommendedCollections(provider, cookie = '', session = {}
 
 /** Folia personal FM for the platforms that expose the route. */
 export async function personalFm(provider, cookie = '', session = {}) {
+  if (provider === 'kugou') return kugouFacade('personalFm', arguments)
   let rows = []
   if (provider === 'netease') rows = await NC.personalFm(cookie)
   else if (provider === 'qq') rows = await QQ.personalFm(cookie)
@@ -255,6 +261,7 @@ export async function personalFm(provider, cookie = '', session = {}) {
 
 /** Folia cloud-drive tracks; NetEase/QQ/KuGou expose the route. */
 export async function cloudSongs(provider, cookie = '', session = {}, page = 1) {
+  if (provider === 'kugou') return kugouFacade('cloudSongs', arguments)
   const target = Math.max(1, Number(page) || 1)
   let rows = []
   if (provider === 'netease') rows = await NC.cloudSongs(cookie, 200, (target - 1) * 200)
@@ -270,6 +277,7 @@ export async function cloudSongs(provider, cookie = '', session = {}, page = 1) 
 
 /** Folia daily-history dates for the platforms that expose the route. */
 export async function historyDates(provider, cookie = '') {
+  if (provider === 'kugou') return kugouFacade('historyDates', arguments)
   if (provider === 'netease') return await NC.historyDates(cookie)
   if (provider === 'qq') return await QQ.historyDates(cookie)
   throw new Error('该平台没有日推历史')
@@ -277,6 +285,7 @@ export async function historyDates(provider, cookie = '') {
 
 /** Folia daily-history songs for one date. */
 export async function historySongs(provider, cookie = '', date = '') {
+  if (provider === 'kugou') return kugouFacade('historySongs', arguments)
   let rows = []
   if (provider === 'netease') rows = await NC.historySongs(cookie, date)
   else if (provider === 'qq') rows = await QQ.historySongs(cookie, date)
@@ -295,6 +304,7 @@ export async function historySongs(provider, cookie = '', date = '') {
  * silent empty result.
  */
 export async function searchAlbums(provider, query, cookie = '', session = {}, page = 1) {
+  if (provider === 'kugou') return kugouFacade('searchAlbums', arguments)
   const text = String(query ?? '').trim()
   const target = Math.max(1, Number(page) || 1)
   if (text === '') return { items: [], total: 0, page: target }
@@ -338,6 +348,7 @@ export async function searchAlbums(provider, query, cookie = '', session = {}, p
 
 /** Playlist search; NetEase / QQ / KuGou expose one, Navidrome does not. */
 export async function searchPlaylists(provider, query, cookie = '', session = {}, page = 1) {
+  if (provider === 'kugou') return kugouFacade('searchPlaylists', arguments)
   const text = String(query ?? '').trim()
   const target = Math.max(1, Number(page) || 1)
   if (text === '') return { items: [], total: 0, page: target }
@@ -456,6 +467,7 @@ function artistPageOfSlice(songs, offset, limit) {
  * @returns {Promise<{ songs: object[], total: number, hasMore: boolean, nextOffset: number }>}
  */
 export async function artistSongs(provider, artist, cookie = '', session = {}, artistId = '', page = {}) {
+  if (provider === 'kugou') return kugouFacade('artistSongs', arguments)
   const name = String(artist ?? '').trim()
   const offset = Math.max(0, Number(page.offset) || 0)
   if (name === '') return { songs: [], total: 0, hasMore: false, nextOffset: 0 }
@@ -641,6 +653,7 @@ export async function artistSongs(provider, artist, cookie = '', session = {}, a
  * "unknown album" case, so it resolves directly and returns the same shape.
  */
 export async function albumSongs(provider, id, cookie = '', session = {}, hint = {}) {
+  if (provider === 'kugou') return kugouFacade('albumSongs', arguments)
   if (provider === 'navidrome') {
     const result = await ND.albumSongs(navidromeConfig(session), id)
     for (const song of result.songs) rawSongs.set('navidrome:' + song.id, song)
@@ -761,6 +774,7 @@ export async function albumSongs(provider, id, cookie = '', session = {}, hint =
 
 /** Whether a cached search/playlist row is marked as a paid/VIP track. */
 export function requiresVip(provider, id) {
+  if (provider === 'kugou') return kugouFacade('requiresVip', arguments)
   const raw = rawSongs.get(provider + ':' + String(id || ''))
   if (!raw) return null
   if (provider === 'netease') return Number(raw.fee) === 1 || Number(raw.fee) === 4
@@ -830,6 +844,7 @@ export function alternateArtistName(provider, id) {
  * @returns {Promise<{ url: string, quality: string }>}
  */
 export async function resolveStream(provider, id, cookie = '', session = {}, quality = 'high') {
+  if (provider === 'kugou') return kugouFacade('resolveStream', arguments)
   if (provider === 'navidrome') {
     return ND.resolveStream(navidromeConfig(session), id, quality)
   }
@@ -871,12 +886,14 @@ export async function resolveStream(provider, id, cookie = '', session = {}, qua
  * Folia keeps in its KuGou provider.
  */
 export async function resolveLegacyStream(provider, id) {
+  if (provider === 'kugou') return kugouFacade('resolveLegacyStream', arguments)
   if (provider !== 'kugou' && provider !== 'kugouLite') return null
   return KGL.resolveLegacyStream(id)
 }
 
 /** Stable KuGou device identity (generated once, then persisted by the caller). */
 export function createKugouDevice() {
+  if (provider === 'kugou') return kugouFacade('createKugouDevice', arguments)
   return KG.createDeviceIdentity()
 }
 
@@ -914,6 +931,7 @@ async function ensureKugouDevice(session, platform = 'standard') {
  * @param {{ mid?: string, dfid?: string, guid?: string }} [session]
  */
 export async function loginStart(provider, session = {}, mode = 'qq') {
+  if (provider === 'kugou') return kugouFacade('loginStart', arguments)
   if (provider === 'navidrome') {
     // Navidrome has no QR flow: the user enters a server URL and credentials,
     // which the host stores via POST /online/navidrome/login.
@@ -961,6 +979,7 @@ const QQ_LOGIN_CASE = {
 }
 
 export async function loginStatus(provider, key, mode = 'qq') {
+  if (provider === 'kugou') return kugouFacade('loginStatus', arguments)
   if (provider === 'navidrome') {
     throw new Error('Navidrome 不支持扫码登录，请填写服务器地址与账号')
   }
@@ -1013,6 +1032,7 @@ export async function loginStatus(provider, key, mode = 'qq') {
  * same purpose: jump-to-hook and hook highlighting).
  */
 export async function chorus(provider, id, cookie = '') {
+  if (provider === 'kugou') return kugouFacade('chorus', arguments)
   // A platform without a chorus endpoint is not an error: the client simply has
   // no hook to offer, so ask nothing of the UI.
   if (provider === 'netease') return await NC.getChorus(id, cookie)
@@ -1020,6 +1040,7 @@ export async function chorus(provider, id, cookie = '') {
 }
 
 export async function lyric(provider, id, cookie = '', session = {}) {
+  if (provider === 'kugou') return kugouFacade('lyric', arguments)
   try {
     if (provider === 'navidrome') {
       return await ND.lyric(navidromeConfig(session), id)
@@ -1264,6 +1285,7 @@ function shapePlaylist(item) {  return {
  * @returns {Promise<object[]>}
  */
 export async function songs(provider, cookie = '', session = {}, size = 200) {
+  if (provider === 'kugou') return kugouFacade('songs', arguments)
   if (provider === 'navidrome') {
     const list = await ND.songs(navidromeConfig(session), size)
     return list.map((song) => {
@@ -1281,6 +1303,7 @@ export async function songs(provider, cookie = '', session = {}, size = 200) {
  * check `session.nativeSongs` first. Returns { songs, total, offset }.
  */
 export async function nativeSongs(provider, session = {}, options = {}) {
+  if (provider === 'kugou') return kugouFacade('nativeSongs', arguments)
   if (provider !== 'navidrome') return { songs: [], total: 0, offset: 0 }
   const result = await ND.nativeSongs(navidromeConfig(session), options)
   for (const song of result.songs) rawSongs.set('navidrome:' + song.id, song)
@@ -1294,23 +1317,27 @@ export async function nativeSongs(provider, session = {}, options = {}) {
  * their cookie is cleared.
  */
 export function forgetProviderTokens(provider) {
+  if (provider === 'kugou') return kugouFacade('forgetProviderTokens', arguments)
   if (provider === 'navidrome') ND.forgetAllNativeTokens()
 }
 
 /** Every artist. Navidrome only; other providers answer with []. */
 export async function artists(provider, cookie = '', session = {}) {
+  if (provider === 'kugou') return kugouFacade('artists', arguments)
   if (provider === 'navidrome') return ND.artists(navidromeConfig(session))
   return []
 }
 
 /** Albums by name. Navidrome only; other providers answer with []. */
 export async function albums(provider, cookie = '', session = {}, size = 200) {
+  if (provider === 'kugou') return kugouFacade('albums', arguments)
   if (provider === 'navidrome') return ND.albums(navidromeConfig(session), size)
   return []
 }
 
 /** One artist's albums, for expanding an artist card. */
 export async function artistAlbums(provider, id, cookie = '', session = {}) {
+  if (provider === 'kugou') return kugouFacade('artistAlbums', arguments)
   if (provider === 'navidrome') {
     return ND.artistAlbums(navidromeConfig(session), id)
   }
@@ -1374,6 +1401,7 @@ export async function artistAlbums(provider, id, cookie = '', session = {}) {
  * @returns {Promise<{ provider: string, id: string, name: string, cover: string, trackCount: number, creator: string, kind: string, isDefault: boolean }[]>}
  */
 export async function myPlaylists(provider, cookie = '', session = {}) {
+  if (provider === 'kugou') return kugouFacade('myPlaylists', arguments)
   if (provider === 'navidrome') {
     return (await ND.myPlaylists(navidromeConfig(session))).map(shapePlaylist)
   }
@@ -1441,6 +1469,7 @@ async function kugouPlaylistSongs(provider, id, session) {
  * @returns {Promise<{ name: string, cover: string, trackCount: number, songs: object[] }>}
  */
 export async function playlistSongs(provider, id, cookie = '', session = {}) {
+  if (provider === 'kugou') return kugouFacade('playlistSongs', arguments)
   let result
   if (provider === 'navidrome') {
     const songs = await ND.playlistSongs(navidromeConfig(session), id)
@@ -1530,6 +1559,7 @@ function kugouKnownNotAccountPlaylist(provider, id) {
  * legacy full read until their page primitive is migrated.
  */
 export async function playlistSongsPage(provider, id, cookie = '', session = {}, page = {}) {
+  if (provider === 'kugou') return kugouFacade('playlistSongsPage', arguments)
   const { limit, offset } = pageBounds(page)
   if (provider === 'netease') {
     const result = await NC.getPlaylistSongsPage(id, limit, offset, cookie)
@@ -1690,6 +1720,7 @@ function kgWriteSong(id, song) {
 }
 
 export async function onlineLiked(provider, id, cookie = '', session = {}) {
+  if (provider === 'kugou') return kugouFacade('onlineLiked', arguments)
   const target = String(id || '')
   if (target === '') return false
   if (provider === 'navidrome') {
@@ -1715,6 +1746,7 @@ export async function onlineLiked(provider, id, cookie = '', session = {}) {
 }
 
 export async function setOnlineLiked(provider, song, on, cookie = '', session = {}) {
+  if (provider === 'kugou') return kugouFacade('setOnlineLiked', arguments)
   const id = String((song && song.id) || '')
   if (id === '') throw new Error('缺少歌曲 id')
   if (provider === 'navidrome') return ND.setStarred(navidromeConfig(session), id, on === true)
@@ -1750,6 +1782,7 @@ export async function setOnlineLiked(provider, song, on, cookie = '', session = 
 }
 
 export async function addOnlineSongToPlaylist(provider, song, playlistId, cookie = '', session = {}) {
+  if (provider === 'kugou') return kugouFacade('addOnlineSongToPlaylist', arguments)
   const id = String((song && song.id) || '')
   if (id === '') throw new Error('缺少歌曲 id')
   if (provider === 'navidrome') return ND.addSongToPlaylist(navidromeConfig(session), playlistId, id)
@@ -1784,6 +1817,7 @@ export async function addOnlineSongToPlaylist(provider, song, playlistId, cookie
 
 /** All liked track keys for one provider, shaped like client track.path. */
 export async function onlineLikedIds(provider, cookie = '', session = {}) {
+  if (provider === 'kugou') return kugouFacade('onlineLikedIds', arguments)
   // Navidrome has no "liked" playlist: favorites are the starred set itself.
   if (provider === 'navidrome') {
     const starred = await ND.starredIds(navidromeConfig(session))
@@ -1812,6 +1846,7 @@ export async function onlineLikedIds(provider, cookie = '', session = {}) {
  * @returns {Promise<object[]>}
  */
 export async function listeningRank(provider, range, cookie = '', session = {}) {
+  if (provider === 'kugou') return kugouFacade('listeningRank', arguments)
   const span = range === 'all' ? 'all' : 'week'
   if (provider === 'netease') {
     const account = await NC.getAccount(cookie)
@@ -1861,6 +1896,7 @@ export async function listeningRank(provider, range, cookie = '', session = {}) 
 
 /** Remove one song from an owned playlist; each platform has its own write route. */
 export async function removeOnlineSongFromPlaylist(provider, song, playlistId, cookie = '', session = {}) {
+  if (provider === 'kugou') return kugouFacade('removeOnlineSongFromPlaylist', arguments)
   if (provider === 'netease') return await NC.removeFromPlaylist(song, playlistId, cookie)
   if (provider === 'qq') {
     const target = await QQ.qqPlaylistWriteTarget(playlistId, cookie)
@@ -1885,6 +1921,7 @@ export async function removeOnlineSongFromPlaylist(provider, song, playlistId, c
 
 /** Folia's collection subscription status. Kugou concept has no write route here. */
 export async function subscriptionStatus(provider, type, id, cookie = '') {
+  if (provider === 'kugou') return kugouFacade('subscriptionStatus', arguments)
   if (provider === 'netease') return await NC.subscriptionStatus(type, id, cookie)
   if (provider === 'qq') return await QQ.subscriptionStatus(type, id, cookie)
   return false
@@ -1892,6 +1929,7 @@ export async function subscriptionStatus(provider, type, id, cookie = '') {
 
 /** Subscribe/unsubscribe an album or playlist. */
 export async function subscribeCollection(provider, type, id, subscribed, cookie = '') {
+  if (provider === 'kugou') return kugouFacade('subscribeCollection', arguments)
   if (provider === 'netease') return await NC.subscribeCollection(type, id, subscribed, cookie)
   if (provider === 'qq') return await QQ.subscribeCollection(type, id, subscribed, cookie)
   throw new Error('该平台不支持订阅')
@@ -1932,6 +1970,7 @@ export async function reportPlayback(provider, song, report, cookie = '') {
   return true
 }
 export async function providerVip(provider, cookie = '', session = {}) {
+  if (provider === 'kugou') return kugouFacade('providerVip', arguments)
   if (provider === 'navidrome') {
     // A self-hosted library has no paid tier: everything the account can see
     // is playable, so there is nothing to gate.
@@ -1980,6 +2019,7 @@ function vipTimestamp(value) {
 
 /** VIP flag plus the best available expiry string ('' when the platform does not expose it). */
 export async function providerVipInfo(provider, cookie = '', session = {}) {
+  if (provider === 'kugou') return kugouFacade('providerVipInfo', arguments)
   if (provider === 'kugouLite') {
     const info = await KGL.getVip(session)
     return { vip: info.vip === true, expiresAt: info.expiresAt || '' }
@@ -2021,6 +2061,7 @@ function cookiePart(cookie, name) {
 
 /** Public account profile for settings (nickname + avatar URL; never cookies). */
 export async function providerProfile(provider, cookie = '', session = {}) {
+  if (provider === 'kugou') return kugouFacade('providerProfile', arguments)
   if (provider === 'navidrome') {
     const cfg = navidromeConfig(session)
     return cfg.username === '' ? null : { nickname: cfg.username, avatarUrl: '' }

@@ -16,6 +16,7 @@ import { createBodianSessions } from './bodian/sessions.js'
 import { createLocalSource } from './local.js'
 import { createOmni } from './omni.js'
 import { createRegistry } from './registry.js'
+import { configureKugouFolia } from './kugou-folia/instance.js'
 import { createQishuiSource } from './qishui/index.js'
 import { ensureQishuiDeviceId } from './qishui/device.js'
 import { createQishuiSessions } from './qishui/sessions.js'
@@ -96,6 +97,43 @@ const KUGOU_LITE_CAPABILITIES = {
   userAlbums: false,
 }
 
+/**
+ * 酷狗的能力表：跟着移植源（KUGOU 模块的 9 个能力族）走，不是旧实现那一张。
+ *
+ * 上游实现了什么就声明什么：搜索（含专辑/歌单搜索）、取流、歌词（含逐字与副歌）、扫码登录、
+ * 曲库（歌单/专辑/喜欢/云盘/排行）、目录（专辑/歌手/歌单详情）、推荐（每日/私人 FM/推荐卡/日推历史）、
+ * 写入（红心/歌单增删）。上游的 playlist_add/del（订阅）与 explore@1、reports@1 它自己也没实现，
+ * 所以这三项继续不声明。
+ */
+const KUGOU_CAPABILITIES = {
+  search: true,
+  searchPlaylists: true,
+  searchAlbums: true,
+  playback: true,
+  lyrics: true,
+  wordByWordLyrics: true,
+  userPlaylists: true,
+  playlistSongs: true,
+  likes: true,
+  likeWrite: true,
+  playlistAdd: true,
+  artists: true,
+  albums: true,
+  qualityLevels: true,
+  vip: true,
+  loginQr: true,
+  auth: true,
+  userLibrary: true,
+  recommendations: true,
+  mutations: true,
+  playlistTrackMutations: true,
+  historyRecommendations: true,
+  userCloud: true,
+  listeningRank: true,
+  userAlbums: false,
+  playlistSubscription: false,
+}
+
 /** Navidrome signs in with credentials, not a QR code. */
 const NAVIDROME_CAPABILITIES = {
   search: true,
@@ -140,9 +178,13 @@ export const ONLINE_SPECS = [
     qualityLevels: FULL_QUALITY,
   },
   {
+    // 客户端与存下来的数据仍是 kugouLite；映射写完时把 providerKey 打开，请求就交给移植源
+    // （adapter.js:36 的 providerKey ?? spec.id，门面里每个酷狗方法开头那行 kugouFacade 只在
+    // provider === 'kugou' 时生效）。
     id: 'kugouLite',
-    displayName: 'KuGou',
-    capabilities: KUGOU_LITE_CAPABILITIES,
+    // providerKey: 'kugou',
+    displayName: 'KuGou Music',
+    capabilities: KUGOU_CAPABILITIES,
     qualityLevels: KUGOU_QUALITY,
   },
   {
@@ -209,6 +251,22 @@ export function registerBodianSource(options) {
     // Keep the rest of the plugin working; the platform simply will not appear.
     return null
   }
+}
+
+/**
+ * KuGou: the ported Folia source module.
+ *
+ * The bundle (src/host/vendor/kugou-folia) runs the upstream main and client entries
+ * against the plugin's host surfaces; here we only hand it the data directory and
+ * re-register its spec, because the adapter is built from a plain table.
+ *
+ * @param {{ dir: string, language?: string }} options
+ */
+export function registerKugouSource(options) {
+  configureKugouFolia({ dir: options.dir, language: options.language })
+  const spec = ONLINE_SPECS.find((entry) => entry.id === 'kugouLite')
+  if (spec !== undefined) registry.register(createOnlineAdapter(spec))
+  return registry.get('kugouLite')
 }
 
 /**
