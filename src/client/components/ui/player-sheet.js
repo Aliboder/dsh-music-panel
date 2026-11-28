@@ -257,8 +257,12 @@ function PlayerSheetInner(props) {
       }
       update()
       window.addEventListener('resize', update)
+      // The player page (and with it the fullscreen button) may mount after the card does:
+      // measure once more on the next frame, then let resize keep it current.
+      var frame = typeof requestAnimationFrame === 'function' ? requestAnimationFrame(update) : null
       return function () {
         window.removeEventListener('resize', update)
+        if (frame !== null && typeof cancelAnimationFrame === 'function') cancelAnimationFrame(frame)
       }
     },
     [props.open],
