@@ -8,11 +8,7 @@
  * @module dsh-music-panel/sources/index
  */
 
-import { createRequire } from 'node:module'
 import { createOnlineAdapter } from './adapter.js'
-import { createBodianSource } from './bodian/index.js'
-import { ensureDeviceId } from './bodian/device.js'
-import { createBodianSessions } from './bodian/sessions.js'
 import { createLocalSource } from './local.js'
 import { createOmni } from './omni.js'
 import { createRegistry } from './registry.js'
@@ -21,9 +17,6 @@ import { configureKugouFolia } from './kugou-folia/instance.js'
 import { configureNeteaseFolia, createNeteaseFoliaSource } from './netease-folia/index.js'
 import { configureQqFolia, createQqFoliaSource } from './qq-folia/index.js'
 import { configureQishuiFolia, createQishuiFoliaSource } from './qishui-folia/index.js'
-import { createQishuiSource } from './qishui/index.js'
-import { ensureQishuiDeviceId } from './qishui/device.js'
-import { createQishuiSessions } from './qishui/sessions.js'
 
 /** Everything the Chinese platforms are believed to support today. */
 const CHINESE_CAPABILITIES = {
@@ -222,32 +215,6 @@ export function resetSources() {
 registerOnlineSources()
 
 /**
- * Register a platform that ships as its own upstream package instead of going
- * through the legacy protocol factory (Bodian today).
- *
- * Lazy `require` on purpose: the package is only loaded when the plugin starts, and
- * a missing optional dependency must degrade to "platform absent", not to a broken
- * plugin.
- *
- * @param {{ dir: string }} options
- */
-export function registerBodianSource(options) {
-  try {
-    const require = createRequire(import.meta.url)
-    const { createBodianApi } = require('bodian-music-api')
-    const deviceId = ensureDeviceId(options.dir)
-    const sessions = createBodianSessions({ store: options.store })
-    if (options.store !== undefined && options.store !== null) void sessions.hydrate()
-    const source = createBodianSource({ createApi: createBodianApi, deviceId, sessions })
-    registry.register(source)
-    return source
-  } catch (error) {
-    // Keep the rest of the plugin working; the platform simply will not appear.
-    return null
-  }
-}
-
-/**
  * Bodian: the ported Folia source module.
  *
  * Starts its bundle instance (upstream main/client entries against the plugin's
@@ -266,7 +233,7 @@ export function registerBodianFoliaSource(options) {
  * NetEase Cloud Music: the ported Folia source module.
  *
  * Its backend (the pinned API package) runs in a worker thread started by the upstream
- * main entry; disposeNeteaseFoliaSource() ends it when the plugin unloads.
+ * main entry; disposeNeteaseFolia() (root index.js) ends it when the plugin unloads.
  *
  * @param {{ dir: string, language?: string }} options
  */
@@ -293,7 +260,7 @@ export function registerQqFoliaSource(options) {
 }
 
 /**
- * Qishui: the ported Folia source module (with the ticket-guard renewal our old layer had).
+ * Qishui: the ported Folia source module (the ticket-guard renewal lives in qishui-folia/retry).
  *
  * @param {{ dir: string, language?: string }} options
  */
@@ -318,26 +285,4 @@ export function registerKugouSource(options) {
   const spec = ONLINE_SPECS.find((entry) => entry.id === 'kugouLite')
   if (spec !== undefined) registry.register(createOnlineAdapter(spec))
   return registry.get('kugouLite')
-}
-
-/**
- * Qishui is pure Node, so it can be registered in the Host without an Electron
- * bridge. The package is optional for installs that ship without it.
- *
- * @param {{ dir: string, store?: object }} options
- */
-export function registerQishuiSource(options) {
-  try {
-    const require = createRequire(import.meta.url)
-    const { createQishuiApi } = require('qishui-music-api')
-    const deviceId = ensureQishuiDeviceId(options.dir)
-    const sessions = createQishuiSessions({ deviceId, store: options.store })
-    if (options.store !== undefined && options.store !== null) void sessions.hydrate()
-    const source = createQishuiSource({ createApi: createQishuiApi, deviceId, sessions })
-    registry.register(source)
-    return source
-  } catch (error) {
-    // Optional package missing or incompatible: hide the platform, keep the rest.
-    return null
-  }
 }

@@ -19,6 +19,15 @@
 - 网易云的后端跑在工作线程里，线程是 bundle 旁边的 `worker.cjs`（由上游 `neteaseApiWorker.cjs` 复制改名）；QQ 的内嵌后端在第一次问状态时拉起、监听本机端口。插件停用或退出时会关掉它们。
 - **登录态需要重新扫码一次**：旧实现在 `sessions.json`（明文）里，移植源各自用插件数据目录下的加密存储（`<平台>-legacy-store.json` + `<平台>-seal.key`），两者不是一套格式。已存的收藏、歌单、播放历史、队列不受影响（歌曲 id 形态没变）。
 
+### 在线音乐 · 旧实现退役
+
+- 四个平台（网易云 / QQ / 波点 / 汽水）的**旧实现整体删除**，请求路径只剩移植源：门面（`providers/index.js`）摘掉网易云与 QQ 的全部分支，只保留 Navidrome 与酷狗的一行行委派（1505 → 603 行）。
+- 删除 `providers/netease.js`、`netease-legacy.js`、`qq.js`、`qq-legacy.js`、`yrc.js`、`qrc.js`、`krc.js`，`services/netease-api.js`、`netease-upstream.js`、`qq-api.js`，以及旧 `sources/bodian/**`、`sources/qishui/**`（共约 5.4k 行）；`sources/index.js` 不再有 `registerBodianSource` / `registerQishuiSource`，宿主入口不再收尾旧的本地服务与旧存储。
+- 路由：`/online/login/local-service`（含重启/自检/诊断）对四个移植源答「恒 running」，不再有拉起旧服务的入口；账户资料/会员信息对四个平台改走注册表（`omni.profile` / `omni.vipInfo`），门面只留酷狗与 Navidrome。
+- 「清空插件所有数据」的账户项去掉只属于旧实现的 `bodian-device.json` / `qishui-device.json` / `qq-auth-sessions.json`。
+- 顺带修一处映射缺陷：`folia-bridge` 的 `artistSongs` 之前把上游的 `{items}` 直接交出去，路由读 `songs` 得到空数组——移植源的歌手「全部歌曲」页因此是空的；现在按页形状返回并过 DTO。新增 `test/host/folia-bridge.test.mjs` 守住分页、专辑、排行、试听标记、上报与逐字歌词的契约。
+- 只测旧实现的 13 个测试文件删除；`kugou` 门面路径的测试保留并精简。
+
 ### 歌词样式
 
 - 新增 Folia 的「隐喻」（metaphor）样式：three.js 墨球、半调网点与砂纸颗粒，按词硬切的镜头，反相镜头、画面反相、关键字着色、句间转场；参数在播放页「外观」里（节拍模型尚未接线，「湮灭对撞」参数暂不驱动画面）。

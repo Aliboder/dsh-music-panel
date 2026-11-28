@@ -27,8 +27,6 @@ import { enqueueControl } from './src/host/services/playback/control.js'
 import { disposeNeteaseFolia } from './src/host/providers/sources/netease-folia/index.js'
 import { disposeQqFolia } from './src/host/providers/sources/qq-folia/index.js'
 import { omni, registerBodianFoliaSource, registerKugouSource, registerLocalSource, registerNeteaseFoliaSource, registerOnlineSources, registerQqFoliaSource, registerQishuiFoliaSource, resetSources } from './src/host/providers/sources/index.js'
-import { stopNeteaseService } from './src/host/services/netease-api.js'
-import { stopQqService } from './src/host/services/qq-api.js'
 import { createAudioFocusService } from './src/host/services/audio-focus.js'
 import { createUpdateChecker } from './src/host/services/update/checker.js'
 
@@ -58,21 +56,6 @@ export function apply(ctx, rawConfig) {
     providerStore,
     omni,
   })
-  // Bodian's upstream client wants a synchronous `{ get, save, clear }` repository.
-  // It shares the one credential file with every other platform; there is no second
-  // `createLoginStore` over the same path.
-  const bodianStore = {
-    get: (provider) => providerStore.getEntry(provider),
-    save: (provider, credentials) => providerStore.setLogin(provider, credentials, null),
-    clear: (provider) => providerStore.clear(provider),
-  }
-  // Qishui's package also wants a synchronous store; it carries the user for
-  // the display fields, so the adapter forwards it to setLogin's profile.
-  const qishuiStore = {
-    get: (provider) => providerStore.getEntry(provider),
-    save: (provider, credentials, user) => providerStore.setLogin(provider, credentials, user),
-    clear: (provider) => providerStore.clear(provider),
-  }
   // Folia's media cache: written after a full play, with its own layout and one-time migration.
   const mediaCache = createMediaCache({ dir: join(settings.dir, 'cache') })
   void mediaCache.ensure()
@@ -175,9 +158,6 @@ export function apply(ctx, rawConfig) {
     void disposeNeteaseFolia().catch(() => {})
     void disposeQqFolia().catch(() => {})
     resetSources()
-    // Upstream services hold listening sockets and workers; they must not outlive the plugin.
-    void stopNeteaseService()
-    void stopQqService()
   }, 'music: sources')
 
   ctx.effect(() => {

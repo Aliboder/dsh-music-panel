@@ -21,7 +21,18 @@ const CATEGORIES = [
   { id: 'stats', label: 'stats', names: ['stats.json', 'stats.json.bak'] },
   { id: 'lyrics', label: 'lyrics', names: ['lyric-states.json', 'lyric-states.json.bak', 'lyrics'] },
   { id: 'playback', label: 'playback', names: ['playback.json', 'playback.json.bak'] },
-  { id: 'accounts', label: 'accounts', names: ['sessions.json', 'accounts.json', 'providers.json', 'bodian-device.json', 'qishui-device.json', 'qq-auth-sessions.json'] },
+  // Sign-ins. Besides the flat `sessions.json` (Navidrome and, before the Folia ports,
+  // every Chinese platform), each ported source now keeps its own encrypted store: an
+  // account session (`<id>-legacy-store.json`), the key that seals it (`<id>-seal.key`), the
+  // source's own page store (device hint) and, for QQ, the embedded backend's device folder.
+  { id: 'accounts', label: 'accounts', names: [
+    'sessions.json', 'accounts.json', 'providers.json',
+    'kugou-legacy-store.json', 'kugou-seal.key', 'kugou-page-store.json',
+    'netease-legacy-store.json', 'netease-seal.key', 'netease-page-store.json',
+    'qq-legacy-store.json', 'qq-seal.key', 'qq-page-store.json', 'qq-auth-state',
+    'bodian-legacy-store.json', 'bodian-seal.key', 'bodian-page-store.json',
+    'qishui-legacy-store.json', 'qishui-seal.key', 'qishui-page-store.json',
+  ] },
   // The new-version check cache is regenerable state: clearing the cache clears it too.
   { id: 'cache', label: 'cache', names: ['cache', 'update-check.json', 'update-check.json.bak'] },
   { id: 'trash', label: 'trash', names: ['trash'] },

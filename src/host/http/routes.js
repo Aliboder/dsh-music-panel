@@ -346,14 +346,36 @@ export function createRoutes({
     profileCache.delete(provider)
     vipCache.delete(provider)
   }
+  /**
+   * The account ids the ported sources do not carry: KuGou still answers through its
+   * facade delegation (its session lives in the ported source's own store) and Navidrome
+   * is a credentials row rather than a Folia source.
+   *
+   * NetEase / QQ / Bodian / Qishui read their own account through the registry, which is
+   * the same path every other online call takes.
+   */
+  const FACADE_ACCOUNT_IDS = new Set(['kugou', 'kugouLite', 'navidrome'])
+
+  async function accountProfile(provider) {
+    if (!FACADE_ACCOUNT_IDS.has(provider)) return await omni.profile(provider)
+    const cookie = providerStore === undefined ? '' : await providerStore.cookie(provider)
+    const session = providerStore === undefined ? {} : await providerStore.session(provider)
+    return await providers.providerProfile(provider, cookie, session)
+  }
+
+  async function accountVipInfo(provider) {
+    if (!FACADE_ACCOUNT_IDS.has(provider)) return await omni.vipInfo(provider)
+    const cookie = providerStore === undefined ? '' : await providerStore.cookie(provider)
+    const session = providerStore === undefined ? {} : await providerStore.session(provider)
+    return await providers.providerVipInfo(provider, cookie, session)
+  }
+
   async function profileState(provider) {
     const cached = profileCache.get(provider)
     if (cached && Date.now() - cached.at < 5 * 60 * 1000) return cached.profile
     let profile = null
     try {
-      const cookie = providerStore === undefined ? '' : await providerStore.cookie(provider)
-      const session = providerStore === undefined ? {} : await providerStore.session(provider)
-      profile = await providers.providerProfile(provider, cookie, session)
+      profile = await accountProfile(provider)
     } catch (error) {
       if (kugouSessions !== undefined) await kugouSessions.markExpiredFromError(provider, error)
       profile = null
@@ -366,9 +388,7 @@ export function createRoutes({
     if (cached && Date.now() - cached.at < 5 * 60 * 1000) return cached
     let info = { vip: null, expiresAt: '' }
     try {
-      const cookie = providerStore === undefined ? '' : await providerStore.cookie(provider)
-      const session = providerStore === undefined ? {} : await providerStore.session(provider)
-      info = await providers.providerVipInfo(provider, cookie, session)
+      info = await accountVipInfo(provider)
     } catch (error) {
       if (kugouSessions !== undefined) await kugouSessions.markExpiredFromError(provider, error)
       info = { vip: null, expiresAt: '' }

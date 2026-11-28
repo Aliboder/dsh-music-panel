@@ -22,8 +22,6 @@ import { resolveLegacyStream } from '../../providers/index.js'
 import * as ND from '../../providers/navidrome.js'
 import { createLoginBridge, createQrAdapter } from '../../providers/login/bridge.js'
 import { loginFailureOf } from '../../services/core/login-failure.js'
-import { neteaseServiceStatus, restartNeteaseService } from '../../services/netease-api.js'
-import { qqServiceStatus, restartQqService } from '../../services/qq-api.js'
 import { kugouServiceStatus, refreshKugouAccount, restartKugouService } from '../../providers/sources/kugou-folia/status.js'
 import { createAmllClient } from '../../services/lyrics/amll.js'
 import { pickBestLyricCandidate } from '../../services/lyrics/lyrics-match.js'
@@ -353,26 +351,32 @@ export function createOnlineRoutes(deps) {
     return source !== undefined && source.capabilities !== undefined && source.capabilities.loginQr === true
   }
 
-  /** Local worker state for the platforms whose upstream runs in a Host worker. */
+  /**
+   * State of the platform backend behind a source.
+   *
+   * Every ported source runs inside the Host process (KuGou's bundle directly, NetEase's
+   * worker started when its main entry loads, QQ's embedded server started on the first
+   * `status` ask), so there is no separate service to probe or restart: the answer is the
+   * KuGou one, "always running". A platform that is not registered has no backend at all.
+   */
   async function localServiceStatus(provider) {
-    let status
-    if (provider === 'netease') status = await neteaseServiceStatus()
-    else if (provider === 'qq') status = await qqServiceStatus()
-    else if (provider === 'kugou' || provider === 'kugouLite') status = await kugouServiceStatus(provider)
-    else return { available: false, failed: false, error: null, restarting: false }
-    return {
-      available: true,
-      failed: status.running !== true && status.error !== null,
-      error: status.error ?? null,
-      restarting: false,
+    if (provider === 'kugou' || provider === 'kugouLite') {
+      const status = await kugouServiceStatus(provider)
+      return {
+        available: true,
+        failed: status.running !== true && status.error !== null,
+        error: status.error ?? null,
+        restarting: false,
+      }
     }
+    if (!isOnlineSource(provider)) return { available: false, failed: false, error: null, restarting: false }
+    return { available: true, failed: false, error: null, restarting: false }
   }
 
   async function restartLocalService(provider) {
-    if (provider === 'netease') return await restartNeteaseService()
-    if (provider === 'qq') return await restartQqService()
     if (provider === 'kugou' || provider === 'kugouLite') return await restartKugouService(provider)
-    return null
+    // In-process sources have nothing to restart: answer the same status.
+    return await localServiceStatus(provider)
   }
 
   // Playback reports write to a real account; the gate below refuses bursts no

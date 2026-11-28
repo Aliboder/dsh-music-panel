@@ -12,7 +12,6 @@
 import assert from 'node:assert/strict'
 import { createRoutes } from '../../src/host/http/routes.js'
 import { registry } from '../../src/host/providers/sources/index.js'
-import { setUpstreamOverride } from '../../src/host/services/netease-api.js'
 
 // 网易云现在由移植源在插件启动时登记；这条路由用例只验「空 id + 专辑名」不被拒，登记一个最小源即可。
 registry.register({
@@ -23,17 +22,6 @@ registry.register({
   albumSongs: async () => ({ id: '', name: 'Some Album', cover: '', artist: '', songs: [] }),
 })
 import { fakeReq, fakeRes } from '../helpers.mjs'
-
-/**
- * NetEase now runs through a local upstream service. This file is about route
- * behaviour with a stubbed `fetch`, so the service is replaced wholesale: a
- * canned search answer keeps the Chinese-platform fallback path offline.
- */
-setUpstreamOverride(async (route) => {
-  if (route === '/cloudsearch') return { code: 200, result: { songs: [], songCount: 0 } }
-  if (route === '/lyric') return { code: 200, lrc: { lyric: '' }, yrc: { lyric: '[00:00.000]x' } }
-  throw new Error(`unexpected upstream route in navidrome-routes.test: ${route}`)
-})
 
 const settings = {
   read: async () => ({ roots: [], depth: 2, extensions: ['wav'] }),

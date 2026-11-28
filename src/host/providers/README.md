@@ -1,23 +1,22 @@
 # Third-party providers
 
-`netease.js`, `qq.js`, `qrc.js`, `krc.js`, `yrc.js` and
-`vendor/qrcode.mjs` are ported from the MIT-licensed project
+`navidrome.js` and `vendor/qrcode.mjs` are ported from the MIT-licensed project
 [kendu76/dsh-music-player](https://github.com/kendu76/dsh-music-player)
 (see `LICENSE` in this directory for the original license text).
 
-They implement the official client-side endpoints of NetEase Cloud Music and
-QQ Music (request signing / encryption, QR login, stream lookup, lyric fetch).
-Only interface adaptation was done here; no attempt is made to bypass paid
-content — anonymous access plays free tracks, and signing in plays whatever
-the account's own entitlement grants.
+`navidrome.js` speaks OpenSubsonic (search3 / album / playlist / starred / lyrics) and is
+the only platform module left in this directory.
 
-KuGou is **not** in this directory any more: it is the ported Folia source
-module (`src/folia-mods/sources/kugou/`, mirrored verbatim) driven in the Host
-through `src/host/providers/sources/kugou-folia/`, with KuGouMusicApi
-(`src/host/vendor/kugoumusicapi/`) doing the platform requests.
+NetEase Cloud Music, QQ Music, KuGou, Bodian and Qishui are **not** here any more: each is
+the ported Folia source module (`src/folia-mods/sources/<platform>/`, mirrored verbatim),
+driven in the Host through `src/host/providers/sources/<platform>-folia/`. The old
+self-written NetEase/QQ protocol modules (request signing, QR login, stream and lyric
+lookup) and the old Bodian/Qishui adapters were retired with their tests once the ported
+sources answered every call.
 
-`index.js` in this directory is our own adapter that exposes one small API
-(`search` / `resolveStream` / `lyric`) to the Host routes.
+`index.js` in this directory is our own adapter. It hands Navidrome to the routes and
+delegates every `kugou` / `kugouLite` call to the ported KuGou source
+(`sources/kugou-folia/`) one line at a time; NetEase and QQ never reach it.
 
 These endpoints are unofficial and can change or rate-limit at any time.
 Failures must stay inside the online view and never affect the local library.

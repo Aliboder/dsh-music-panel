@@ -13,7 +13,6 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { apply } from '../../index.js'
 import { fakeReq, fakeRes } from '../helpers.mjs'
-import { resetUpstreamOverride, setUpstreamOverride } from '../../src/host/services/netease-api.js'
 import { registry } from '../../src/host/providers/sources/index.js'
 
 // The route factory fails loudly when a dependency is missing, so a wiring
@@ -199,7 +198,6 @@ assert.equal(bestLyricNoId.status, 400, 'best-lyric needs the track id')
     assert.deepEqual(calls.map((call) => call.offset), [0, 100])
   } finally {
     if (previous) registry.register(previous)
-    resetUpstreamOverride()
   }
 }
 

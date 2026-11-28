@@ -11,16 +11,14 @@
  */
 import assert from 'node:assert/strict'
 import { ONLINE_SPECS, registry } from '../../src/host/providers/sources/index.js'
-import { setUpstreamOverride as stubNetease, resetUpstreamOverride as unstubNetease } from '../../src/host/services/netease-api.js'
-import { setUpstreamOverride as stubQq, resetUpstreamOverride as unstubQq } from '../../src/host/services/qq-api.js'
 
 const reached = (what) => {
   const error = new Error('reached upstream: ' + what)
   error.reached = true
   throw error
 }
-stubNetease((route) => reached('netease ' + route))
-stubQq((route) => reached('qq ' + route))
+// 这张表只走 ONLINE_SPECS（酷狗概念版 / Navidrome）：网易云与 QQ 是各自注册的
+// Folia 源对象，不经过改编器，能力一致性由它们自己的源测试守住。
 const realFetch = globalThis.fetch
 globalThis.fetch = async (url) => reached('fetch ' + String(url))
 
@@ -74,10 +72,10 @@ function refusalOf(provider, method, error) {
 }
 
 // 判定器本身不能是空转：两种真正的偏差必须被认出来，普通的上游/参数错误必须放过。
-assert.match(refusalOf('qq', 'removeFromPlaylist', new Error('QQ Music does not support removeFromPlaylist')), /capability gate/)
-assert.match(refusalOf('qq', 'playlistSongs', new Error('未知平台：qq')), /no qq branch/)
-assert.equal(refusalOf('qq', 'playlistSongs', new Error('reached upstream: qq /user/playlist')), '')
-assert.equal(refusalOf('qq', 'addToPlaylist', new Error('缺少歌单或歌曲 id')), '')
+assert.match(refusalOf('kugouLite', 'removeFromPlaylist', new Error('KuGou Music does not support removeFromPlaylist')), /capability gate/)
+assert.match(refusalOf('kugouLite', 'playlistSongs', new Error('未知平台：kugouLite')), /no kugouLite branch/)
+assert.equal(refusalOf('kugouLite', 'playlistSongs', new Error('reached upstream: kugou /playlist/detail')), '')
+assert.equal(refusalOf('kugouLite', 'addToPlaylist', new Error('缺少歌单或歌曲 id')), '')
 
 const failures = []
 const perProvider = new Map()
@@ -105,7 +103,6 @@ try {
     }
   }
 } finally {
-  unstubNetease(); unstubQq()
   globalThis.fetch = realFetch
 }
 

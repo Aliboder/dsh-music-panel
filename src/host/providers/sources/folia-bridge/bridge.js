@@ -169,7 +169,16 @@ export function createFoliaSource(options) {
   if (hasMethod(catalog, 'getArtistSongs')) {
     source.artistSongs = async (artist, ctx = {}) => {
       try {
-        return await allPages((limit, offset) => catalog.getArtistSongs(ctx.artistId || String(artist ?? ''), limit, offset))
+        // 歌手的全部歌曲一次读齐，按路由的页形状交出去（{songs,total,hasMore,nextOffset}）：
+        // 上游给的是 FoliumSourceSong，必须先过 DTO，否则客户端拿到的是上游字段名。
+        const answered = await allPages((limit, offset) => catalog.getArtistSongs(ctx.artistId || String(artist ?? ''), limit, offset))
+        const songs = songsOf(answered.items, sourceId, texts)
+        return {
+          songs,
+          total: Number(answered.total) || songs.length,
+          hasMore: false,
+          nextOffset: songs.length,
+        }
       } catch (error) { throw foliaError(error, sourceId) }
     }
   }
