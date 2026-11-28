@@ -392,7 +392,9 @@ function P3ViewBar(props) {
   var selected = (selection.paths || []).map(function (path) {
     return tracks.filter(function (track) { return track.path === path })[0]
   }).filter(Boolean)
-  var selecting = (selection.paths || []).length > 0
+  // Selection is for songs of THIS list: if none of the stored paths is on the page
+  // (a stale selection from another view), show the normal bar instead of a 0-song editor.
+  var selecting = selected.length > 0
   var sortItems
   if (route.source !== 'local' && route.page === 'playlists') {
     sortItems = [
@@ -465,8 +467,22 @@ function P3ViewBar(props) {
     }
   }
 
+  var tabItems = tabs.map(function (tab) { return { value: tab, label: p3PageLabel(tab) } })
+  // Tabs stay on their row while songs are selected: the selection actions take the place of
+  // the usual right-hand cluster, never the whole bar (the bar used to hide the tabs).
+  var tabRow = !props.rail && route.page !== 'search' && tabs.length > 0
+    ? h('div', { className: 'mpv3-tabs' }, h(KitSegmentedTabs, {
+        items: tabItems,
+        value: active,
+        size: 'sm',
+        label: t('p3.sections'),
+        onChange: function (next) { p3SelectBrowseTab(next) },
+      }))
+    : null
   if (selecting) {
     return h('div', { className: 'mpv3-viewbar' },
+      tabRow,
+      h('div', { className: 'mpv3-grow' }),
       h('div', { className: 'mpv3-selection-bar' },
         h('strong', { className: 'mpv3-selection-count' }, t('p3.selectedCount', { n: selected.length })),
         h('button', { type: 'button', className: 'mpv3-sel-btn', onClick: function () { selectionAction('play') } }, icon('play', 14), t('page.play')),
@@ -474,23 +490,13 @@ function P3ViewBar(props) {
         h('button', { type: 'button', className: 'mpv3-sel-btn', onClick: function () { selectionAction('add') } }, icon('plus', 14), t('p3.addToPlaylist')),
         source === 'local' ? h('button', { type: 'button', className: 'mpv3-sel-btn', onClick: function () { selectionAction('batch') } }, icon('edit', 14), t('page.batchEdit')) : null,
         source === 'local' ? h('button', { type: 'button', className: 'mpv3-sel-btn is-danger', onClick: function () { selectionAction('delete') } }, icon('trash', 14), t('page.delete')) : null,
-        h('span', { className: 'mpv3-grow' }),
         h('button', { type: 'button', className: 'mpv3-sel-btn is-primary', onClick: function () { selectionAction('done') } }, t('page.done')),
       ),
     )
   }
 
-  var tabItems = tabs.map(function (tab) { return { value: tab, label: p3PageLabel(tab) } })
   return h('div', { className: 'mpv3-viewbar' },
-    !props.rail && route.page !== 'search' && tabs.length > 0
-      ? h('div', { className: 'mpv3-tabs' }, h(KitSegmentedTabs, {
-          items: tabItems,
-          value: active,
-          size: 'sm',
-          label: t('p3.sections'),
-          onChange: function (next) { p3SelectBrowseTab(next) },
-        }))
-      : null,
+    tabRow,
     h('div', { className: 'mpv3-grow' }),
     tracks.length > 0 ? h(IconButton, { icon: 'play', size: 16, title: t('page.playAll'), onClick: function () { p3PlayAll(tracks) } }) : null,
     h('div', { className: 'mpv3-menu-anchor', ref: sortRef },
@@ -948,6 +954,26 @@ function P3Shell() {
   // The player page covers the panel, so its queue is a popover anchored to the
   // control that opened it (rendered by NowPlaying), not the workspace queue.
   var [npQueueOpen, setNpQueueOpen] = useState(false)
+  // 选择属于某一个列表：切 Tab / 打开歌单/专辑/歌手 / 搜索 / 换源 / 返回主页时清掉，
+  // 否则新页面的顶栏会显示上一页那首歌的编辑栏（issue：选歌后回主页）。
+  var selectionViewRef = useRef(null)
+  useEffect(function () {
+    var key = [
+      route.source, route.page, String(route.param || ''),
+      route.filter ? String(route.filter.key || route.filter.value || '') : '',
+      search.open === true ? '1' : '0', String(search.query || ''),
+    ].join('\u0000')
+    var previous = selectionViewRef.current
+    if (previous === null) {
+      selectionViewRef.current = { key: key, snapshot: collection.snapshot }
+      return
+    }
+    if (previous.key === key && previous.snapshot === collection.snapshot) return
+    selectionViewRef.current = { key: key, snapshot: collection.snapshot }
+    clearSelection()
+    cancelRangePick()
+  }, [route.source, route.page, route.param, route.filter, search.open, search.query, collection.snapshot])
+
   var [guideOpen, setGuideOpen] = useState(startupGuideOpen)
   var [onlineNoticeOpen, setOnlineNoticeOpen] = useState(function () {
     return onlineRelaunchNoticeOpen(prefs)
