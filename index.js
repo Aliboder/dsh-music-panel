@@ -24,7 +24,9 @@ import { createStats } from './src/host/stores/stats.js'
 import { createLyricState } from './src/host/stores/lyric-state.js'
 import { readLyricsFor } from './src/host/services/lyrics/lyrics.js'
 import { enqueueControl } from './src/host/services/playback/control.js'
-import { omni, registerBodianFoliaSource, registerKugouSource, registerLocalSource, registerOnlineSources, registerQqFoliaSource, registerQishuiFoliaSource, resetSources } from './src/host/providers/sources/index.js'
+import { disposeNeteaseFolia } from './src/host/providers/sources/netease-folia/index.js'
+import { disposeQqFolia } from './src/host/providers/sources/qq-folia/index.js'
+import { omni, registerBodianFoliaSource, registerKugouSource, registerLocalSource, registerNeteaseFoliaSource, registerOnlineSources, registerQqFoliaSource, registerQishuiFoliaSource, resetSources } from './src/host/providers/sources/index.js'
 import { stopNeteaseService } from './src/host/services/netease-api.js'
 import { stopQqService } from './src/host/services/qq-api.js'
 import { createAudioFocusService } from './src/host/services/audio-focus.js'
@@ -129,6 +131,7 @@ export function apply(ctx, rawConfig) {
   // become observable with an empty registry: the client asks for account status
   // immediately on boot, and a delayed effect used to lose that race.
   registerOnlineSources()
+  registerNeteaseFoliaSource({ dir: settings.dir })
   registerKugouSource({ dir: settings.dir })
   registerBodianFoliaSource({ dir: settings.dir })
   registerQishuiFoliaSource({ dir: settings.dir })
@@ -168,6 +171,9 @@ export function apply(ctx, rawConfig) {
 
   // Sources stay registered for the plugin lifetime; only the cleanup is deferred.
   ctx.effect(() => () => {
+    // 移植源的后端（网易云工作线程、QQ 内嵌服务）不能活过插件。
+    void disposeNeteaseFolia().catch(() => {})
+    void disposeQqFolia().catch(() => {})
     resetSources()
     // Upstream services hold listening sockets and workers; they must not outlive the plugin.
     void stopNeteaseService()

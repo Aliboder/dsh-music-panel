@@ -36,12 +36,37 @@ const PLATFORMS = {
     out: 'src/host/vendor/qq-folia/source.bundle.mjs',
     external: ['@yakult-green-tea/qq-music-api'],
   },
+  netease: {
+    entry: 'src/folia-build/netease-host-entry.ts',
+    out: 'src/host/vendor/netease-folia/source.bundle.mjs',
+    external: ['@neteasecloudmusicapienhanced/api'],
+    // 上游 main 入口用 @folia/source-deps 找钉死的包目录。
+    alias: { '@folia/source-deps': 'src/folia-adapters/source-host/source-deps.ts' },
+    // 网易云的后端跑在工作线程里，线程是一个磁盘文件：把上游 main 下的 .cjs 原样放到 bundle 旁边，
+    // neteaseApiWorker.cjs 改名成 worker.cjs（上游 main 入口按这个文件名找它）。
+    files: [
+      ['src/folia-mods/sources/netease/main/neteaseApiWorker.cjs', 'src/host/vendor/netease-folia/worker.cjs'],
+      ['src/folia-mods/sources/netease/main/neteaseBackend.cjs', 'src/host/vendor/netease-folia/neteaseBackend.cjs'],
+      ['src/folia-mods/sources/netease/main/neteaseApiStartup.cjs', 'src/host/vendor/netease-folia/neteaseApiStartup.cjs'],
+      ['src/folia-mods/sources/netease/main/neteaseApiHost.cjs', 'src/host/vendor/netease-folia/neteaseApiHost.cjs'],
+      ['src/folia-mods/sources/netease/main/neteaseLoginDiagnostics.cjs', 'src/host/vendor/netease-folia/neteaseLoginDiagnostics.cjs'],
+      ['src/folia-mods/sources/netease/main/neteaseLoginIdentity.cjs', 'src/host/vendor/netease-folia/neteaseLoginIdentity.cjs'],
+      ['src/folia-mods/sources/netease/main/networkRecorder.cjs', 'src/host/vendor/netease-folia/networkRecorder.cjs'],
+      ['src/folia-mods/sources/netease/main/networkErrorText.cjs', 'src/host/vendor/netease-folia/networkErrorText.cjs'],
+      ['src/folia-mods/sources/netease/main/upstreamAddressOrder.cjs', 'src/host/vendor/netease-folia/upstreamAddressOrder.cjs'],
+      ['src/folia-mods/sources/netease/main/backendLifecycle.cjs', 'src/host/vendor/netease-folia/backendLifecycle.cjs'],
+      ['src/folia-mods/sources/netease/main/lazyJsdom.cjs', 'src/host/vendor/netease-folia/lazyJsdom.cjs'],
+    ],
+  },
 }
 
-const foliumAliases = (external) => ({
+const foliumAliases = (external, alias = {}) => ({
   name: 'folia-package-aliases',
   setup(context) {
     context.onResolve({ filter: /^@folia\/folium-source-kit$/ }, () => ({ path: KIT_INDEX }))
+    for (const [name, target] of Object.entries(alias)) {
+      context.onResolve({ filter: new RegExp('^' + name.replace(/[/@.]/g, (c) => '\\' + c) + '$') }, () => ({ path: join(ROOT, target) }))
+    }
     for (const name of external) {
       context.onResolve({ filter: new RegExp('^' + name.replace(/[/@.]/g, (c) => '\\' + c) + '(/.*)?$') }, (args) => ({ path: args.path, external: true }))
     }
@@ -70,8 +95,8 @@ const bundleOf = async (id) => {
     logLevel: 'silent',
     legalComments: 'none',
     loader: { '.ts': 'ts', '.json': 'json' },
-    banner: { js: 'import { createRequire as __mpCreateRequire } from "node:module"; const require = __mpCreateRequire(import.meta.url);' },
-    plugins: [foliumAliases(platform.external ?? [])],
+    banner: { js: 'import { createRequire as __mpCreateRequire } from "node:module"; import { fileURLToPath as __mpFileURLToPath } from "node:url"; const require = __mpCreateRequire(import.meta.url); const __filename = __mpFileURLToPath(import.meta.url); const __dirname = __mpFileURLToPath(new URL(".", import.meta.url)).replace(/[\\\\/]$/, "");' },
+    plugins: [foliumAliases(platform.external ?? [], platform.alias ?? {})],
   })
   return headerOf(id) + result.outputFiles[0].text.replace(/\r\n/g, '\n')
 }
@@ -88,19 +113,31 @@ try {
     if (!platform) throw new Error('unknown platform: ' + id)
     const out = join(ROOT, platform.out)
     const text = await bundleOf(id)
+    // 与 bundle 一起服务的文件（网易云的工作线程是磁盘文件）逐字节复制过去。
+    const extraFiles = (platform.files ?? []).map(([from, to]) => ({ to: join(ROOT, to), text: readFileSync(join(ROOT, from)) }))
     if (check) {
       let current = ''
       try { current = readFileSync(out, 'utf8') } catch { current = '' }
-      if (current !== text) {
-        console.log('STALE ' + id)
+      let filesStale = 0
+      for (const file of extraFiles) {
+        let onDisk = null
+        try { onDisk = readFileSync(file.to) } catch { onDisk = null }
+        if (onDisk === null || !onDisk.equals(file.text)) filesStale += 1
+      }
+      if (current !== text || filesStale > 0) {
+        console.log('STALE ' + id + (filesStale > 0 ? ' (' + filesStale + ' companion file(s))' : ''))
         stale += 1
       } else {
-        console.log('OK ' + id + ' (' + text.length + ' bytes)')
+        console.log('OK ' + id + ' (' + text.length + ' bytes' + (extraFiles.length > 0 ? ', ' + extraFiles.length + ' companion files' : '') + ')')
       }
     } else {
       mkdirSync(dirname(out), { recursive: true })
       writeFileSync(out, text, 'utf8')
-      console.log('BUILT ' + id + ' (' + text.length + ' bytes)')
+      for (const file of extraFiles) {
+        mkdirSync(dirname(file.to), { recursive: true })
+        writeFileSync(file.to, file.text)
+      }
+      console.log('BUILT ' + id + ' (' + text.length + ' bytes' + (extraFiles.length > 0 ? ', ' + extraFiles.length + ' companion files' : '') + ')')
     }
   }
   if (check && stale > 0) process.exitCode = 1

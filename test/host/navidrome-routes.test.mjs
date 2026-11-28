@@ -11,7 +11,17 @@
 
 import assert from 'node:assert/strict'
 import { createRoutes } from '../../src/host/http/routes.js'
+import { registry } from '../../src/host/providers/sources/index.js'
 import { setUpstreamOverride } from '../../src/host/services/netease-api.js'
+
+// 网易云现在由移植源在插件启动时登记；这条路由用例只验「空 id + 专辑名」不被拒，登记一个最小源即可。
+registry.register({
+  id: 'netease',
+  kind: 'online',
+  displayName: 'NetEase Cloud Music',
+  capabilities: { search: true, albums: true },
+  albumSongs: async () => ({ id: '', name: 'Some Album', cover: '', artist: '', songs: [] }),
+})
 import { fakeReq, fakeRes } from '../helpers.mjs'
 
 /**

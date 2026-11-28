@@ -98,6 +98,12 @@ export const createSourceHost = (options: SourceHostOptions): SourceHost => {
         return typeof backend?.selfCheck === 'function' ? backend.selfCheck() : null
       },
     },
+    // 上游把工作线程里没人接的 rejection、线程异常交到这里（桌面版进宿主的崩溃报告）。
+    // 插件只记一行，不打断用户。
+    reportError: (error: unknown, label?: unknown) => {
+      const where = typeof label === 'string' && label !== '' ? label : 'source'
+      console.warn('[folia-source:' + options.modId + '] ' + where, error)
+    },
     onBeforeUnload: (handler: () => void | Promise<void>) => {
       beforeUnload.push(handler)
       return () => {

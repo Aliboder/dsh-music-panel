@@ -18,6 +18,7 @@ import { createOmni } from './omni.js'
 import { createRegistry } from './registry.js'
 import { configureBodianFolia, createBodianFoliaSource } from './bodian-folia/index.js'
 import { configureKugouFolia } from './kugou-folia/instance.js'
+import { configureNeteaseFolia, createNeteaseFoliaSource } from './netease-folia/index.js'
 import { configureQqFolia, createQqFoliaSource } from './qq-folia/index.js'
 import { configureQishuiFolia, createQishuiFoliaSource } from './qishui-folia/index.js'
 import { createQishuiSource } from './qishui/index.js'
@@ -168,12 +169,7 @@ const ORIGINAL_QUALITY = ['original']
  * protocol layer, so nothing has to translate names.
  */
 export const ONLINE_SPECS = [
-  {
-    id: 'netease',
-    displayName: 'NetEase Cloud Music',
-    capabilities: NETEASE_CAPABILITIES,
-    qualityLevels: FULL_QUALITY,
-  },
+  // 网易云改由 sources/netease-folia 注册（Folia 移植源），这里不再列。
   // QQ 改由 sources/qq-folia 注册（Folia 移植源），这里不再列。
   {
     // 客户端与存下来的数据仍是 kugouLite；映射写完时把 providerKey 打开，请求就交给移植源
@@ -262,6 +258,21 @@ export function registerBodianSource(options) {
 export function registerBodianFoliaSource(options) {
   configureBodianFolia({ dir: options.dir, language: options.language })
   const source = createBodianFoliaSource()
+  registry.register(source)
+  return source
+}
+
+/**
+ * NetEase Cloud Music: the ported Folia source module.
+ *
+ * Its backend (the pinned API package) runs in a worker thread started by the upstream
+ * main entry; disposeNeteaseFoliaSource() ends it when the plugin unloads.
+ *
+ * @param {{ dir: string, language?: string }} options
+ */
+export function registerNeteaseFoliaSource(options) {
+  configureNeteaseFolia({ dir: options.dir, language: options.language })
+  const source = createNeteaseFoliaSource()
   registry.register(source)
   return source
 }

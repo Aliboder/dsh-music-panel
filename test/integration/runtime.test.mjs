@@ -14,6 +14,7 @@ import { join } from 'node:path'
 import { apply } from '../../index.js'
 import { fakeReq, fakeRes } from '../helpers.mjs'
 import { resetUpstreamOverride, setUpstreamOverride } from '../../src/host/services/netease-api.js'
+import { registry } from '../../src/host/providers/sources/index.js'
 
 // The route factory fails loudly when a dependency is missing, so a wiring
 // mistake cannot degrade into a silent 502 at request time.
@@ -159,25 +160,31 @@ assert.equal(bestLyricNoId.status, 400, 'best-lyric needs the track id')
 
 // ── paged playlist route ────────────────────────────────────────────────────
 // The route must pass limit/offset through and answer with the Folia page shape,
-// not the old full list. Mock the NetEase upstream so this stays offline.
+// not the old full list. 网易云现在是移植源（会走真网络），所以这里在注册表上换成一个替身：
+// 路由层照样被验，且全程离线。
 {
   const calls = []
-  setUpstreamOverride(async (route, params) => {
-    if (route === '/register/anonimous') return { cookie: 'MUSIC_U=anon' }
-    if (route === '/playlist/detail') {
-      return { playlist: { id: '77', name: 'Paged', coverImgUrl: '', trackCount: 250 } }
-    }
-    if (route === '/playlist/track/all') {
-      const offset = Number(params.offset) || 0
-      const limit = Number(params.limit) || 100
+  const previous = registry.get('netease')
+  registry.register({
+    id: 'netease',
+    kind: 'online',
+    displayName: 'NetEase Cloud Music',
+    capabilities: { search: true, playlistSongs: true },
+    async playlistSongsPage(id, ctx, page = {}) {
+      const offset = Number(page.offset) || 0
+      const limit = Number(page.limit) || 100
       calls.push({ offset, limit })
       const count = Math.max(0, Math.min(limit, 250 - offset))
-      return { songs: Array.from({ length: count }, (_, index) => ({
-        id: String(900000 + offset + index), name: 'P' + (offset + index),
-        ar: [{ name: 'A' }], al: { id: 1, name: 'Al', picUrl: '' }, dt: 1000, fee: 0,
-      })) }
-    }
-    throw new Error('unexpected route: ' + route)
+      const songs = Array.from({ length: count }, (_, index) => ({
+        provider: 'netease',
+        id: String(900000 + offset + index),
+        title: 'P' + (offset + index),
+        artist: 'A',
+        album: 'Al',
+        durationSec: 1,
+      }))
+      return { name: 'Paged', cover: '', trackCount: 250, songs, hasMore: offset + count < 250, nextOffset: offset + count }
+    },
   })
   try {
     const first = await get('/music/online/playlist-songs?provider=netease&id=77&limit=100&offset=0')
@@ -191,6 +198,7 @@ assert.equal(bestLyricNoId.status, 400, 'best-lyric needs the track id')
     assert.equal(second.body.songs[0].id, '900100')
     assert.deepEqual(calls.map((call) => call.offset), [0, 100])
   } finally {
+    if (previous) registry.register(previous)
     resetUpstreamOverride()
   }
 }

@@ -194,8 +194,11 @@ import { ONLINE_SPECS, omni as builtinOmni, registry as builtinRegistry, registe
   resetSources()
   const registered = registerOnlineSources()
   // 酷狗与 QQ 由各自的 Folia 移植源注册（registerKugouSource / registerQqFoliaSource），不在 ONLINE_SPECS 里。
-  assert.deepEqual(registered.map((source) => source.id), ['netease', 'kugouLite', 'navidrome'])
-  assert.equal(builtinRegistry.get('netease').displayName, 'NetEase Cloud Music')
+  // 网易云、QQ、酷狗都由各自的 Folia 移植源注册（registerNeteaseFoliaSource / registerQqFoliaSource /
+  // registerKugouSource），ONLINE_SPECS 里只剩还走门面工厂的两个。
+  assert.deepEqual(registered.map((source) => source.id), ['kugouLite', 'navidrome'])
+  // 网易云的登记在它自己的测试里（netease-folia-source.test.mjs）。
+  assert.equal(builtinRegistry.get('netease'), null)
   assert.equal(builtinRegistry.get('navidrome').capabilities.loginPassword, true)
   assert.equal(builtinRegistry.get('navidrome').capabilities.loginQr, false)
   // QQ 的登记在它自己的测试里（qq-folia-source.test.mjs）：这里只确认它不再走门面工厂。
@@ -208,19 +211,12 @@ import { ONLINE_SPECS, omni as builtinOmni, registry as builtinRegistry, registe
   assert.equal(builtinRegistry.get('kugouLite').capabilities.playlistAdd, true)
   assert.equal(builtinRegistry.get('kugouLite').capabilities.mutations, true)
   assert.equal(builtinRegistry.get('kugouLite').capabilities.playlistTrackMutations, true)
-  assert.equal(builtinRegistry.get('netease').capabilities.listeningRank, true)
-  assert.equal(builtinRegistry.get('netease').capabilities.playbackReports, true)
 
   // Folia-style provider metadata: quality ladder, login methods and the
   // namespaced API view are part of every registered provider.
   assert.deepEqual(builtinRegistry.get('kugouLite').qualityLevels, ['standard', 'high', 'lossless'])
-  assert.deepEqual(builtinRegistry.get('netease').qualityLevels, ['standard', 'high', 'lossless', 'hires'])
   assert.deepEqual(builtinRegistry.get('navidrome').qualityLevels, ['original'])
-  assert.deepEqual(builtinOmni.loginMethods('netease'), ['qr'])
   assert.deepEqual(builtinOmni.loginMethods('navidrome'), ['password'])
-  assert.ok(builtinRegistry.get('netease').api.search)
-  assert.ok(builtinRegistry.get('netease').api.playback)
-  assert.ok(builtinRegistry.get('netease').api.library)
   assert.deepEqual(builtinOmni.summaries().map((s) => s.id), ONLINE_SPECS.map((s) => s.id))
   resetSources()
   assert.deepEqual(builtinRegistry.summaries(), [])
@@ -284,16 +280,12 @@ import { ONLINE_SPECS, omni as builtinOmni, registry as builtinRegistry, registe
 
 {
   const specs = Object.fromEntries(ONLINE_SPECS.map((spec) => [spec.id, spec]))
-  assert.equal(specs.netease.capabilities.searchAlbums, true)
-  assert.equal(specs.netease.capabilities.searchPlaylists, true)
-  // QQ 不再走门面工厂：它的能力表在 qq-folia-source.test.mjs 里验。
+  // 网易云与 QQ 不再走门面工厂：它们的能力表在各自移植源的测试里验。
   assert.equal(specs.navidrome.capabilities.searchAlbums, true)
   assert.ok(!specs.navidrome.capabilities.searchPlaylists)
   assert.equal(specs.navidrome.capabilities.browseAlbums, true)
   assert.equal(specs.navidrome.capabilities.browseArtists, true)
   assert.equal(specs.kugouLite.capabilities.searchAlbums, true)
-  assert.ok(!specs.netease.capabilities.browseAlbums)
-  assert.ok(!specs.netease.capabilities.browseArtists)
 }
 
 {

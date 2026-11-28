@@ -31,6 +31,7 @@ export function createFoliaSource(options) {
   const catalog = caps['catalog@1']
   const recommendations = caps['recommendations@1']
   const mutations = caps['mutations@1']
+  const reports = caps['reports@1']
 
   // 集合的完整对象（上游有些方法要它带着 data 侧车），读到就记下来。
   const collections = new Map()
@@ -106,6 +107,8 @@ export function createFoliaSource(options) {
     userCloud: hasMethod(catalog, 'getCloudTracks'),
     listeningRank: hasMethod(catalog, 'getListeningRankTracks'),
     historyRecommendations: hasMethod(recommendations, 'getHistoryDates') && hasMethod(recommendations, 'getHistorySongs'),
+    // 听歌上报：只有实现了 report 的平台才声明（网易云有，酷狗/波点/汽水都没有）。
+    playbackReports: hasMethod(reports, 'report'),
   }
 
   const source = {
@@ -347,6 +350,18 @@ export function createFoliaSource(options) {
           ...song,
           listenCount: Number(song.popularity) || 0,
         }))
+      } catch (error) { throw foliaError(error, sourceId) }
+    }
+  }
+
+  if (declared.playbackReports) {
+    // 上游的 reports@1：canReport 先判「这首歌值不值得报」（云盘、非数字 id 不报），report 真正上报。
+    source.reportPlayback = async (song, report) => {
+      const target = foliaSongOf(song)
+      try {
+        if (hasMethod(reports, 'canReport') && reports.canReport(target) !== true) return false
+        await reports.report(target, report)
+        return true
       } catch (error) { throw foliaError(error, sourceId) }
     }
   }

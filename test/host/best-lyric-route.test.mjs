@@ -18,6 +18,7 @@ import { fakeReq, fakeRes } from '../helpers.mjs'
 // QQ 由移植源在插件启动时登记；这个用例只验歌词路由，登记一个能寻址的空壳就够
 // （路由的 isOnlineSource 读注册表，不再认平台名字）。
 registry.register({ id: 'qq', kind: 'online', displayName: 'QQ Music', capabilities: { lyrics: true }, lyric: async () => null })
+registry.register({ id: 'netease', kind: 'online', displayName: 'NetEase Cloud Music', capabilities: { lyrics: true }, lyric: async () => null })
 
 const dir = await mkdtemp(join(tmpdir(), 'dsh-music-best-lyric-'))
 const lyricState = createLyricState({ dir: join(dir, 'lyric-state') })
